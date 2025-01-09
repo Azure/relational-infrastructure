@@ -1,8 +1,12 @@
 module "primary_network_resource_group" {
-  count     = local.deploy_primary ? 1 : 0
-  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
-  location  = var.primary_location
-  name      = local.primary_networks_rg_name
+  count    = local.deploy_primary ? 1 : 0
+  source   = "Azure/avm-res-resources-resourcegroup/azurerm"
+  location = var.primary_location
+  name     = local.primary_networks_rg_name
+
+  tags = {
+    description = "Primary Region Networking"
+  }
 }
 
 module "primary_dmz_vnet" {
@@ -13,6 +17,10 @@ module "primary_dmz_vnet" {
   resource_group_name = module.primary_network_resource_group[0].name
   name                = local.primary_dmz_vnet_name
   subnets             = local.primary_dmz_vnet_subnets
+
+  tags = {
+    description = "Primary Region DMZ Network"
+  }
 }
 
 module "primary_shared_infra_vnet" {
@@ -23,6 +31,10 @@ module "primary_shared_infra_vnet" {
   resource_group_name = module.primary_network_resource_group[0].name
   name                = local.primary_shared_infra_vnet_name
   subnets             = local.primary_shared_infra_vnet_subnets
+
+  tags = {
+    description = "Primary Region Shared Infrastructure Network"
+  }
 }
 
 module "primary_main_vnet" {
@@ -33,6 +45,10 @@ module "primary_main_vnet" {
   resource_group_name = module.primary_network_resource_group[0].name
   name                = local.primary_main_vnet_name
   subnets             = local.primary_main_vnet_subnets
+
+  tags = {
+    description = "Primary Region Main Network"
+  }
 }
 
 module "primary_hyperspace_vnet" {
@@ -43,6 +59,10 @@ module "primary_hyperspace_vnet" {
   resource_group_name = module.primary_network_resource_group[0].name
   name                = local.primary_hyperspace_vnet_name
   subnets             = local.primary_hyperspace_vnet_subnets
+
+  tags = {
+    description = "Primary Region Hyperspace Network"
+  }
 }
 
 module "primary_hyperspace_web_vnet" {
@@ -53,6 +73,10 @@ module "primary_hyperspace_web_vnet" {
   resource_group_name = module.primary_network_resource_group[0].name
   name                = local.primary_hyperspace_web_vnet_name
   subnets             = local.primary_hyperspace_web_vnet_subnets
+
+  tags = {
+    description = "Primary Region Hyperspace Web Network"
+  }
 }
 
 resource "azurerm_virtual_network_peering" "peer_primary_hyperspace_to_hsw" {

@@ -1,8 +1,12 @@
 module "alt_network_resource_group" {
-  count     = local.deploy_alt ? 1 : 0
-  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
-  location  = var.alt_location
-  name      = local.alt_networks_rg_name
+  count    = local.deploy_alt ? 1 : 0
+  source   = "Azure/avm-res-resources-resourcegroup/azurerm"
+  location = var.alt_location
+  name     = local.alt_networks_rg_name
+
+  tags = {
+    description = "Alternate Region Networking"
+  }
 }
 
 module "alt_dmz_vnet" {
@@ -13,6 +17,10 @@ module "alt_dmz_vnet" {
   resource_group_name = module.alt_network_resource_group[0].name
   name                = local.alt_dmz_vnet_name
   subnets             = local.alt_dmz_vnet_subnets
+
+  tags = {
+    description = "Alternate Region DMZ Network"
+  }
 }
 
 module "alt_shared_infra_vnet" {
@@ -23,6 +31,10 @@ module "alt_shared_infra_vnet" {
   resource_group_name = module.alt_network_resource_group[0].name
   name                = local.alt_shared_infra_vnet_name
   subnets             = local.alt_shared_infra_vnet_subnets
+
+  tags = {
+    description = "Alternate Region Shared Infrastructure Network"
+  }
 }
 
 module "alt_main_vnet" {
@@ -33,6 +45,10 @@ module "alt_main_vnet" {
   resource_group_name = module.alt_network_resource_group[0].name
   name                = local.alt_main_vnet_name
   subnets             = local.alt_main_vnet_subnets
+
+  tags = {
+    description = "Alternate Region Main Network"
+  }
 }
 
 module "alt_hyperspace_vnet" {
@@ -43,6 +59,10 @@ module "alt_hyperspace_vnet" {
   resource_group_name = module.alt_network_resource_group[0].name
   name                = local.alt_hyperspace_vnet_name
   subnets             = local.alt_hyperspace_vnet_subnets
+
+  tags = {
+    description = "Alternate Region Hyperspace Network"
+  }
 }
 
 module "alt_hyperspace_web_vnet" {
@@ -53,6 +73,10 @@ module "alt_hyperspace_web_vnet" {
   resource_group_name = module.alt_network_resource_group[0].name
   name                = local.alt_hyperspace_web_vnet_name
   subnets             = local.alt_hyperspace_web_vnet_subnets
+
+  tags = {
+    description = "Alternate Region Hyperspace Web Network"
+  }
 }
 
 resource "azurerm_virtual_network_peering" "peer_alt_hyperspace_to_hsw" {
