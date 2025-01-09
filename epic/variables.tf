@@ -1,3 +1,8 @@
+variable "deployment_prefix" {
+  type     = string
+  nullable = false
+}
+
 variable "primary_location" {
   type        = string
   description = <<DESCRIPTION
@@ -13,10 +18,10 @@ For a complete list of Azure regions with availability zones, see:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
     DESCRIPTION
-  nullable    = false
+  nullable    = true
 
   validation {
-    condition = contains(
+    condition = ((var.primary_location == null) || (contains(
       [
         "southafricanorth",
         "eastasia",
@@ -47,7 +52,7 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
         "eastus",
         "eastus2"
       ],
-    lower(var.primary_location))
+    lower(var.primary_location))))
 
     error_message = <<ERROR_MESSAGE
 The location must be a valid Azure region with availability zones.
@@ -82,7 +87,7 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
   nullable    = false
 
   validation {
-    condition = contains(
+    condition = ((var.alt_location == null) || (contains(
       [
         "southafricanorth",
         "eastasia",
@@ -113,7 +118,7 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
         "eastus",
         "eastus2"
       ],
-    lower(var.alt_location))
+    lower(var.alt_location))))
 
     error_message = <<ERROR_MESSAGE
 The location must be a valid Azure region with availability zones.
@@ -130,27 +135,158 @@ ERROR_MESSAGE
   }
 }
 
-variable "resource_prefix" {
-  type     = string
-  nullable = false
+variable "alt_networks" {
+  type = object({
+    dmz = object({
+      space = string
+      subnets = object({
+        firewall_space       = string
+        production_space     = string
+        non_production_space = string
+      })
+    })
+    shared_infra = object({
+      space = string
+      subnets = object({
+        gateway_space    = string
+        management_space = string
+      })
+    })
+    main = object({
+      space = string
+      subnets = object({
+        odb_space    = string
+        wss_space    = string
+        cogito_space = string
+      })
+    })
+    hyperspace = object({
+      space = string
+      subnets = object({
+        hyperspace_space = string
+      })
+    })
+    hyperspace_web = object({
+      space = string
+      subnets = object({
+        hyperspace_web_space = string
+      })
+    })
+  })
+
+  default = {
+    dmz = {
+      space = "10.0.0.0/16"
+      subnets = {
+        firewall_space       = "10.0.0.0/24"
+        production_space     = "10.0.1.0/24"
+        non_production_space = "10.0.2.0/24"
+      }
+    }
+    shared_infra = {
+      space = "10.1.0.0/16"
+      subnets = {
+        gateway_space    = "10.1.0.0/24"
+        management_space = "10.1.1.0/24"
+      }
+    }
+    main = {
+      space = "10.2.0.0/16"
+      subnets = {
+        odb_space    = "10.2.0.0/24"
+        wss_space    = "10.2.1.0/24"
+        cogito_space = "10.2.2.0/24"
+      }
+    }
+    hyperspace = {
+      space = "10.3.0.0/16"
+      subnets = {
+        hyperspace_space = "10.3.0.0/24"
+      }
+    }
+    hyperspace_web = {
+      space = "10.4.0.0/16"
+      subnets = {
+        hyperspace_web_space = "10.4.0.0/24"
+      }
+    }
+  }
 }
 
-variable "primary_network_address_spaces" {
+variable "primary_networks" {
   type = object({
-    dmz                   = string
-    shared_infrastructure = string
-    main                  = string
-    hyperspace            = string
-    hyperspace_web        = string
+    dmz = object({
+      space = string
+      subnets = object({
+        firewall_space       = string
+        production_space     = string
+        non_production_space = string
+      })
+    })
+    shared_infra = object({
+      space = string
+      subnets = object({
+        gateway_space    = string
+        management_space = string
+      })
+    })
+    main = object({
+      space = string
+      subnets = object({
+        odb_space    = string
+        wss_space    = string
+        cogito_space = string
+      })
+    })
+    hyperspace = object({
+      space = string
+      subnets = object({
+        hyperspace_space = string
+      })
+    })
+    hyperspace_web = object({
+      space = string
+      subnets = object({
+        hyperspace_web_space = string
+      })
+    })
   })
-}
 
-variable "alt_network_address_spaces" {
-  type = object({
-    dmz                   = string
-    shared_infrastructure = string
-    main                  = string
-    hyperspace            = string
-    hyperspace_web        = string
-  })
+  default = {
+    dmz = {
+      space = "10.10.0.0/16"
+      subnets = {
+        firewall_space       = "10.10.0.0/24"
+        production_space     = "10.10.1.0/24"
+        non_production_space = "10.10.2.0/24"
+      }
+    }
+    shared_infra = {
+      space = "10.11.0.0/16"
+      subnets = {
+        gateway_space    = "10.11.0.0/24"
+        management_space = "10.11.1.0/24"
+      }
+    }
+    main = {
+      space = "10.12.0.0/16"
+      subnets = {
+        odb_space    = "10.12.0.0/24"
+        wss_space    = "10.12.1.0/24"
+        cogito_space = "10.12.2.0/24"
+      }
+    }
+    hyperspace = {
+      space = "10.13.0.0/16"
+      subnets = {
+        hyperspace_space = "10.13.0.0/24"
+      }
+    }
+    hyperspace_web = {
+      space = "10.14.0.0/16"
+      subnets = {
+        hyperspace_web_space = "10.14.0.0/24"
+      }
+    }
+  }
 }
