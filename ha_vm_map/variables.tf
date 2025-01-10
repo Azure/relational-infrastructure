@@ -37,7 +37,7 @@ variable "virtualmachine_profiles" {
 
 variable "virtualmachine_sets" {
   type = map(object({
-    count                      = optional(number, 2)
+    vm_count                   = optional(number, 2)
     location                   = string
     profile_name               = string
     resource_group_name        = string

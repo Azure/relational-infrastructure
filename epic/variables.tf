@@ -3,6 +3,13 @@ variable "deployment_prefix" {
   nullable = false
 }
 
+variable "environment" {
+  type        = string
+  default     = "production"
+  description = "The environment in which the Epic resources will be deployed."
+  nullable    = false
+}
+
 variable "primary_location" {
   type        = string
   description = <<DESCRIPTION

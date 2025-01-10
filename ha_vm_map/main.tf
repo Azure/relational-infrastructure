@@ -10,7 +10,7 @@ module "vm_sets" {
   resource_prefix      = each.key
   resource_group_name  = each.value.resource_group_name
   resource_tags        = each.value.tags
-  virtualmachine_count = each.value.count
+  virtualmachine_count = each.value.vm_count
 
   virtualmachine_data_disks = {
     for disk_name, disk_profile_name in var.virtualmachine_profiles[each.value.profile_name].data_disk_profiles :

@@ -1,5 +1,3 @@
-
-
 locals {
   virtualmachinescaleset_name = "${var.resource_prefix}vmssflex"
 
