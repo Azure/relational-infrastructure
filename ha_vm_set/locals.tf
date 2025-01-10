@@ -1,9 +1,9 @@
 locals {
-  virtualmachinescaleset_name = "${var.resource_prefix}vmssflex"
+  virtualmachinescaleset_name = "${var.resource_prefix}vmss"
 
   virtualmachine_names = [
     for i in range(var.virtualmachine_count) :
-    lower("${var.resource_prefix}vm${format("%02d", i + 1)}")
+    lower("${var.resource_prefix}${format("%02d", i + 1)}")
   ]
 
   virtualmachine_computer_names = [

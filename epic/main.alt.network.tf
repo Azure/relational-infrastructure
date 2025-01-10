@@ -5,7 +5,7 @@ module "alt_network_resource_group" {
   name     = local.alt_networks_rg_name
 
   tags = {
-    description = "Alternate Region Networking"
+    description = "Alternate Region Network Resources"
   }
 }
 

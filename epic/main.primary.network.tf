@@ -5,7 +5,7 @@ module "primary_network_resource_group" {
   name     = local.primary_networks_rg_name
 
   tags = {
-    description = "Primary Region Networking"
+    description = "Primary Region Network Resources"
   }
 }
 
