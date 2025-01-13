@@ -1,17 +1,17 @@
 variable "location" {
   type        = string
   description = <<DESCRIPTION
-The Azure region in which resources will be deployed.
-The selected region must have availability zones.
+The Azure location in which resources will be deployed.
+The selected location must support availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
     DESCRIPTION
   nullable    = false
 
@@ -49,24 +49,25 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
       ],
     lower(var.location))
 
-    error_message = <<ERROR_MESSAGE
-The location must be a valid Azure region with availability zones.
+    error_message = <<DESCRIPTION
+The Azure location in which resources will be deployed.
+The selected location must support availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
-ERROR_MESSAGE
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
+    DESCRIPTION
   }
 }
 
 variable "resource_prefix" {
   type        = string
-  description = "This naming prefix will be applied to all created resources (e.g., prefix01, prefix02)."
+  description = "This naming prefix will be applied to all resources."
   nullable    = false
 
   validation {
@@ -87,7 +88,7 @@ variable "resource_tags" {
   nullable    = true
 }
 
-variable "virtualmachine_count" {
+variable "virtual_machine_count" {
   type        = number
   description = "The total number of virtual machines to deploy."
   nullable    = false
@@ -98,8 +99,59 @@ variable "virtualmachine_count" {
   }
 }
 
-variable "virtualmachine_data_disks" {
+variable "enable_virtual_machine_boot_diagnostics" {
+  type        = bool
+  default     = false
+  description = "Enable boot diagnostics for the virtual machines."
+  nullable    = false
+}
+
+variable "virtual_machine_disk_controller_type" {
+  type        = string
+  description = "The disk controller type for the virtual machines."
+  default     = "SCSI"
+  nullable    = false
+
+  validation {
+    condition = contains(
+      [
+        "nvme",
+        "scsi"
+      ],
+      lower(var.virtual_machine_disk_controller_type)
+    )
+
+    error_message = <<ERROR_MESSAGE
+[virtual_machine_disk_controller_type] must be one of the following:
+
+- NVMe
+- SCSI
+
+For more information on NVMe availability, see:
+
+https://learn.microsoft.com/azure/virtual-machines/nvme-overview
+ERROR_MESSAGE
+  }
+}
+
+variable "virtual_machine_data_disks" {
   type = map(object({
+    image = optional(object({
+      copy = optional(object({
+        resource_id = string
+      }), null)
+      import = optional(object({
+        uri    = string
+        secure = optional(bool, true)
+      }), null)
+      platform = optional(object({
+        image_reference_id = string
+      }), null)
+      restore = optional(object({
+        resource_id = string
+      }), null)
+    }), null)
+
     caching              = optional(string, "ReadWrite")
     storage_account_type = optional(string, "PremiumV2_LRS")
     disk_size_gb         = number
@@ -119,7 +171,7 @@ variable "virtualmachine_data_disks" {
     lower(disk.caching))])
 
     error_message = <<ERROR_MESSAGE
-[virtualmachine_data_disks.caching] must be one of the following values: 
+[virtual_machine_data_disks.caching] must be one of the following values: 
 
 - ReadWrite
 - ReadOnly
@@ -164,42 +216,27 @@ ERROR_MESSAGE
   }
 }
 
-variable "virtualmachine_image_reference" {
+variable "virtual_machine_image" {
   type = object({
-    offer     = string
-    publisher = string
-    sku       = string
-    version   = string
+    id = optional(string, null)
+    reference = optional(object({
+      offer     = string
+      publisher = string
+      sku       = string
+      version   = string
+    }), null)
   })
 
-  description = "The image reference for the virtual machines to deploy."
-  nullable    = false
-}
-
-variable "virtualmachine_os_type" {
-  type        = string
-  description = "The base OS type of the virtual machines to deploy."
+  description = "The image for the virtual machines to deploy."
   nullable    = false
 
   validation {
-    condition = contains(
-      [
-        "linux",
-        "windows"
-      ],
-      lower(var.virtualmachine_os_type)
-    )
-
-    error_message = <<ERROR_MESSAGE
-[virtualmachine_os_type] must be one of the following:
-
-- Linux
-- Windows
-ERROR_MESSAGE
+    condition     = (var.virtual_machine_image.id != null) != (var.virtual_machine_image.reference != null)
+    error_message = "You must provide either an [id] or a [reference] for the virtual machine image, but not both."
   }
 }
 
-variable "virtualmachine_network_interfaces" {
+variable "virtual_machine_network_interfaces" {
   type = map(object({
     private_ip            = optional(string)
     private_ip_allocation = optional(string, "Dynamic")
@@ -210,7 +247,7 @@ variable "virtualmachine_network_interfaces" {
   nullable    = false
 }
 
-variable "virtualmachine_os_disk" {
+variable "virtual_machine_os_disk" {
   type = object({
     caching              = optional(string, "ReadWrite")
     storage_account_type = optional(string, "PremiumV2_LRS")
@@ -230,7 +267,7 @@ variable "virtualmachine_os_disk" {
     lower(var.virtualmachine_os_disk.caching))
 
     error_message = <<ERROR_MESSAGE
-[virtualmachine_os_disk.caching] must be one of the following values: 
+[virtual_machine_os_disk.caching] must be one of the following: 
 
 - ReadWrite
 - ReadOnly
@@ -239,8 +276,8 @@ ERROR_MESSAGE
   }
 
   validation {
-    condition     = var.virtualmachine_os_disk.disk_size_gb >= 0
-    error_message = "[virtualmachine_os_disk.disk_size_gb] must be a positive integer value."
+    condition     = var.virtual_machine_os_disk.disk_size_gb >= 0
+    error_message = "[virtual_machine_os_disk.disk_size_gb] must be a positive integer value."
   }
 
   validation {
@@ -254,10 +291,10 @@ ERROR_MESSAGE
         "standard_lrs",
         "standard_zrs"
       ],
-    lower(var.virtualmachine_os_disk.storage_account_type))
+    lower(var.virtual_machine_os_disk.storage_account_type))
 
     error_message = <<ERROR_MESSAGE
-[virtualmachine_os_disk.storage_account_type] must be one of the following values: 
+[virtual_machine_os_disk.storage_account_type] must be one of the following values: 
 
 - PremiumV2_LRS
 - Premium_LRS
@@ -270,58 +307,71 @@ ERROR_MESSAGE
   }
 }
 
-variable "virtualmachine_sku_size" {
+variable "virtual_machine_os_type" {
+  type        = string
+  description = "The base OS type of the virtual machines to deploy."
+  nullable    = false
+
+  validation {
+    condition = contains(
+      [
+        "linux",
+        "windows"
+      ],
+      lower(var.virtual_machine_os_type)
+    )
+
+    error_message = <<ERROR_MESSAGE
+[virtual_machine_os_type] must be one of the following:
+
+- Linux
+- Windows
+ERROR_MESSAGE
+  }
+}
+
+variable "virtual_machine_sku_size" {
   type        = string
   description = "The SKU size of the virtual machines to deploy."
   nullable    = false
 }
 
-variable "virtualmachine_spread_across_zones" {
-  type        = map(number)
-  default     = null
-  description = <<DESCRIPTION
-  A map of availability zones ('1', '2', and/or '3') and the number of virtual machines to deploy in each zone.
-  You must configure this variable or the 'virtualmachine_spread_evenly_across_zones' variable, but not both.
-  DESCRIPTION
+variable "virtual_machine_zone_distribution" {
+  type = object({
+    custom = optional(map(number), null)
+    even   = optional(list(string), null)
+  })
+
+  description = "The virtual machine zone distribution strategy (either custom or even)."
   nullable    = true
 
   validation {
-    condition     = var.virtualmachine_spread_across_zones == null ? true : alltrue([for zone in keys(var.virtualmachine_spread_across_zones) : contains(["1", "2", "3"], zone)])
-    error_message = "If provided, [virtualmachine_spread_across_zones] must be a map with keys of one or more of the following values: '1', '2', '3'."
+    condition     = (var.virtual_machine_zone_distribution.custom != null) != (var.virtual_machine_zone_distribution.even != null)
+    error_message = "You must configure either the 'custom' or 'even' zone distribution strategy, but not both."
   }
 
   validation {
-    condition     = var.virtualmachine_spread_across_zones == null ? true : length(keys(var.virtualmachine_spread_across_zones)) >= 2
-    error_message = "If provided, [virtualmachine_spread_across_zones] must define at least two (2) availability zones."
+    condition     = var.virtual_machine_zone_distribution.custom == null ? true : ((length(distinct(keys(var.virtual_machine_zone_distribution.custom))) >= 2) && (alltrue([for zone in keys(var.virtual_machine_zone_distribution.custom) : contains(["1", "2", "3"], zone)])))
+    error_message = "If provided, [virtual_machine_zone_distribution.custom] must be a map with keys of at least two (2) of the following availability zones: '1', '2', '3'."
   }
 
   validation {
-    condition     = var.virtualmachine_spread_across_zones == null ? true : alltrue([for zone in keys(var.virtualmachine_spread_across_zones) : var.virtualmachine_spread_across_zones[zone] > 0])
-    error_message = "If provided, [virtualmachine_spread_across_zones] must contain a positive integer value for each availability zone."
+    condition     = var.virtual_machine_zone_distribution.custom == null ? true : (length(distinct(keys(var.virtual_machine_zone_distribution.custom))) == length(keys(var.virtual_machine_zone_distribution.custom)))
+    error_message = "If provided, [virtual_machine_zone_distribution.custom] must not contain duplicate availability zones."
   }
 
   validation {
-    condition     = var.virtualmachine_spread_across_zones == null ? true : sum(values(var.virtualmachine_spread_across_zones)) != var.virtualmachine_count
-    error_message = "If provided, [virtualmachine_spread_across_zones] virtual machine counts must add up to [virtualmachine_count]."
-  }
-}
-
-variable "virtualmachine_spread_evenly_across_zones" {
-  type        = list(string)
-  default     = null
-  description = <<DESCRIPTION
-  A list of availability zones ('1', '2', and/or '3') that the virtual machines will be spread across evenly.
-  You must configure this variable or the 'virtualmachine_spread_across_zones' variable, but not both.
-  DESCRIPTION
-  nullable    = true
-
-  validation {
-    condition     = var.virtualmachine_spread_evenly_across_zones == null ? true : alltrue([for zone in var.virtualmachine_spread_evenly_across_zones : contains(["1", "2", "3"], zone)])
-    error_message = "If provided, [virtualmachine_spread_evenly_across_zones] must be a list of two (2) or more of the following values: '1', '2', '3'."
+    condition     = var.virtual_machine_zone_distribution.custom == null ? true : (sum(values(var.virtual_machine_zone_distribution.custom)) == var.virtual_machine_count)
+    error_message = "If provided, [virtual_machine_zone_distribution.custom] virtual machine counts must add up to [virtual_machine_count]."
   }
 
   validation {
-    condition     = var.virtualmachine_spread_evenly_across_zones == null ? true : length(var.virtualmachine_spread_evenly_across_zones) >= 2
-    error_message = "If provided, [virtualmachine_spread_evenly_across_zones] must define at least two (2) availability zones."
+    condition     = var.virtual_machine_zone_distribution.even == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) >= 2) && (alltrue([for zone in var.virtual_machine_zone_distribution.even : contains(["1", "2", "3"], zone)])))
+    error_message = "If provided, [virtual_machine_zone_distribution.even] must be a list of at least two (2) of the following availability zones: '1', '2', '3'."
+  }
+
+  validation {
+    condition     = var.virtual_machine_zone_distribution.even == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) == length(var.virtual_machine_zone_distribution.even)))
+    error_message = "If provided, [virtual_machine_zone_distribution.even] must not contain duplicate availability zones."
   }
 }

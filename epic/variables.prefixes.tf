@@ -1,258 +1,72 @@
-variable "prefix_region_alt" {
-  type     = string
-  nullable = false
-  default  = "a"
+variable "location_prefixes" {
+  type = object({
+    alt     = optional(string, "a")
+    primary = optional(string, "p")
+  })
+
+  nullable    = false
+  description = "The location prefixes to use for resources."
 }
 
-variable "prefix_region_primary" {
-  type     = string
-  nullable = false
-  default  = "p"
+variable "network_prefixes" {
+  type = object({
+    dmz            = optional(string, "dmznet")
+    shared_infra   = optional(string, "sifnet")
+    main           = optional(string, "mainet")
+    hyperspace     = optional(string, "hspnet")
+    hyperspace_web = optional(string, "hswnet")
+  })
+
+  nullable    = false
+  description = "The prefixes to use for network resources."
 }
 
-variable "prefix_network_dmz" {
-  type     = string
-  nullable = false
-  default  = "dmznet"
-}
+variable "app_prefixes" {
+  type = object({
+    client = object({
+      arr                 = optional(string, "arr")
+      bca_pc              = optional(string, "bcp")
+      bca_web             = optional(string, "bcw")
+      care_everywhere     = optional(string, "cev")
+      care_everywhere_arr = optional(string, "car")
+      digital_signing     = optional(string, "dss")
+      epiccare_link       = optional(string, "ecl")
+      hyperspace_web      = optional(string, "hsw")
+      hyperspace          = optional(string, "hsp")
+      hyperdrive          = optional(string, "hdr")
+      interconnect        = optional(string, "icn")
+      mpsql               = optional(string, "sql")
+      system_pulse        = optional(string, "sps")
+      kuiper              = optional(string, "kpr")
+      web_blob            = optional(string, "wbs")
+      eps                 = optional(string, "eps")
+      mychart             = optional(string, "myc")
+      sts                 = optional(string, "sts")
+      welcome_web         = optional(string, "wwb")
+      citrix_cc           = optional(string, "ccc")
+      citrix_vda          = optional(string, "cvd")
+      willow              = optional(string, "wlw")
+      image_exchange      = optional(string, "imx")
+    })
+    cogito = object({
+      caboodle_db      = optional(string, "cad")
+      clarity_db       = optional(string, "cld")
+      caboodle_console = optional(string, "cac")
+      clarity_console  = optional(string, "clc")
+      caboodle_etl     = optional(string, "cae")
+      slicer_dicer     = optional(string, "sld")
+      bi_restful       = optional(string, "bir")
+      cubes            = optional(string, "cub")
+    })
+    odb = object({
+      odb          = optional(string, "odb")
+      odb_ecp_app  = optional(string, "oea")
+      odb_ecp_util = optional(string, "oeu")
+      rpt          = optional(string, "rpt")
+      rpt_ecp_util = optional(string, "reu")
+    })
+  })
 
-variable "prefix_network_shared_infra" {
-  type     = string
-  nullable = false
-  default  = "sifnet"
+  nullable    = false
+  description = "The application prefixes to use for virtual machine resources."
 }
-
-variable "prefix_network_main" {
-  type     = string
-  nullable = false
-  default  = "mainet"
-}
-
-variable "prefix_network_hyperspace" {
-  type     = string
-  nullable = false
-  default  = "hspnet"
-}
-
-variable "prefix_network_hyperspace_web" {
-  type     = string
-  nullable = false
-  default  = "hswnet"
-}
-
-variable "prefix_arr" {
-  type     = string
-  nullable = false
-  default  = "arr"
-}
-
-variable "prefix_bca_web" {
-  type     = string
-  nullable = false
-  default  = "bcw"
-}
-
-variable "prefix_bca_pc" {
-  type     = string
-  nullable = false
-  default  = "bcp"
-}
-
-variable "prefix_care_everywhere" {
-  type     = string
-  nullable = false
-  default  = "cev"
-}
-
-variable "prefix_care_everywhere_arr" {
-  type     = string
-  nullable = false
-  default  = "car"
-}
-
-variable "prefix_dss" {
-  type     = string
-  nullable = false
-  default  = "dss"
-}
-
-variable "prefix_epiccare_link" {
-  type     = string
-  nullable = false
-  default  = "ecl"
-}
-
-variable "prefix_hyperspace_web" {
-  type     = string
-  nullable = false
-  default  = "hsw"
-}
-
-variable "prefix_hyperspace" {
-  type     = string
-  nullable = false
-  default  = "hsp"
-}
-
-variable "prefix_hyperdrive" {
-  type     = string
-  nullable = false
-  default  = "hdv"
-}
-
-variable "prefix_interconnect" {
-  type     = string
-  nullable = false
-  default  = "int"
-}
-
-variable "prefix_system_pulse" {
-  type     = string
-  nullable = false
-  default  = "sps"
-}
-
-variable "prefix_wbs" {
-  type     = string
-  nullable = false
-  default  = "wbs"
-}
-
-variable "prefix_eps" {
-  type     = string
-  nullable = false
-  default  = "eps"
-}
-
-variable "prefix_kuiper" {
-  type     = string
-  nullable = false
-  default  = "kpr"
-}
-
-variable "prefix_mychart" {
-  type     = string
-  nullable = false
-  default  = "myc"
-}
-
-variable "prefix_sts" {
-  type     = string
-  nullable = false
-  default  = "sts"
-}
-
-variable "prefix_welcome_web" {
-  type     = string
-  nullable = false
-  default  = "wwb"
-}
-
-variable "prefix_citrix_cc" {
-  type     = string
-  nullable = false
-  default  = "ccc"
-}
-
-variable "prefix_citrix_vda" {
-  type     = string
-  nullable = false
-  default  = "cvd"
-}
-
-variable "prefix_willow" {
-  type     = string
-  nullable = false
-  default  = "wil"
-}
-
-variable "prefix_image_exchange" {
-  type     = string
-  nullable = false
-  default  = "imx"
-}
-
-variable "prefix_odb" {
-  type     = string
-  nullable = false
-  default  = "odb"
-}
-
-variable "prefix_odb_ecp_app" {
-  type     = string
-  nullable = false
-  default  = "oea"
-}
-
-variable "prefix_odb_ecp_util" {
-  type     = string
-  nullable = false
-  default  = "oeu"
-}
-
-variable "prefix_rpt" {
-  type     = string
-  nullable = false
-  default  = "rpt"
-}
-
-variable "prefix_rpt_ecp_util" {
-  type     = string
-  nullable = false
-  default  = "reu"
-}
-
-variable "prefix_caboodle_db" {
-  type     = string
-  nullable = false
-  default  = "cbd"
-}
-
-variable "prefix_clarity_db" {
-  type     = string
-  nullable = false
-  default  = "cld"
-}
-
-variable "prefix_caboodle_console" {
-  type     = string
-  nullable = false
-  default  = "cbc"
-}
-
-variable "prefix_clarity_console" {
-  type     = string
-  nullable = false
-  default  = "clc"
-}
-
-variable "prefix_caboodle_etl" {
-  type     = string
-  nullable = false
-  default  = "cbe"
-}
-
-variable "prefix_slicerdicer" {
-  type     = string
-  nullable = false
-  default  = "slc"
-}
-
-variable "prefix_birestful" {
-  type     = string
-  nullable = false
-  default  = "bir"
-}
-
-variable "prefix_mpsql" {
-  type     = string
-  nullable = false
-  default  = "sql"
-}
-
-variable "prefix_cubes" {
-  type     = string
-  nullable = false
-  default  = "cub"
-}
-

@@ -1,7 +1,7 @@
 module "virtualmachinescaleset" {
   source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
 
-  name                        = local.virtualmachinescaleset_name
+  name                        = local.virtual_machine_scale_set_name
   location                    = var.location
   resource_group_name         = var.resource_group_name
   extension_protected_setting = {}
@@ -10,19 +10,22 @@ module "virtualmachinescaleset" {
 
 module "virtualmachines" {
   source = "Azure/avm-res-compute-virtualmachine/azurerm"
-  count  = var.virtualmachine_count
+  count  = var.virtual_machine_count
 
-  name                                  = local.virtualmachine_names[count.index]
+  name                                  = local.virtual_machine_names[count.index]
   tags                                  = var.resource_tags
   location                              = var.location
-  computer_name                         = local.virtualmachine_computer_names[count.index]
-  data_disk_managed_disks               = local.virtualmachine_data_disks[count.index]
-  os_disk                               = local.virtualmachine_os_disks[count.index]
-  os_type                               = var.virtualmachine_os_type
-  network_interfaces                    = local.virtualmachine_networkinterfaces[count.index]
+  computer_name                         = local.virtual_machine_computer_names[count.index]
+  boot_diagnostics                      = var.enable_virtual_machine_boot_diagnostics
+  disk_controller_type                  = var.virtual_machine_disk_controller_type
+  data_disk_managed_disks               = local.virtual_machine_data_disks[count.index]
+  os_disk                               = local.virtual_machine_os_disks[count.index]
+  os_type                               = var.virtual_machine_os_type
+  network_interfaces                    = local.virtual_machine_network_interfaces[count.index]
   resource_group_name                   = var.resource_group_name
-  source_image_reference                = var.virtualmachine_image_reference
-  sku_size                              = var.virtualmachine_sku_size
-  virtual_machine_scale_set_resource_id = module.virtualmachinescaleset.resource_id
-  zone                                  = local.virtualmachine_zones[count.index]
+  source_image_reference                = var.virtual_machine_image.reference
+  source_image_resource_id              = var.virtual_machine_image.id
+  sku_size                              = var.virtual_machine_sku_size
+  virtual_machine_scale_set_resource_id = module.virtual_machine_scale_set.resource_id
+  zone                                  = local.virtual_machine_zones[count.index]
 }
