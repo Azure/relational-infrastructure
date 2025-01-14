@@ -299,15 +299,24 @@ variable "primary_networks" {
 }
 
 variable "virtual_machine_sets" {
-  type = map(object({
+  default = {
+    alt = {
+      
+    }
+  }
+
+  type = object({
     alt = optional(map(object({
-      vm_count            = optional(number, 2)
-      location            = string
-      resource_group_name = string
-      resource_prefix     = string
-      tags                = optional(map(string), {})
-      os_type             = optional(string, "Windows")
-      sku_size            = string
+      vm_count                      = optional(number, 2)
+      location                      = string
+      resource_group_name           = string
+      resource_prefix               = string
+      tags                          = optional(map(string), {})
+      os_type                       = optional(string, "Windows")
+      sku_size                      = string
+      disk_controller_type          = optional(string, "SCSI")
+      enable_boot_diagnostics       = optional(bool, false)
+      capacity_reservation_group_id = optional(string, null)
       image = optional(object({
         id = optional(string, null) # or...
         reference = optional(object({
@@ -379,14 +388,20 @@ variable "virtual_machine_sets" {
         subnet_id             = string
       }))
     })), {})
-  }))
+  })
 }
 
 variable "virtual_machine_set_zone_distribution" {
-  type = map(object({
-    custom = optional(map(number), null)
-    even   = optional(list(string), null)
-  }))
+  type = object({
+    alt = map(object({
+      custom = optional(map(number), null)
+      even   = optional(list(string), null)
+    }))
+    primary = map(object({
+      custom = optional(map(number), null)
+      even   = optional(list(string), null)
+    }))
+  })
 
   nullable = false
 }
@@ -397,6 +412,7 @@ variable "cloud_specs_guide" {
       count    = number
       sku_size = string
       data_disks = optional(map(object({
+        lun                  = number
         storage_account_type = optional(string, "PremiumV2_LRS")
         disk_size_gb         = number
       })), {})
@@ -409,6 +425,7 @@ variable "cloud_specs_guide" {
       count    = number
       sku_size = string
       data_disks = optional(map(object({
+        lun                  = number
         storage_account_type = optional(string, "PremiumV2_LRS")
         disk_size_gb         = number
       })), {})
