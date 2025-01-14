@@ -13,17 +13,17 @@ variable "environment" {
 variable "primary_location" {
   type        = string
   description = <<DESCRIPTION
-The primary Azure region in which Epic resources will be deployed.
-The selected region must have availability zones.
+The Azure location in which resources will be deployed.
+The selected location must support availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
     DESCRIPTION
   nullable    = true
 
@@ -62,16 +62,16 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
     lower(var.primary_location))))
 
     error_message = <<ERROR_MESSAGE
-The location must be a valid Azure region with availability zones.
+[primary_location] must be a valid Azure location which supports availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
 ERROR_MESSAGE
   }
 }
@@ -79,17 +79,17 @@ ERROR_MESSAGE
 variable "alt_location" {
   type        = string
   description = <<DESCRIPTION
-The alternate Azure region in which Epic resources will be deployed.
-The selected region must have availability zones.
+The Azure location in which resources will be deployed.
+The selected location must support availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
     DESCRIPTION
   nullable    = false
 
@@ -128,16 +128,16 @@ https://learn.microsoft.com/azure/reliability/availability-zones-region-support
     lower(var.alt_location))))
 
     error_message = <<ERROR_MESSAGE
-The location must be a valid Azure region with availability zones.
+[alt_location] must be a valid Azure location which supports availability zones.
 
-For a complete list of Azure regions, run one of the following commands:
-
-- Powershell: Get-AzLocation | Select-Object Location
-- Azure CLI: az account list-locations --query "[].name"
-
-For a complete list of Azure regions with availability zones, see:
+The following locations support availability zones:
 
 https://learn.microsoft.com/azure/reliability/availability-zones-region-support
+
+For a complete list of Azure locations:
+
+Azure CLI:        az account list-locations --query "[].name"
+Azure Powershell: Get-AzLocation | Select-Object Location
 ERROR_MESSAGE
   }
 }
@@ -296,4 +296,162 @@ variable "primary_networks" {
       }
     }
   }
+}
+
+variable "virtual_machine_sets" {
+  type = map(object({
+    alt = optional(map(object({
+      vm_count            = optional(number, 2)
+      location            = string
+      resource_group_name = string
+      resource_prefix     = string
+      tags                = optional(map(string), {})
+      os_type             = optional(string, "Windows")
+      sku_size            = string
+      image = optional(object({
+        id = optional(string, null) # or...
+        reference = optional(object({
+          offer     = string
+          publisher = string
+          sku       = string
+          version   = string
+        }), null)
+      }), null)
+      data_disks = optional(map(object({
+        caching = optional(string, "ReadWrite")
+        image = optional(object({
+          copy = optional(object({
+            resource_id = string
+          }), null) # or...
+          import = optional(object({
+            uri    = string
+            secure = optional(bool, true)
+          }), null) # or...
+          platform = optional(object({
+            image_reference_id = string
+          }), null) # or...
+          restore = optional(object({
+            resource_id = string
+          }), null)
+        }), null)
+      })), {})
+      network_interfaces = map(object({
+        private_ip_allocation = optional(string, "Dynamic")
+        subnet_id             = string
+      }))
+    })), {})
+    primary = optional(map(object({
+      vm_count            = optional(number, 2)
+      location            = string
+      resource_group_name = string
+      tags                = optional(map(string), {})
+      os_type             = optional(string, "Windows")
+      sku_size            = string
+      image = optional(object({
+        id = optional(string, null) # or...
+        reference = optional(object({
+          offer     = string
+          publisher = string
+          sku       = string
+          version   = string
+        }), null)
+      }), null)
+      data_disks = optional(map(object({
+        caching = optional(string, "ReadWrite")
+        image = optional(object({
+          copy = optional(object({
+            resource_id = string
+          }), null) # or...
+          import = optional(object({
+            uri    = string
+            secure = optional(bool, true)
+          }), null) # or...
+          platform = optional(object({
+            image_reference_id = string
+          }), null) # or...
+          restore = optional(object({
+            resource_id = string
+          }), null)
+        }), null)
+      })), {})
+      network_interfaces = map(object({
+        private_ip_allocation = optional(string, "Dynamic")
+        subnet_id             = string
+      }))
+    })), {})
+  }))
+}
+
+variable "virtual_machine_set_zone_distribution" {
+  type = map(object({
+    custom = optional(map(number), null)
+    even   = optional(list(string), null)
+  }))
+
+  nullable = false
+}
+
+variable "cloud_specs_guide" {
+  type = object({
+    alt = optional(map(object({
+      count    = number
+      sku_size = string
+      data_disks = optional(map(object({
+        storage_account_type = optional(string, "PremiumV2_LRS")
+        disk_size_gb         = number
+      })), {})
+      os_disk = object({
+        storage_account_type = string
+        disk_size_gb         = number
+      })
+    })), {})
+    primary = optional(map(object({
+      count    = number
+      sku_size = string
+      data_disks = optional(map(object({
+        storage_account_type = optional(string, "PremiumV2_LRS")
+        disk_size_gb         = number
+      })), {})
+      os_disk = object({
+        storage_account_type = string
+        disk_size_gb         = number
+      })
+    })), {})
+  })
+}
+
+variable "location_prefixes" {
+  type = object({
+    southafricanorth   = optional(string, "san")
+    eastasia           = optional(string, "eas")
+    southeastasia      = optional(string, "sea")
+    australiaeast      = optional(string, "aue")
+    brazilsouth        = optional(string, "bzs")
+    canadacentral      = optional(string, "cac")
+    chinanorth3        = optional(string, "cn3")
+    northeurope        = optional(string, "neu")
+    westeurope         = optional(string, "weu")
+    francecentral      = optional(string, "frc")
+    germanywestcentral = optional(string, "gwc")
+    centralindia       = optional(string, "cin")
+    israelcentral      = optional(string, "isc")
+    italynorth         = optional(string, "itn")
+    japaneast          = optional(string, "jpe")
+    koreacentral       = optional(string, "koc")
+    norwayeast         = optional(string, "nwe")
+    polandcentral      = optional(string, "poc")
+    qatarcentral       = optional(string, "qtc")
+    swedencentral      = optional(string, "swc")
+    switzerlandnorth   = optional(string, "szn")
+    uksouth            = optional(string, "uks")
+    southcentralus     = optional(string, "scu")
+    westus2            = optional(string, "wu2")
+    westus3            = optional(string, "wu3")
+    centralus          = optional(string, "cus")
+    eastus             = optional(string, "eus")
+    eastus2            = optional(string, "eu2")
+  })
+
+  nullable    = false
+  description = "The location prefixes to use for resources."
 }

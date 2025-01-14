@@ -106,6 +106,12 @@ variable "enable_virtual_machine_boot_diagnostics" {
   nullable    = false
 }
 
+variable "virtual_machine_capacity_reservation_group_id" {
+  type        = string
+  description = "The capacity reservation group ID for the virtual machines."
+  nullable    = true
+}
+
 variable "virtual_machine_disk_controller_type" {
   type        = string
   description = "The disk controller type for the virtual machines."
@@ -158,6 +164,7 @@ variable "virtual_machine_data_disks" {
     lun                  = number
   }))
 
+  default     = {}
   description = "A map of data disks to attach to each virtual machine."
   nullable    = true
 
