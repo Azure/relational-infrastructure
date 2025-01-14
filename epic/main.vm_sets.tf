@@ -2,9 +2,9 @@ module "alt_virtual_machine_sets" {
   source   = "../high_availability_virtual_machine_set"
   for_each = var.virtual_machine_sets.alt
 
-  location                                      = each.value.location
+  location                                      = var.alt_location
   resource_group_name                           = each.value.resource_group_name
-  resource_prefix                               = "${var.deployment_prefix}${var.location_prefixes[lower(each.value.location)]}${each.value.resource_prefix}"
+  resource_prefix                               = "${var.deployment_prefix}${var.location_prefixes[lower(var.alt_location)]}${each.value.resource_prefix}"
   resource_tags                                 = each.value.tags
   virtual_machine_count                         = each.value.vm_count
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics

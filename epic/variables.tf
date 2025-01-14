@@ -301,14 +301,13 @@ variable "primary_networks" {
 variable "virtual_machine_sets" {
   default = {
     alt = {
-      
+
     }
   }
 
   type = object({
     alt = optional(map(object({
       vm_count                      = optional(number, 2)
-      location                      = string
       resource_group_name           = string
       resource_prefix               = string
       tags                          = optional(map(string), {})
@@ -351,7 +350,6 @@ variable "virtual_machine_sets" {
     })), {})
     primary = optional(map(object({
       vm_count            = optional(number, 2)
-      location            = string
       resource_group_name = string
       tags                = optional(map(string), {})
       os_type             = optional(string, "Windows")
