@@ -1,15 +1,9 @@
-module "resource_group" {
-  source   = "Azure/avm-res-resources-resourcegroup/azurerm"
-  location = var.location
-  name     = var.resource_group_name
-}
-
 module "virtual_machine_scale_set" {
   source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
 
   name                        = local.virtual_machine_scale_set_name
   location                    = var.location
-  resource_group_name         = module.resource_group.name
+  resource_group_name         = var.resource_group_name
   extension_protected_setting = {}
   user_data_base64            = null
 }
@@ -29,7 +23,7 @@ module "virtual_machines" {
   os_disk                                = local.virtual_machine_os_disks[count.index]
   os_type                                = var.virtual_machine_os_type
   network_interfaces                     = local.virtual_machine_network_interfaces[count.index]
-  resource_group_name                    = module.resource_group.name
+  resource_group_name                    = var.resource_group_name
   source_image_reference                 = var.virtual_machine_image.reference
   source_image_resource_id               = var.virtual_machine_image.id
   sku_size                               = var.virtual_machine_sku_size

@@ -1,18 +1,12 @@
 variable "deployment_prefix" {
   type     = string
   nullable = false
-
-  validation {
-    condition     = can(regex("^[a-zA-Z0-9]{1,5}$", var.deployment_prefix))
-    error_message = "The deployment prefix must be between 1 and 5 alphanumeric characters."
-  }
 }
 
-variable "environment" {
-  type        = string
-  default     = "production"
-  description = "The environment in which Epic resources will be deployed."
-  nullable    = false
+variable "include_label_tags" {
+  type        = bool
+  default     = true
+  description = "Whether to include label tags."
 }
 
 variable "tags" {
@@ -80,7 +74,7 @@ ERROR_MESSAGE
 
 variable "networks" {
   type = map(object({
-    location      = string
+    location_name = string
     address_space = string
     name          = optional(string, null)
     peered_to     = optional(list(string), [])
@@ -93,12 +87,12 @@ variable "networks" {
 
 variable "virtual_machine_sets" {
   type = map(object({
-    location                      = string
+    location_name                 = string
     name                          = optional(string, null)
     resource_group_name           = optional(string, null)
     tags                          = optional(map(string), {})
     os_type                       = optional(string, "Windows")
-    disk_controller_type          = optional(string, "SCSI")
+    disk_controller_type          = optional(string, null)
     enable_boot_diagnostics       = optional(bool, false)
     capacity_reservation_group_id = optional(string, null)
     image = optional(object({

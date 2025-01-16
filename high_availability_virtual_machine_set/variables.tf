@@ -69,11 +69,6 @@ variable "resource_prefix" {
   type        = string
   description = "This naming prefix will be applied to all resources."
   nullable    = false
-
-  validation {
-    condition     = can(regex("^[a-zA-Z0-9]{3,10}$", var.resource_prefix))
-    error_message = "[resource_prefix] must be between 3 and 10 characters in length and contain only alphanumeric characters."
-  }
 }
 
 variable "resource_group_name" {
@@ -94,8 +89,8 @@ variable "virtual_machine_count" {
   nullable    = false
 
   validation {
-    condition     = var.virtualmachine_count >= 2
-    error_message = "[virtualmachine_count] must be 2 or more."
+    condition     = var.virtual_machine_count >= 2
+    error_message = "[virtual_machine_count] must be 2 or more."
   }
 }
 
@@ -115,20 +110,20 @@ variable "virtual_machine_capacity_reservation_group_id" {
 variable "virtual_machine_disk_controller_type" {
   type        = string
   description = "The disk controller type for the virtual machines."
-  default     = "SCSI"
-  nullable    = false
+  default     = null
+  nullable    = true
 
   validation {
-    condition = contains(
+    condition = (var.virtual_machine_disk_controller_type == null || contains(
       [
         "nvme",
         "scsi"
       ],
-      lower(var.virtual_machine_disk_controller_type)
+      lower(var.virtual_machine_disk_controller_type == null ? "" : var.virtual_machine_disk_controller_type))
     )
 
     error_message = <<ERROR_MESSAGE
-[virtual_machine_disk_controller_type] must be one of the following:
+[virtual_machine_disk_controller_type] must be [null] or one of the following:
 
 - NVMe
 - SCSI
@@ -169,7 +164,7 @@ variable "virtual_machine_data_disks" {
   nullable    = true
 
   validation {
-    condition = alltrue([for disk in values(var.virtualmachine_data_disks) : contains(
+    condition = alltrue([for disk in values(var.virtual_machine_data_disks) : contains(
       [
         "none",
         "readonly",
@@ -187,17 +182,17 @@ ERROR_MESSAGE
   }
 
   validation {
-    condition     = alltrue([for disk in values(var.virtualmachine_data_disks) : disk.disk_size_gb >= 0])
-    error_message = "[virtualmachine_data_disks.disk_size_gb] must be a positive integer value."
+    condition     = alltrue([for disk in values(var.virtual_machine_data_disks) : disk.disk_size_gb >= 0])
+    error_message = "[virtual_machine_data_disks.disk_size_gb] must be a positive integer value."
   }
 
   validation {
-    condition     = alltrue([for disk in values(var.virtualmachine_data_disks) : disk.lun >= 0])
-    error_message = "[virtualmachine_data_disks.lun] must be greater than or equal to zero (0)."
+    condition     = alltrue([for disk in values(var.virtual_machine_data_disks) : disk.lun >= 0])
+    error_message = "[virtual_machine_data_disks.lun] must be greater than or equal to zero (0)."
   }
 
   validation {
-    condition = alltrue([for disk in values(var.virtualmachine_data_disks) : contains(
+    condition = alltrue([for disk in values(var.virtual_machine_data_disks) : contains(
       [
         "premiumv2_lrs",
         "premium_lrs",
@@ -271,7 +266,7 @@ variable "virtual_machine_os_disk" {
         "readonly",
         "none"
       ],
-    lower(var.virtualmachine_os_disk.caching))
+    lower(var.virtual_machine_os_disk.caching))
 
     error_message = <<ERROR_MESSAGE
 [virtual_machine_os_disk.caching] must be one of the following: 

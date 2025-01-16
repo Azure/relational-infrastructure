@@ -10,27 +10,36 @@ module "networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
   for_each = var.networks
 
-  location            = var.locations[each.value.location]
-  name                = "${var.deployment_prefix}${replace(coalesce(each.value.name, each.key), "[^a-zA-Z0-9]", "")}"
+  location            = var.locations[each.value.location_name]
+  name                = "${var.deployment_prefix}-${coalesce(each.value.name, each.key)}"
   resource_group_name = module.networks_resource_group.name
-  address_space       = each.value.address_space
-  tags                = var.tags
+  address_space       = [each.value.address_space]
+  tags                = merge(var.tags, (var.include_label_tags ? { label = each.key } : {}))
 
   subnets = {
     for subnet_name, subnet in each.value.subnets : subnet_name => {
-      address_space = subnet.address_space
-      name          = coalesce(subnet.name, subnet_name)
+      address_prefix = subnet.address_space
+      name           = coalesce(subnet.name, subnet_name)
     }
   }
 }
 
 resource "azurerm_virtual_network_peering" "peerings" {
-  for_each = { for network_name, network in var.networks : network_name => network.peered_to }
+  for_each = tomap({
+    for peering in flatten([
+      for from_network_name, from_network in var.networks : [
+        for to_network_name in from_network.peered_to : {
+          peer_from_network_name = from_network_name
+          peer_to_network_name   = to_network_name
+        }
+      ]
+    ]) : "peer-${peering.peer_from_network_name}-to-${peering.peer_to_network_name}" => peering
+  })
 
-  name                      = "peer-${each.key}-to-${each.value}"
+  name                      = each.key
   resource_group_name       = module.networks_resource_group.name
-  virtual_network_name      = module.networks[each.key].name
-  remote_virtual_network_id = module.networks[each.value].resource_id
+  virtual_network_name      = module.networks[each.value.peer_from_network_name].name
+  remote_virtual_network_id = module.networks[each.value.peer_to_network_name].resource_id
 
   depends_on = [module.networks]
 }
@@ -39,19 +48,19 @@ module "virtual_machine_set_resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
   for_each = var.virtual_machine_sets
 
-  location = var.locations[each.value.location]
-  name     = coalesce(each.value.resource_group_name, "${var.deployment_prefix}-${replace(coalesce(each.value.name, each.key), "[^a-zA-Z0-9]", "-")}")
-  tags     = merge(var.tags, each.value.tags)
+  location = var.locations[each.value.location_name]
+  name     = "${var.deployment_prefix}-${coalesce(each.value.resource_group_name, each.key)}"
+  tags     = merge(var.tags, each.value.tags, (var.include_label_tags ? { label = each.key } : {}))
 }
 
 module "virtual_machine_sets" {
   source   = "../high_availability_virtual_machine_set"
   for_each = var.virtual_machine_sets
 
-  location                                      = var.locations[each.value.location]
+  location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.virtual_machine_set_resource_groups[each.key].name
-  resource_prefix                               = "${var.deployment_prefix}${replace(coalesce(each.value.name, each.key), "[^a-zA-Z0-9]", "")}"
-  resource_tags                                 = merge(var.tags, each.value.tags)
+  resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
+  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
@@ -59,7 +68,7 @@ module "virtual_machine_sets" {
   virtual_machine_image                         = each.value.image
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
-  virtual_machine_zone_distribution             = lookup(var.virtual_machine_set_zone_distribution, each.key, { even = ["1", "2", "3"] })
+  virtual_machine_zone_distribution             = lookup(var.virtual_machine_set_zone_distribution, each.key, { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
 
@@ -74,7 +83,7 @@ module "virtual_machine_sets" {
   }
 
   virtual_machine_network_interfaces = {
-    for nic_name, nic in each.network_interfaces : nic => {
+    for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip_allocation = nic.private_ip_allocation
       subnet_id             = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
     }

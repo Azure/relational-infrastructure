@@ -39,7 +39,7 @@ locals {
         accelerated_networking_enabled = true
         ip_configurations = {
           ip_configuration_1 = {
-            name                          = lower("${local.virtual_machine_names[i]}${nic_name}nicipconfig1")
+            name                          = lower("${local.virtual_machine_names[i]}${nic_name}ipconfig01")
             private_ip_subnet_resource_id = nic_config.subnet_id
             private_ip_address_allocation = lookup(nic_config, "private_ip_allocation", "Dynamic")
             private_ip_address            = lookup(nic_config, "private_ip", null)
@@ -52,7 +52,7 @@ locals {
   virtual_machine_zones = [
     for i in range(var.virtual_machine_count) : (
       var.virtual_machine_zone_distribution.even != null ?
-      var.virtual_machine_zone_distribution.even[i % length(var.virtual_machine_zone_distribution.custom)] :
+      var.virtual_machine_zone_distribution.even[i % length(var.virtual_machine_zone_distribution.even)] :
       flatten([for zone, count in var.virtual_machine_zone_distribution.custom : [for _ in range(count) : zone]])[i]
   )]
 }
