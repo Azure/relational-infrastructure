@@ -5,7 +5,7 @@ variable "deployment_prefix" {
 
 variable "include_label_tags" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to include label tags."
 }
 
@@ -105,6 +105,7 @@ variable "virtual_machine_sets" {
       }), null)
     }), null)
     data_disks = optional(map(object({
+      lun     = number
       caching = optional(string, "ReadWrite")
       image = optional(object({
         copy = optional(object({
@@ -146,7 +147,6 @@ variable "virtual_machine_set_specs" {
     vm_count = optional(number, 2)
     sku_size = string
     data_disks = optional(map(object({
-      lun                  = number
       disk_size_gb         = number
       storage_account_type = optional(string, "PremiumV2_LRS")
     })), {})

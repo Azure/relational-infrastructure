@@ -13,10 +13,10 @@ locals {
         storage_account_type      = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
         lun                       = disk_config.lun
         disk_size_gb              = disk_config.disk_size_gb
-        create_option             = (disk_config.image == null ? "Empty" : (disk_config.copy != null ? "Copy" : (disk_config.import != null ? (disk_config.import.secure ? "ImportSecure" : "Import") : disk_config.platform != null ? "FromImage" : "Restore")))
-        source_image_reference_id = lookup(lookup(disk_config, "platform", {}), "image_reference_id", null)
-        source_resource_id        = coalesce(lookup(lookup(disk_config, "copy", {}), "resource_id", null), lookup(lookup(disk_config, "restore", {}), "resource_id", null))
-        source_uri                = lookup(lookup(disk_config, "import", {}), "uri", null)
+        create_option             = (disk_config.image == null ? "Empty" : (disk_config.image.copy != null ? "Copy" : (disk_config.image.import != null ? (disk_config.image.import.secure ? "ImportSecure" : "Import") : disk_config.image.platform != null ? "FromImage" : "Restore")))
+        source_image_reference_id = (disk_config.image == null ? null : (disk_config.image.platform != null ? disk_config.image.platform.image_reference.id : null))
+        source_resource_id        = (disk_config.image == null ? null : (disk_config.image.copy != null ? disk_config.image.copy.resource_id : (disk_config.image.restore != null ? disk_config.image.restore.resource_id : null)))
+        source_uri                = (disk_config.image == null ? null : (disk_config.image.import != null ? disk_config.image.import.uri : null))
       }
     }
   ]
