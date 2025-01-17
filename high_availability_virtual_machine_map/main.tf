@@ -24,6 +24,60 @@ module "networks" {
   }
 }
 
+resource "azurerm_network_security_group" "network_security_groups" {
+  for_each = tomap({
+    for group_config in flatten([
+      for network_name, network in var.networks : [
+        for subnet_name, subnet in network.subnets : {
+          location_name       = network.location_name
+          security_group_name = "${var.deployment_prefix}-${coalesce(subnet.security_group_name, "${network_name}-${subnet_name}-nsg")}"
+          network_name        = network_name
+          subnet_name         = subnet_name
+        }
+      ]
+    ]) : "${group_config.network_name}_${group_config.subnet_name}" => group_config
+  })
+
+  location            = var.locations[each.value.location_name]
+  name                = each.value.security_group_name
+  resource_group_name = local.network_resource_group_name
+  tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.value.network_name } : {}))
+}
+
+resource "azurerm_network_security_rule" "network_security_rules" {
+  for_each = tomap({
+    for rule_config in flatten([
+      for network_name, network in var.networks : [
+        for subnet_name, subnet in network.subnets : [
+          for rule_name, rule in subnet.security_rules : {
+            location_name = network.location_name
+            network_name  = network_name
+            subnet_name   = subnet_name
+            rule_name     = rule_name
+            rule          = rule
+          }
+        ]
+      ]
+    ]) : "${rule_config.network_name}_${rule_config.subnet_name}_${rule_config.rule_name}" => rule_config
+  })
+
+  access                       = each.value.rule.access
+  direction                    = each.value.rule.direction
+  name                         = each.value.rule_name
+  network_security_group_name  = azurerm_network_security_group.network_security_groups["${each.value.network_name}_${each.value.subnet_name}"].name
+  priority                     = each.value.rule.priority
+  protocol                     = each.value.rule.protocol
+  resource_group_name          = local.network_resource_group_name
+  destination_address_prefix   = (each.value.rule.destination.subnet == null ? each.value.rule.destination.address_space : var.networks[each.value.network_name].subnets[each.value.rule.destination.subnet.subnet_name].address_space)
+  destination_address_prefixes = each.value.rule.destination.address_spaces
+  destination_port_range       = (each.value.destination.port_ranges == null ? each.value.rule.destination.port_range : null)
+  destination_port_ranges      = each.value.rule.destination.port_ranges
+  source_address_prefix        = (each.value.rule.source.subnet == null ? each.value.rule.source.address_space : var.networks[each.value.network_name].subnets[each.value.rule.source.subnet.subnet_name].address_space)
+  source_address_prefixes      = each.value.rule.source.address_spaces
+  source_port_range            = (each.value.source.port_ranges == null ? each.value.rule.source.port_range : null)
+  source_port_ranges           = each.value.rule.source.port_ranges
+}
+
 resource "azurerm_virtual_network_peering" "peerings" {
   for_each = tomap({
     for peering in flatten([

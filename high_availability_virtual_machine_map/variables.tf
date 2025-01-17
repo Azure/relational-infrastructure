@@ -78,9 +78,41 @@ variable "networks" {
     address_space = string
     name          = optional(string, null)
     peered_to     = optional(list(string), [])
+
     subnets = map(object({
-      address_space = string
-      name          = optional(string, null)
+      address_space       = string
+      name                = optional(string, null)
+      security_group_name = optional(string, null)
+
+      security_rules = optional(map(object({
+        name      = optional(string, null)
+        access    = string
+        direction = string
+        protcol   = optional(string, "Tcp")
+        priority  = number
+
+        source = optional(object({
+          address_space  = optional(string, "*")
+          address_spaces = optional(list(string), null)
+          port_range     = optional(string, "*")
+          port_ranges    = optional(list(string), null)
+          subnet = optional(object({
+            network_name = string
+            subnet_name  = string
+          }), null)
+        }), null)
+
+        destination = optional(object({
+          address_space  = optional(string, "*")
+          address_spaces = optional(list(string), null)
+          port_range     = optional(string, "*")
+          port_ranges    = optional(list(string), null)
+          subnet = optional(object({
+            network_name = string
+            subnet_name  = string
+          }), null)
+        }), null)
+      })), {})
     }))
   }))
 }

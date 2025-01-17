@@ -60,6 +60,21 @@ networks = {
     subnets = {
       cogito = {
         address_space = "10.2.0.0/24"
+
+        security_rules = {
+          allow_from_dmz_production = {
+            access    = "Allow"
+            direction = "Inbound"
+            priority  = 100
+
+            source = {
+              subnet = {
+                network_name = "primary_dmz"
+                subnet_name  = "production"
+              }
+            }
+          }
+        }
       }
       odb = {
         address_space = "10.2.1.0/24"
