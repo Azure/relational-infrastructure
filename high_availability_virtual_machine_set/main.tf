@@ -2,6 +2,7 @@ module "virtual_machine_scale_set" {
   source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
 
   name                        = local.virtual_machine_scale_set_name
+  lock                        = local.scale_set_lock
   location                    = var.location
   resource_group_name         = var.resource_group_name
   extension_protected_setting = {}
@@ -13,6 +14,7 @@ module "virtual_machines" {
   count  = var.virtual_machine_count
 
   name                                   = local.virtual_machine_names[count.index]
+  lock                                   = local.virtual_machine_lock
   tags                                   = var.resource_tags
   location                               = var.location
   computer_name                          = local.virtual_machine_computer_names[count.index]

@@ -1,18 +1,19 @@
-module "networks_resource_group" {
-  source = "Azure/avm-res-resources-resourcegroup/azurerm"
+module "network_resource_groups" {
+  source   = "Azure/avm-res-resources-resourcegroup/azurerm"
+  for_each = var.locations
 
-  location = local.default_location
-  name     = local.network_resource_group_name
+  location = each.value
+  name     = "${var.deployment_prefix}-${each.value}-networks"
   tags     = var.tags
 }
 
 module "networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  for_each = var.networks
+  for_each = local.networks
 
-  location            = var.locations[each.value.location_name]
-  name                = "${var.deployment_prefix}-${coalesce(each.value.name, each.key)}"
-  resource_group_name = module.networks_resource_group.name
+  location            = var.locations[each.value.location_ref]
+  name                = each.value.name
+  resource_group_name = module.network_resource_groups[each.value.location_ref].name
   address_space       = [each.value.address_space]
   tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.key } : {}))
 
@@ -20,62 +21,42 @@ module "networks" {
     for subnet_name, subnet in each.value.subnets : subnet_name => {
       address_prefix = subnet.address_space
       name           = coalesce(subnet.name, subnet_name)
+
+      network_security_group = (
+        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
+        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
+        : null
+      )
     }
   }
 }
 
-resource "azurerm_network_security_group" "network_security_groups" {
-  for_each = tomap({
-    for group_config in flatten([
-      for network_name, network in var.networks : [
-        for subnet_name, subnet in network.subnets : {
-          location_name       = network.location_name
-          security_group_name = "${var.deployment_prefix}-${coalesce(subnet.security_group_name, "${network_name}-${subnet_name}-nsg")}"
-          network_name        = network_name
-          subnet_name         = subnet_name
-        }
-      ]
-    ]) : "${group_config.network_name}_${group_config.subnet_name}" => group_config
-  })
+module "network_security_groups" {
+  source   = "Azure/avm-res-network-networksecuritygroup/azurerm"
+  for_each = local.network_security_groups
 
-  location            = var.locations[each.value.location_name]
-  name                = each.value.security_group_name
-  resource_group_name = local.network_resource_group_name
-  tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.value.network_name } : {}))
-}
+  location            = var.locations[each.value.location_ref]
+  name                = each.value.name
+  resource_group_name = module.network_resource_groups[each.value.location_ref].name
+  tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.value.network_ref } : {}))
 
-resource "azurerm_network_security_rule" "network_security_rules" {
-  for_each = tomap({
-    for rule_config in flatten([
-      for network_name, network in var.networks : [
-        for subnet_name, subnet in network.subnets : [
-          for rule_name, rule in subnet.security_rules : {
-            location_name = network.location_name
-            network_name  = network_name
-            subnet_name   = subnet_name
-            rule_name     = rule_name
-            rule          = rule
-          }
-        ]
-      ]
-    ]) : "${rule_config.network_name}_${rule_config.subnet_name}_${rule_config.rule_name}" => rule_config
-  })
-
-  access                       = each.value.rule.access
-  direction                    = each.value.rule.direction
-  name                         = each.value.rule_name
-  network_security_group_name  = azurerm_network_security_group.network_security_groups["${each.value.network_name}_${each.value.subnet_name}"].name
-  priority                     = each.value.rule.priority
-  protocol                     = each.value.rule.protocol
-  resource_group_name          = local.network_resource_group_name
-  destination_address_prefix   = (each.value.rule.destination.subnet == null ? each.value.rule.destination.address_space : var.networks[each.value.network_name].subnets[each.value.rule.destination.subnet.subnet_name].address_space)
-  destination_address_prefixes = each.value.rule.destination.address_spaces
-  destination_port_range       = (each.value.destination.port_ranges == null ? each.value.rule.destination.port_range : null)
-  destination_port_ranges      = each.value.rule.destination.port_ranges
-  source_address_prefix        = (each.value.rule.source.subnet == null ? each.value.rule.source.address_space : var.networks[each.value.network_name].subnets[each.value.rule.source.subnet.subnet_name].address_space)
-  source_address_prefixes      = each.value.rule.source.address_spaces
-  source_port_range            = (each.value.source.port_ranges == null ? each.value.rule.source.port_range : null)
-  source_port_ranges           = each.value.rule.source.port_ranges
+  security_rules = {
+    for rule_ref, rule in merge(
+      local.allow_inbound_network_security_rules,
+      local.allow_outbound_network_security_rules,
+      local.deny_inbound_network_security_rules,
+      local.deny_outbound_network_security_rules) : rule_ref => {
+      destination_address_prefix = rule.destination.address_space
+      destination_port_range     = rule.destination.port_range
+      direction                  = rule.direction
+      name                       = rule.rule_name
+      access                     = rule.access
+      priority                   = rule.priority
+      protocol                   = rule.protocol
+      source_address_prefix      = rule.source.address_space
+      source_port_range          = rule.source.port_range
+    } if rule.security_group_ref == each.key
+  }
 }
 
 resource "azurerm_virtual_network_peering" "peerings" {
@@ -91,11 +72,9 @@ resource "azurerm_virtual_network_peering" "peerings" {
   })
 
   name                      = each.key
-  resource_group_name       = module.networks_resource_group.name
+  resource_group_name       = local.networks[each.value.peer_from_network_name].resource_group_name
   virtual_network_name      = module.networks[each.value.peer_from_network_name].name
   remote_virtual_network_id = module.networks[each.value.peer_to_network_name].resource_id
-
-  depends_on = [module.networks]
 }
 
 module "virtual_machine_set_resource_groups" {

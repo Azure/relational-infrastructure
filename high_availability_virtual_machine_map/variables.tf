@@ -76,6 +76,7 @@ variable "networks" {
   type = map(object({
     location_name = string
     address_space = string
+    lock          = optional(string, null)
     name          = optional(string, null)
     peered_to     = optional(list(string), [])
 
@@ -84,35 +85,97 @@ variable "networks" {
       name                = optional(string, null)
       security_group_name = optional(string, null)
 
+      lock = optional(object({
+        network_security_group = optional(string, null)
+        route_table            = optional(string, null)
+        }), {
+        network_security_group = null
+        route_table            = null
+      })
+
       security_rules = optional(map(object({
-        name      = optional(string, null)
-        access    = string
-        direction = string
-        protcol   = optional(string, "Tcp")
-        priority  = number
+        name     = optional(string, null)
+        priority = number
+        protocol = optional(string, "*")
 
-        source = optional(object({
-          address_space  = optional(string, "*")
-          address_spaces = optional(list(string), null)
-          port_range     = optional(string, "*")
-          port_ranges    = optional(list(string), null)
-          subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+        allow = optional(object({
+          in = optional(object({
+            from = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+            to = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+          }), null)
+          out = optional(object({
+            from = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+            to = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
           }), null)
         }), null)
 
-        destination = optional(object({
-          address_space  = optional(string, "*")
-          address_spaces = optional(list(string), null)
-          port_range     = optional(string, "*")
-          port_ranges    = optional(list(string), null)
-          subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+        deny = optional(object({
+          in = optional(object({
+            from = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+            to = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+          }), null)
+          out = optional(object({
+            from = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
+            to = optional(object({
+              address_space = optional(string, null)
+              port_range    = optional(string, null)
+              subnet = optional(object({
+                network_name = string
+                subnet_name  = string
+              }), null)
+            }), null)
           }), null)
         }), null)
-      })), {})
+      })), null)
     }))
   }))
 }
@@ -127,6 +190,15 @@ variable "virtual_machine_sets" {
     disk_controller_type          = optional(string, null)
     enable_boot_diagnostics       = optional(bool, false)
     capacity_reservation_group_id = optional(string, null)
+
+    lock = optional(object({
+      scale_set        = optional(string, null)
+      virtual_machines = optional(string, null)
+      }), {
+      scale_set        = null
+      virtual_machines = null
+    })
+
     image = optional(object({
       id = optional(string, null) # or...
       reference = optional(object({
@@ -136,6 +208,7 @@ variable "virtual_machine_sets" {
         version   = string
       }), null)
     }), null)
+
     data_disks = optional(map(object({
       lun     = number
       caching = optional(string, "ReadWrite")
@@ -155,6 +228,7 @@ variable "virtual_machine_sets" {
         }), null)
       }), null)
     })), {})
+
     network_interfaces = map(object({
       network_name          = string
       subnet_name           = string

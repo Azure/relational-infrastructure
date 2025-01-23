@@ -83,6 +83,20 @@ variable "resource_tags" {
   nullable    = true
 }
 
+variable "scale_set_lock_type" {
+  type        = string
+  default     = null
+  description = "The lock type (if any) to apply to the virtual machine scale set."
+  nullable    = true
+}
+
+variable "virtual_machines_lock_type" {
+  type        = string
+  default     = null
+  description = "The lock type (if any) to apply to the virtual machines."
+  nullable    = true
+}
+
 variable "virtual_machine_count" {
   type        = number
   description = "The total number of virtual machines to deploy."

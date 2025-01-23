@@ -1,4 +1,4 @@
-deployment_prefix  = "eptst02"
+deployment_prefix  = "eptst11"
 include_label_tags = true
 
 tags = {
@@ -37,8 +37,9 @@ networks = {
 
     subnets = {
       gateway = {
-        name          = "GatewaySubnet"
-        address_space = "10.1.0.0/24"
+        name           = "GatewaySubnet"
+        address_space  = "10.1.0.0/24"
+        security_rules = null
       }
       management = {
         address_space = "10.1.1.0/24"
@@ -62,17 +63,19 @@ networks = {
         address_space = "10.2.0.0/24"
 
         security_rules = {
-          allow_from_dmz_production = {
-            access    = "Allow"
-            direction = "Inbound"
-            priority  = 100
-
-            source = {
+          allow_https_from_dmz_production = {
+            priority = 100
+            allow = { in = { from = {
+              port_range = 443
               subnet = {
                 network_name = "primary_dmz"
                 subnet_name  = "production"
-              }
+              } } }
             }
+          }
+          deny_all_else_inbound = {
+            priority = 200
+            deny     = { in = {} }
           }
         }
       }

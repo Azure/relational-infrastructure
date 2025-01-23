@@ -1,6 +1,9 @@
 locals {
   virtual_machine_scale_set_name = "${var.resource_prefix}vmss"
 
+  scale_set_lock       = var.scale_set_lock_type == null ? null : { kind = var.scale_set_lock_type }
+  virtual_machine_lock = var.virtual_machines_lock_type == null ? null : { kind = var.virtual_machines_lock_type }
+
   virtual_machine_names          = [for i in range(var.virtual_machine_count) : lower("${var.resource_prefix}${format("%02d", i + 1)}")]
   virtual_machine_computer_names = [for i in range(var.virtual_machine_count) : lower(substr("${var.resource_prefix}${format("%02d", i + 1)}", 0, 15))]
 
