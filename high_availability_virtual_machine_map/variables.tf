@@ -96,6 +96,9 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -104,6 +107,9 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -114,6 +120,9 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -122,6 +131,9 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -135,6 +147,9 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -143,6 +158,9 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -153,6 +171,9 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string
@@ -161,6 +182,9 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              network = optional(object({
+                network_name = string
+              }), null)
               subnet = optional(object({
                 network_name = string
                 subnet_name  = string

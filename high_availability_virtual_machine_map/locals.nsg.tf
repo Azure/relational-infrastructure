@@ -92,7 +92,11 @@ locals {
                 address_space = (
                   outbound_rule.allow.out.to.subnet != null
                   ? local.networks[outbound_rule.allow.out.to.subnet.network_name].subnets[outbound_rule.allow.out.to.subnet.subnet_name].address_space
-                  : coalesce(outbound_rule.allow.out.to.address_space, "*")
+                  : (
+                    outbound_rule.allow.out.to.network != null
+                    ? local.networks[outbound_rule.allow.out.to.network.network_name].address_space
+                    : coalesce(outbound_rule.allow.out.to.address_space, "*")
+                  )
                 )
                 port_range = coalesce(outbound_rule.allow.out.to.port_range, "*")
               }
@@ -108,7 +112,11 @@ locals {
                 address_space = (
                   outbound_rule.allow.out.from.subnet != null
                   ? local.networks[outbound_rule.allow.out.from.subnet.network_name].subnets[outbound_rule.allow.out.from.subnet.subnet_name].address_space
-                  : coalesce(outbound_rule.allow.out.from.address_space, "*")
+                  : (
+                    outbound_rule.allow.out.from.network != null
+                    ? local.networks[outbound_rule.allow.out.from.network.network_name].address_space
+                    : coalesce(outbound_rule.allow.out.from.address_space, "*")
+                  )
                 )
                 port_range = coalesce(outbound_rule.allow.out.from.port_range, "*")
               }
@@ -144,7 +152,11 @@ locals {
                 address_space = (
                   inbound_rule.deny.in.to.subnet != null
                   ? local.networks[inbound_rule.deny.in.to.subnet.network_name].subnets[inbound_rule.deny.in.to.subnet.subnet_name].address_space
-                  : coalesce(inbound_rule.deny.in.to.address_space, "*")
+                  : (
+                    inbound_rule.deny.in.to.network != null
+                    ? local.networks[inbound_rule.deny.in.to.network.network_name].address_space
+                    : coalesce(inbound_rule.deny.in.to.address_space, "*")
+                  )
                 )
                 port_range = coalesce(inbound_rule.deny.in.to.port_range, "*")
               }
@@ -160,7 +172,11 @@ locals {
                 address_space = (
                   inbound_rule.deny.in.from.subnet != null
                   ? local.networks[inbound_rule.deny.in.from.subnet.network_name].subnets[inbound_rule.deny.in.from.subnet.subnet_name].address_space
-                  : coalesce(inbound_rule.deny.in.from.address_space, "*")
+                  : (
+                    inbound_rule.deny.in.from.network != null
+                    ? local.networks[inbound_rule.deny.in.from.network.network_name].address_space
+                    : coalesce(inbound_rule.deny.in.from.address_space, "*")
+                  )
                 )
                 port_range = coalesce(inbound_rule.deny.in.from.port_range, "*")
               }
@@ -196,7 +212,11 @@ locals {
                 address_space = (
                   outbound_rule.deny.out.to.subnet != null
                   ? local.networks[outbound_rule.deny.out.to.subnet.network_name].subnets[outbound_rule.deny.out.to.subnet.subnet_name].address_space
-                  : coalesce(outbound_rule.deny.out.to.address_space, "*")
+                  : (
+                    outbound_rule.deny.out.to.network != null
+                    ? local.networks[outbound_rule.deny.out.to.network.network_name].address_space
+                    : coalesce(outbound_rule.deny.out.to.address_space, "*")
+                  )
                 )
                 port_range = coalesce(outbound_rule.deny.out.to.port_range, "*")
               }
@@ -212,7 +232,11 @@ locals {
                 address_space = (
                   outbound_rule.deny.out.from.subnet != null
                   ? local.networks[outbound_rule.deny.out.from.subnet.network_name].subnets[outbound_rule.deny.out.from.subnet.subnet_name].address_space
-                  : coalesce(outbound_rule.deny.out.from.address_space, "*")
+                  : (
+                    outbound_rule.deny.out.from.network != null
+                    ? local.networks[outbound_rule.deny.out.from.network.network_name].address_space
+                    : coalesce(outbound_rule.deny.out.from.address_space, "*")
+                  )
                 )
                 port_range = coalesce(outbound_rule.deny.out.from.port_range, "*")
               }
