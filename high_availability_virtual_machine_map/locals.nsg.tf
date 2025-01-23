@@ -11,7 +11,7 @@ locals {
           name                = lower(coalesce(subnet.security_group_name, "${network.name}-${subnet.name}-nsg"))
           resource_group_name = network.resource_group_name
         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ]
+      ] if network != null
     ]) : "${group.network_ref}_${group.subnet_ref}" => group
   })
 
@@ -63,7 +63,7 @@ locals {
             )
           } if try(inbound_rule.allow.in != null, false)
         ] if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ]
+      ] if network != null
     ]) : "${rule.network_ref}_${rule.subnet_ref}_${rule.rule_ref}" => rule
   })
 
@@ -115,7 +115,7 @@ locals {
             )
           } if try(outbound_rule.allow.out != null, false)
         ] if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ]
+      ] if network != null
     ]) : "${rule.network_ref}_${rule.subnet_ref}_${rule.rule_ref}" => rule
   })
 
@@ -167,7 +167,7 @@ locals {
             )
           } if try(inbound_rule.deny.in != null, false)
         ] if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ]
+      ] if network != null
     ]) : "${rule.network_ref}_${rule.subnet_ref}_${rule.rule_ref}" => rule
   })
 
@@ -219,7 +219,7 @@ locals {
             )
           } if try(outbound_rule.deny.out != null, false)
         ] if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ]
+      ] if network != null
     ]) : "${rule.network_ref}_${rule.subnet_ref}_${rule.rule_ref}" => rule
   })
 

@@ -33,6 +33,6 @@ locals {
           lock_mode           = coalesce(subnet.lock_mode, network.lock_mode)
         }
       }
-    }
+    } if network != null
   }
 }

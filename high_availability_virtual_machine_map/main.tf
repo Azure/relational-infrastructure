@@ -81,7 +81,7 @@ resource "azurerm_virtual_network_peering" "peerings" {
 
 module "virtual_machine_set_resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
-  for_each = var.virtual_machine_sets
+  for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
 
   location = var.locations[each.value.location_name]
   name     = "${var.deployment_prefix}-${coalesce(each.value.resource_group_name, each.key)}"
@@ -91,7 +91,7 @@ module "virtual_machine_set_resource_groups" {
 
 module "virtual_machine_sets" {
   source   = "../high_availability_virtual_machine_set"
-  for_each = var.virtual_machine_sets
+  for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
 
   location                                      = var.locations[each.value.location_name]
   lock_mode                                     = each.value.lock_mode

@@ -215,4 +215,94 @@ module "epic" {
       ]
     }
   }
+
+  virtual_machine_sets = {
+    primary_arr = try(var.virtual_machine_sets.primary.arr, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}arr"
+      resource_group_name           = "${local.primary_location}-arr"
+      image                         = var.virtual_machine_sets.primary.arr.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.arr.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.arr.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "arr"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_dmz"
+          subnet_name  = "production"
+        }
+      }
+    }
+
+    primary_bca_pc = try(var.virtual_machine_sets.primary.bca_pc, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}bcp"
+      resource_group_name           = "${local.primary_location}-bca-pc"
+      image                         = var.virtual_machine_sets.primary.bca_pc.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.bca_pc.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.bca_pc.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "bca"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_bca_web = try(var.virtual_machine_sets.primary.bca_web, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}bcw"
+      resource_group_name           = "${local.primary_location}-bca-web"
+      image                         = var.virtual_machine_sets.primary.bca_web.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.bca_web.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.bca_web.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "bcaweb"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_care_everywhere = try(var.virtual_machine_sets.primary.care_everywhere) == null ? null : {
+      name                          = "${local.primary_location_prefix}cev"
+      resource_group_name           = "${local.primary_location}-care-everywhere"
+      image                         = var.virtual_machine_sets.primary.care_everywhere.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.care_everywhere.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.care_everywhere.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "careeverywhere"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+  }
+
+  virtual_machine_set_specs = {
+
+  }
 }
