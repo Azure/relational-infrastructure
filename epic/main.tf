@@ -280,7 +280,7 @@ module "epic" {
       }
     }
 
-    primary_care_everywhere = try(var.virtual_machine_sets.primary.care_everywhere) == null ? null : {
+    primary_care_everywhere = try(var.virtual_machine_sets.primary.care_everywhere, null) == null ? null : {
       name                          = "${local.primary_location_prefix}cev"
       resource_group_name           = "${local.primary_location}-care-everywhere"
       image                         = var.virtual_machine_sets.primary.care_everywhere.image
@@ -297,6 +297,279 @@ module "epic" {
         default = {
           network_name = "primary_main"
           subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_care_everywhere_arr = try(var.virtual_machine_sets.primary.care_everywhere_arr, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}car"
+      resource_group_name           = "${local.primary_location}-care-everywhere-arr"
+      image                         = var.virtual_machine_sets.primary.care_everywhere_arr.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.care_everywhere_arr.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.care_everywhere_arr.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "careeverywherearr"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_digital_signing = try(var.virtual_machine_sets.primary.digital_signing, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}dss"
+      resource_group_name           = "${local.primary_location}-dss"
+      image                         = var.virtual_machine_sets.primary.digital_signing.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.digital_signing.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.digital_signing.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "dss"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_epiccare_link = try(var.virtual_machine_sets.primary.epiccare_link, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}ecl"
+      resource_group_name           = "${local.primary_location}-epiccare-link"
+      image                         = var.virtual_machine_sets.primary.epiccare_link.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.epiccare_link.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.epiccare_link.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "ecl"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_dmz"
+          subnet_name  = "production"
+        }
+      }
+    }
+
+    primary_hyperspace_web = try(var.virtual_machine_sets.primary.hyperspace_web, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}hsw"
+      resource_group_name           = "${local.primary_location}-hyperspace-web"
+      image                         = var.virtual_machine_sets.primary.hyperspace_web.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.hyperspace_web.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.hyperspace_web.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "hsw"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_hyperspace_web"
+          subnet_name  = "hyperspace_web"
+        }
+      }
+    }
+
+    primary_interconnect = try(var.virtual_machine_sets.primary.interconnect, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}icn"
+      resource_group_name           = "${local.primary_location}-interconnect"
+      image                         = var.virtual_machine_sets.primary.interconnect.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.interconnect.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.interconnect.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "interconnect"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_mpsql = try(var.virtual_machine_sets.primary.mpsql, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}sql"
+      resource_group_name           = "${local.primary_location}-mpsql"
+      image                         = var.virtual_machine_sets.primary.mpsql.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.mpsql.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.mpsql.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "mpsql"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_shared_infra"
+          subnet_name  = "management"
+        }
+      }
+    }
+
+    primary_system_pulse = try(var.virtual_machine_sets.primary.system_pulse, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}sps"
+      resource_group_name           = "${local.primary_location}-system-pulse"
+      image                         = var.virtual_machine_sets.primary.system_pulse.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.system_pulse.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.system_pulse.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "systempulse"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_shared_infra"
+          subnet_name  = "management"
+        }
+      }
+    }
+
+    primary_web_blob = try(var.virtual_machine_sets.primary.web_blob, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}wbs"
+      resource_group_name           = "${local.primary_location}-web-blob"
+      image                         = var.virtual_machine_sets.primary.web_blob.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.web_blob.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.web_blob.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "wbs"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_eps = try(var.virtual_machine_sets.primary.eps, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}eps"
+      resource_group_name           = "${local.primary_location}-eps"
+      image                         = var.virtual_machine_sets.primary.eps.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.eps.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.eps.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "eps"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_kuiper = try(var.virtual_machine_sets.primary.kuiper, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}kpr"
+      resource_group_name           = "${local.primary_location}-kuiper"
+      image                         = var.virtual_machine_sets.primary.kuiper.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.kuiper.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.kuiper.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "kuiper"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_shared_infra"
+          subnet_name  = "management"
+        }
+      }
+    }
+
+    primary_mychart = try(var.virtual_machine_sets.primary.mychart, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}myc"
+      resource_group_name           = "${local.primary_location}-mychart"
+      image                         = var.virtual_machine_sets.primary.mychart.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.mychart.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.mychart.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "mychart"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_dmz"
+          subnet_name  = "production"
+        }
+      }
+    }
+
+    primary_sts = try(var.virtual_machine_sets.primary.sts, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}adc"
+      resource_group_name           = "${local.primary_location}-domain-controllers"
+      image                         = var.virtual_machine_sets.primary.sts.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.sts.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.sts.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "sts"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_shared_infra"
+          subnet_name  = "management"
+        }
+      }
+    }
+
+    primary_citrix_cc = try(var.virtual_machine_sets.primary.citrix_cc, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}ccc"
+      resource_group_name           = "${local.primary_location}-citrix-cc"
+      image                         = var.virtual_machine_sets.primary.citrix_cc.image
+      capacity_reservation_group_id = var.virtual_machine_sets.primary.citrix_cc.capacity_reservation_group_id
+      data_disks                    = var.virtual_machine_sets.primary.citrix_cc.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "citrix-cc"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_shared_infra"
+          subnet_name  = "management"
         }
       }
     }
