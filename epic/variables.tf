@@ -1764,7 +1764,7 @@ variable "workloads" {
       }), null)
       cogito = optional(object({
         caboodle_db = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1797,7 +1797,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         clarity_db = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1830,7 +1830,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         caboodle_console = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1863,7 +1863,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         clarity_console = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1896,7 +1896,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         caboodle_etl = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1929,7 +1929,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         slicer_dicer = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1962,7 +1962,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         bi_restful = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -1995,7 +1995,7 @@ capacity_reservation_group_id = optional(string, null)
           })), {})
         }), null)
         cubes = optional(object({
-capacity_reservation_group_id = optional(string, null)
+          capacity_reservation_group_id = optional(string, null)
 
           image = object({
             id = optional(string, null) # or...
@@ -2054,202 +2054,760 @@ variable "workload_specs" {
     alt = optional(object({
       client = optional(object({
         arr = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bca_pc = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bca_web = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         care_everywhere = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         care_everywhere_arr = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         digital_signing = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         epiccare_link = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         hyperspace_web = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         interconnect = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         mpsql = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         system_pulse = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         web_blob = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         eps = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         kuiper = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         mychart = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         sts = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         citrix_cc = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         willow = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         image_exchange = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
       cogito = optional(object({
         caboodle_db = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         clarity_db = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         caboodle_console = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         clarity_console = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         caboodle_etl = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         slicer_dicer = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bi_restful = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         cubes = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
       odb = optional(object({
         odb = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         odb_ecp_app = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         odb_ecp_util = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
     }), null)
     primary = object({
       client = optional(object({
         arr = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bca_pc = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bca_web = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         care_everywhere = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         care_everywhere_arr = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         digital_signing = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         epiccare_link = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         hyperspace_web = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         interconnect = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         mpsql = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         system_pulse = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         web_blob = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         eps = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         kuiper = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         mychart = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         sts = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         citrix_cc = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         willow = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         image_exchange = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
       cogito = optional(object({
         caboodle_db = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         clarity_db = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         caboodle_console = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         clarity_console = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         caboodle_etl = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         slicer_dicer = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         bi_restful = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         cubes = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
       odb = optional(object({
         odb = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         odb_ecp_app = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         odb_ecp_util = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         rpt = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
         rpt_ecp_util = optional(object({
-
+          vm_count = optional(number, 2)
+          sku_size = string
+          data_disks = optional(map(object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })), {})
+          os_disk = object({
+            disk_size_gb         = number
+            storage_account_type = optional(string, "PremiumV2_LRS")
+          })
         }), null)
       }), null)
     })
@@ -2261,202 +2819,264 @@ variable "workload_zone_distribution" {
     alt = optional(object({
       client = optional(object({
         arr = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bca_pc = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bca_web = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         care_everywhere = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         care_everywhere_arr = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         digital_signing = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         epiccare_link = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         hyperspace_web = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         interconnect = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         mpsql = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         system_pulse = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         web_blob = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         eps = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         kuiper = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         mychart = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         sts = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         citrix_cc = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         willow = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         image_exchange = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
       cogito = optional(object({
         caboodle_db = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         clarity_db = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         caboodle_console = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         clarity_console = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         caboodle_etl = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         slicer_dicer = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bi_restful = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         cubes = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
       odb = optional(object({
         odb = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         odb_ecp_app = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         odb_ecp_util = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
     }), null)
     primary = optional(object({
       client = optional(object({
         arr = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bca_pc = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bca_web = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         care_everywhere = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         care_everywhere_arr = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         digital_signing = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         epiccare_link = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         hyperspace_web = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         interconnect = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         mpsql = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         system_pulse = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         web_blob = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         eps = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         kuiper = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         mychart = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         sts = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         citrix_cc = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         willow = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         image_exchange = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
       cogito = optional(object({
         caboodle_db = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         clarity_db = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         caboodle_console = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         clarity_console = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         caboodle_etl = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         slicer_dicer = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         bi_restful = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         cubes = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
       odb = optional(object({
         odb = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         odb_ecp_app = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         odb_ecp_util = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         rpt = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
         rpt_ecp_util = optional(object({
-
+          custom = optional(map(number), null)
+          even   = optional(list(string), null)
         }), null)
       }), null)
     }), null)
