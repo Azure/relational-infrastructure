@@ -76,22 +76,15 @@ variable "networks" {
   type = map(object({
     location_name = string
     address_space = string
-    lock          = optional(string, null)
     name          = optional(string, null)
     peered_to     = optional(list(string), [])
+    lock_mode     = optional(string, null)
 
     subnets = map(object({
       address_space       = string
       name                = optional(string, null)
       security_group_name = optional(string, null)
-
-      lock = optional(object({
-        network_security_group = optional(string, null)
-        route_table            = optional(string, null)
-        }), {
-        network_security_group = null
-        route_table            = null
-      })
+      lock_mode           = optional(string, null)
 
       security_rules = optional(map(object({
         name     = optional(string, null)
@@ -190,14 +183,7 @@ variable "virtual_machine_sets" {
     disk_controller_type          = optional(string, null)
     enable_boot_diagnostics       = optional(bool, false)
     capacity_reservation_group_id = optional(string, null)
-
-    lock = optional(object({
-      scale_set        = optional(string, null)
-      virtual_machines = optional(string, null)
-      }), {
-      scale_set        = null
-      virtual_machines = null
-    })
+    lock_mode                     = optional(string, null)
 
     image = optional(object({
       id = optional(string, null) # or...

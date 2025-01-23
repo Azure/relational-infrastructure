@@ -7,6 +7,7 @@ locals {
           network_ref         = network_ref
           subnet_ref          = subnet_ref
           subnet_name         = subnet.name
+          lock_mode           = coalesce(subnet.lock_mode, network.lock_mode)
           name                = lower(coalesce(subnet.security_group_name, "${network.name}-${subnet.name}-nsg"))
           resource_group_name = network.resource_group_name
         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))

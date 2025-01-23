@@ -1,8 +1,10 @@
 locals {
-  virtual_machine_scale_set_name = "${var.resource_prefix}vmss"
+  lock_modes = {
+    no_delete = "CanNotDelete"
+    read_only = "ReadOnly"
+  }
 
-  scale_set_lock       = var.scale_set_lock_type == null ? null : { kind = var.scale_set_lock_type }
-  virtual_machine_lock = var.virtual_machines_lock_type == null ? null : { kind = var.virtual_machines_lock_type }
+  virtual_machine_scale_set_name = "${var.resource_prefix}vmss"
 
   virtual_machine_names          = [for i in range(var.virtual_machine_count) : lower("${var.resource_prefix}${format("%02d", i + 1)}")]
   virtual_machine_computer_names = [for i in range(var.virtual_machine_count) : lower(substr("${var.resource_prefix}${format("%02d", i + 1)}", 0, 15))]
@@ -11,6 +13,7 @@ locals {
     for i in range(var.virtual_machine_count) : {
       for disk_name, disk_config in var.virtual_machine_data_disks : disk_name => {
         name                      = lower("${local.virtual_machine_names[i]}${disk_name}disk")
+        lock                      = var.lock_mode == null ? null : { kind = lookup(local.lock_modes, var.lock_mode, null) }
         tags                      = var.resource_tags
         caching                   = lookup(disk_config, "caching", "ReadWrite")
         storage_account_type      = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
@@ -38,6 +41,7 @@ locals {
     for i in range(var.virtual_machine_count) : {
       for nic_name, nic_config in var.virtual_machine_network_interfaces : nic_name => {
         name                           = "${local.virtual_machine_names[i]}${nic_name}nic"
+        lock                           = var.lock_mode == null ? null : { kind = lookup(local.lock_modes, var.lock_mode, null) }
         tags                           = var.resource_tags
         accelerated_networking_enabled = true
         ip_configurations = {
