@@ -18,7 +18,7 @@ locals {
       francecentral      = "frcn"
       germanywestcentral = "gewc"
       centralindia       = "cind"
-      israelcentral      = "islc"
+      israelcentral      = "isrc"
       italynorth         = "ityn"
       japaneast          = "jape"
       koreacentral       = "korc"

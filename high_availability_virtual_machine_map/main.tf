@@ -77,6 +77,28 @@ resource "azurerm_virtual_network_peering" "peerings" {
   remote_virtual_network_id = module.networks[each.value.peer_to_network_name].resource_id
 }
 
+module "route_tables" {
+  source   = "Azure/avm-res-network-routetable/azurerm"
+  for_each = local.route_tables
+
+  location            = var.locations[each.value.location_ref]
+  name                = each.value.name
+  resource_group_name = module.network_resource_groups[each.value.location_ref].name
+
+  subnet_resource_ids = {
+    "${each.value.subnet_ref}" = module.networks[each.value.network_ref].subnets[each.value.subnet_ref].resource_id
+  }
+
+  routes = {
+    for route_name, route in each.value.routes : route_name => {
+      address_prefix      = route.address_prefix
+      name                = route.name
+      next_hop_ip_address = route.next_hop_ip_address
+      next_hop_type       = route.next_hop_type
+    }
+  }
+}
+
 module "virtual_machine_set_resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }

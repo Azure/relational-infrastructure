@@ -78,13 +78,33 @@ variable "networks" {
     address_space = string
     name          = optional(string, null)
     peered_to     = optional(list(string), [])
-    lock_mode     = optional(string, null)
 
     subnets = map(object({
       address_space       = string
       name                = optional(string, null)
       security_group_name = optional(string, null)
       lock_mode           = optional(string, null)
+
+      route_traffic = optional(map(object({
+        name = optional(string, null)
+        destined_for = {
+          address_space = optional(string, null)
+          network = optional(object({
+            network_name = string
+          }), null)
+          subnet = optional(object({
+            network_name = string
+            subnet_name  = string
+          }), null)
+        }
+        to_internet      = optional(bool, false)
+        to_local_network = optional(bool, false)
+        to_gateway       = optional(bool, false)
+        to_nowhere       = optional(bool, false)
+        to_appliance = optional(object({
+          ip_address = string
+        }), null)
+      })), null)
 
       security_rules = optional(map(object({
         name     = optional(string, null)

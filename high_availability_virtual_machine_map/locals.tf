@@ -33,4 +33,41 @@ locals {
       }
     } if network != null
   }
+
+  route_tables = {
+    for network_ref, network in var.networks : network_ref => {
+      for subnet_ref, subnet in network.subnets : subnet_ref => {
+        location_ref = network.location_name
+        network_ref  = network_ref
+        subnet_ref   = subnet_ref
+        name         = lower("${var.deployment_prefix}-${network.name}-${subnet.name}-routes")
+
+        routes = {
+          for route_ref, route in subnet.route_traffic : route_ref => {
+            name = lower(coalesce(route.name, route_ref))
+
+            address_prefix = (
+              route.destined_for.address_space != null ? route.destined_for.address_space : (
+                route.destined_for.network != null ? module.networks[route.destined_for.network.network_name].address_space :
+                module.networks[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
+              )
+            )
+
+            next_hop_type = (
+              route.to_internet ? "Internet" : (
+                route.to_nowhere ? "None" : (
+                  route.to_local_network ? "VnetLocal" : (
+                    route.to_gateway ? "VirtualNetworkGateway" :
+                    "VirtualAppliance"
+                  )
+                )
+              )
+            )
+
+            next_hop_ip_address = route.to_appliance != null ? route.to_appliance.ip_address : null
+          }
+        }
+      } if subnet.route_traffic != null
+    }
+  }
 }
