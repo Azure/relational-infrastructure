@@ -1,4 +1,4 @@
-deployment_prefix = "eptst20"
+deployment_prefix = "eptst21"
 environment_name  = "production"
 
 locations = {

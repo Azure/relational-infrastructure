@@ -16,7 +16,6 @@ module "networks" {
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
   address_space       = [each.value.address_space]
   tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.key } : {}))
-  lock                = each.value.lock_mode == null ? null : { kind = lookup(local.lock_modes, each.value.lock_mode, null) }
 
   subnets = {
     for subnet_name, subnet in each.value.subnets : subnet_name => {
@@ -40,7 +39,6 @@ module "network_security_groups" {
   name                = each.value.name
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
   tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.value.network_ref } : {}))
-  lock                = each.value.lock_mode == null ? null : { kind = lookup(local.lock_modes, each.value.lock_mode, null) }
 
   security_rules = {
     for rule_ref, rule in merge(
@@ -86,7 +84,6 @@ module "virtual_machine_set_resource_groups" {
   location = var.locations[each.value.location_name]
   name     = "${var.deployment_prefix}-${coalesce(each.value.resource_group_name, each.key)}"
   tags     = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
-  lock     = each.value.lock_mode == null ? null : { kind = lookup(local.lock_modes, each.value.lock_mode, null) }
 }
 
 module "virtual_machine_sets" {
@@ -94,7 +91,6 @@ module "virtual_machine_sets" {
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
 
   location                                      = var.locations[each.value.location_name]
-  lock_mode                                     = each.value.lock_mode
   resource_group_name                           = module.virtual_machine_set_resource_groups[each.key].name
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
   resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))

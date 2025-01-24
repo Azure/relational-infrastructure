@@ -2815,6 +2815,9 @@ variable "workload_specs" {
 }
 
 variable "workload_zone_distribution" {
+  default  = null
+  nullable = true
+
   type = object({
     alt = optional(object({
       client = optional(object({

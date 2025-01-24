@@ -217,12 +217,12 @@ module "epic" {
   }
 
   virtual_machine_sets = {
-    primary_arr = try(var.virtual_machine_sets.primary.arr, null) == null ? null : {
+    primary_arr = try(var.workloads.primary.client.arr, null) == null ? null : {
       name                          = "${local.primary_location_prefix}arr"
       resource_group_name           = "${local.primary_location}-arr"
-      image                         = var.virtual_machine_sets.primary.arr.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.arr.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.arr.data_disks
+      image                         = var.workloads.primary.client.arr.image
+      capacity_reservation_group_id = var.workloads.primary.client.arr.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.arr.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -238,12 +238,12 @@ module "epic" {
       }
     }
 
-    primary_bca_pc = try(var.virtual_machine_sets.primary.bca_pc, null) == null ? null : {
+    primary_bca_pc = try(var.workloads.primary.client.bca_pc, null) == null ? null : {
       name                          = "${local.primary_location_prefix}bcp"
       resource_group_name           = "${local.primary_location}-bca-pc"
-      image                         = var.virtual_machine_sets.primary.bca_pc.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.bca_pc.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.bca_pc.data_disks
+      image                         = var.workloads.primary.client.bca_pc.image
+      capacity_reservation_group_id = var.workloads.primary.client.bca_pc.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.bca_pc.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -259,12 +259,12 @@ module "epic" {
       }
     }
 
-    primary_bca_web = try(var.virtual_machine_sets.primary.bca_web, null) == null ? null : {
+    primary_bca_web = try(var.workloads.primary.client.bca_web, null) == null ? null : {
       name                          = "${local.primary_location_prefix}bcw"
       resource_group_name           = "${local.primary_location}-bca-web"
-      image                         = var.virtual_machine_sets.primary.bca_web.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.bca_web.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.bca_web.data_disks
+      image                         = var.workloads.primary.client.bca_web.image
+      capacity_reservation_group_id = var.workloads.primary.client.bca_web.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.bca_web.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -280,12 +280,12 @@ module "epic" {
       }
     }
 
-    primary_care_everywhere = try(var.virtual_machine_sets.primary.care_everywhere, null) == null ? null : {
+    primary_care_everywhere = try(var.workloads.primary.client.care_everywhere, null) == null ? null : {
       name                          = "${local.primary_location_prefix}cev"
       resource_group_name           = "${local.primary_location}-care-everywhere"
-      image                         = var.virtual_machine_sets.primary.care_everywhere.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.care_everywhere.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.care_everywhere.data_disks
+      image                         = var.workloads.primary.client.care_everywhere.image
+      capacity_reservation_group_id = var.workloads.primary.client.care_everywhere.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.care_everywhere.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -301,12 +301,12 @@ module "epic" {
       }
     }
 
-    primary_care_everywhere_arr = try(var.virtual_machine_sets.primary.care_everywhere_arr, null) == null ? null : {
+    primary_care_everywhere_arr = try(var.workloads.primary.client.care_everywhere_arr, null) == null ? null : {
       name                          = "${local.primary_location_prefix}car"
       resource_group_name           = "${local.primary_location}-care-everywhere-arr"
-      image                         = var.virtual_machine_sets.primary.care_everywhere_arr.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.care_everywhere_arr.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.care_everywhere_arr.data_disks
+      image                         = var.workloads.primary.client.care_everywhere_arr.image
+      capacity_reservation_group_id = var.workloads.primary.client.care_everywhere_arr.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.care_everywhere_arr.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -322,12 +322,12 @@ module "epic" {
       }
     }
 
-    primary_digital_signing = try(var.virtual_machine_sets.primary.digital_signing, null) == null ? null : {
+    primary_digital_signing = try(var.workloads.primary.client.digital_signing, null) == null ? null : {
       name                          = "${local.primary_location_prefix}dss"
       resource_group_name           = "${local.primary_location}-dss"
-      image                         = var.virtual_machine_sets.primary.digital_signing.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.digital_signing.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.digital_signing.data_disks
+      image                         = var.workloads.primary.client.digital_signing.image
+      capacity_reservation_group_id = var.workloads.primary.client.digital_signing.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.digital_signing.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -343,12 +343,12 @@ module "epic" {
       }
     }
 
-    primary_epiccare_link = try(var.virtual_machine_sets.primary.epiccare_link, null) == null ? null : {
+    primary_epiccare_link = try(var.workloads.primary.client.epiccare_link, null) == null ? null : {
       name                          = "${local.primary_location_prefix}ecl"
       resource_group_name           = "${local.primary_location}-epiccare-link"
-      image                         = var.virtual_machine_sets.primary.epiccare_link.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.epiccare_link.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.epiccare_link.data_disks
+      image                         = var.workloads.primary.client.epiccare_link.image
+      capacity_reservation_group_id = var.workloads.primary.client.epiccare_link.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.epiccare_link.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -364,12 +364,12 @@ module "epic" {
       }
     }
 
-    primary_hyperspace_web = try(var.virtual_machine_sets.primary.hyperspace_web, null) == null ? null : {
+    primary_hyperspace_web = try(var.workloads.primary.client.hyperspace_web, null) == null ? null : {
       name                          = "${local.primary_location_prefix}hsw"
       resource_group_name           = "${local.primary_location}-hyperspace-web"
-      image                         = var.virtual_machine_sets.primary.hyperspace_web.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.hyperspace_web.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.hyperspace_web.data_disks
+      image                         = var.workloads.primary.client.hyperspace_web.image
+      capacity_reservation_group_id = var.workloads.primary.client.hyperspace_web.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.hyperspace_web.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -385,12 +385,12 @@ module "epic" {
       }
     }
 
-    primary_interconnect = try(var.virtual_machine_sets.primary.interconnect, null) == null ? null : {
+    primary_interconnect = try(var.workloads.primary.client.interconnect, null) == null ? null : {
       name                          = "${local.primary_location_prefix}icn"
       resource_group_name           = "${local.primary_location}-interconnect"
-      image                         = var.virtual_machine_sets.primary.interconnect.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.interconnect.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.interconnect.data_disks
+      image                         = var.workloads.primary.client.interconnect.image
+      capacity_reservation_group_id = var.workloads.primary.client.interconnect.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.interconnect.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -406,12 +406,12 @@ module "epic" {
       }
     }
 
-    primary_mpsql = try(var.virtual_machine_sets.primary.mpsql, null) == null ? null : {
+    primary_mpsql = try(var.workloads.primary.client.mpsql, null) == null ? null : {
       name                          = "${local.primary_location_prefix}sql"
       resource_group_name           = "${local.primary_location}-mpsql"
-      image                         = var.virtual_machine_sets.primary.mpsql.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.mpsql.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.mpsql.data_disks
+      image                         = var.workloads.primary.client.mpsql.image
+      capacity_reservation_group_id = var.workloads.primary.client.mpsql.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.mpsql.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -431,12 +431,12 @@ module "epic" {
       }
     }
 
-    primary_system_pulse = try(var.virtual_machine_sets.primary.system_pulse, null) == null ? null : {
+    primary_system_pulse = try(var.workloads.primary.client.system_pulse, null) == null ? null : {
       name                          = "${local.primary_location_prefix}sps"
       resource_group_name           = "${local.primary_location}-system-pulse"
-      image                         = var.virtual_machine_sets.primary.system_pulse.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.system_pulse.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.system_pulse.data_disks
+      image                         = var.workloads.primary.client.system_pulse.image
+      capacity_reservation_group_id = var.workloads.primary.client.system_pulse.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.system_pulse.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -452,12 +452,12 @@ module "epic" {
       }
     }
 
-    primary_web_blob = try(var.virtual_machine_sets.primary.web_blob, null) == null ? null : {
+    primary_web_blob = try(var.workloads.primary.client.web_blob, null) == null ? null : {
       name                          = "${local.primary_location_prefix}wbs"
       resource_group_name           = "${local.primary_location}-web-blob"
-      image                         = var.virtual_machine_sets.primary.web_blob.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.web_blob.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.web_blob.data_disks
+      image                         = var.workloads.primary.client.web_blob.image
+      capacity_reservation_group_id = var.workloads.primary.client.web_blob.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.web_blob.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -473,12 +473,12 @@ module "epic" {
       }
     }
 
-    primary_eps = try(var.virtual_machine_sets.primary.eps, null) == null ? null : {
+    primary_eps = try(var.workloads.primary.client.eps, null) == null ? null : {
       name                          = "${local.primary_location_prefix}eps"
       resource_group_name           = "${local.primary_location}-eps"
-      image                         = var.virtual_machine_sets.primary.eps.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.eps.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.eps.data_disks
+      image                         = var.workloads.primary.client.eps.image
+      capacity_reservation_group_id = var.workloads.primary.client.eps.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.eps.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -494,12 +494,12 @@ module "epic" {
       }
     }
 
-    primary_kuiper = try(var.virtual_machine_sets.primary.kuiper, null) == null ? null : {
+    primary_kuiper = try(var.workloads.primary.client.kuiper, null) == null ? null : {
       name                          = "${local.primary_location_prefix}kpr"
       resource_group_name           = "${local.primary_location}-kuiper"
-      image                         = var.virtual_machine_sets.primary.kuiper.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.kuiper.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.kuiper.data_disks
+      image                         = var.workloads.primary.client.kuiper.image
+      capacity_reservation_group_id = var.workloads.primary.client.kuiper.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.kuiper.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -515,12 +515,12 @@ module "epic" {
       }
     }
 
-    primary_mychart = try(var.virtual_machine_sets.primary.mychart, null) == null ? null : {
+    primary_mychart = try(var.workloads.primary.client.mychart, null) == null ? null : {
       name                          = "${local.primary_location_prefix}myc"
       resource_group_name           = "${local.primary_location}-mychart"
-      image                         = var.virtual_machine_sets.primary.mychart.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.mychart.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.mychart.data_disks
+      image                         = var.workloads.primary.client.mychart.image
+      capacity_reservation_group_id = var.workloads.primary.client.mychart.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.mychart.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -536,12 +536,12 @@ module "epic" {
       }
     }
 
-    primary_sts = try(var.virtual_machine_sets.primary.sts, null) == null ? null : {
+    primary_sts = try(var.workloads.primary.client.sts, null) == null ? null : {
       name                          = "${local.primary_location_prefix}adc"
       resource_group_name           = "${local.primary_location}-domain-controllers"
-      image                         = var.virtual_machine_sets.primary.sts.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.sts.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.sts.data_disks
+      image                         = var.workloads.primary.client.sts.image
+      capacity_reservation_group_id = var.workloads.primary.client.sts.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.sts.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -557,12 +557,12 @@ module "epic" {
       }
     }
 
-    primary_citrix_cc = try(var.virtual_machine_sets.primary.citrix_cc, null) == null ? null : {
+    primary_citrix_cc = try(var.workloads.primary.client.citrix_cc, null) == null ? null : {
       name                          = "${local.primary_location_prefix}ccc"
       resource_group_name           = "${local.primary_location}-citrix-cc"
-      image                         = var.virtual_machine_sets.primary.citrix_cc.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.citrix_cc.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.citrix_cc.data_disks
+      image                         = var.workloads.primary.client.citrix_cc.image
+      capacity_reservation_group_id = var.workloads.primary.client.citrix_cc.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.citrix_cc.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -578,12 +578,12 @@ module "epic" {
       }
     }
 
-    primary_willow = try(var.virtual_machine_sets.primary.willow, null) == null ? null : {
+    primary_willow = try(var.workloads.primary.client.willow, null) == null ? null : {
       name                          = "${local.primary_location_prefix}wlw"
       resource_group_name           = "${local.primary_location}-willow"
-      image                         = var.virtual_machine_sets.primary.willow.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.willow.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.willow.data_disks
+      image                         = var.workloads.primary.client.willow.image
+      capacity_reservation_group_id = var.workloads.primary.client.willow.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.willow.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -599,12 +599,12 @@ module "epic" {
       }
     }
 
-    primary_image_exchange = try(var.virtual_machine_sets.primary.image_exchange, null) == null ? null : {
+    primary_image_exchange = try(var.workloads.primary.client.image_exchange, null) == null ? null : {
       name                          = "${local.primary_location_prefix}imx"
       resource_group_name           = "${local.primary_location}-image-exchange"
-      image                         = var.virtual_machine_sets.primary.image_exchange.image
-      capacity_reservation_group_id = var.virtual_machine_sets.primary.image_exchange.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.primary.image_exchange.data_disks
+      image                         = var.workloads.primary.client.image_exchange.image
+      capacity_reservation_group_id = var.workloads.primary.client.image_exchange.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.client.image_exchange.data_disks
       location_name                 = "primary"
       os_type                       = "Windows"
 
@@ -620,12 +620,12 @@ module "epic" {
       }
     }
 
-    alt_arr = try(var.virtual_machine_sets.alt.arr, null) == null ? null : {
+    alt_arr = try(var.workloads.alt.client.arr, null) == null ? null : {
       name                          = "${local.alt_location_prefix}arr"
       resource_group_name           = "${local.alt_location}-arr"
-      image                         = var.virtual_machine_sets.alt.arr.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.arr.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.arr.data_disks
+      image                         = var.workloads.alt.client.arr.image
+      capacity_reservation_group_id = var.workloads.alt.client.arr.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.arr.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -641,12 +641,12 @@ module "epic" {
       }
     }
 
-    alt_bca_pc = try(var.virtual_machine_sets.alt.bca_pc, null) == null ? null : {
+    alt_bca_pc = try(var.workloads.alt.client.bca_pc, null) == null ? null : {
       name                          = "${local.alt_location_prefix}bcp"
       resource_group_name           = "${local.alt_location}-bca-pc"
-      image                         = var.virtual_machine_sets.alt.bca_pc.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.bca_pc.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.bca_pc.data_disks
+      image                         = var.workloads.alt.client.bca_pc.image
+      capacity_reservation_group_id = var.workloads.alt.client.bca_pc.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.bca_pc.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -662,12 +662,12 @@ module "epic" {
       }
     }
 
-    alt_bca_web = try(var.virtual_machine_sets.alt.bca_web, null) == null ? null : {
+    alt_bca_web = try(var.workloads.alt.client.bca_web, null) == null ? null : {
       name                          = "${local.alt_location_prefix}bcw"
       resource_group_name           = "${local.alt_location}-bca-web"
-      image                         = var.virtual_machine_sets.alt.bca_web.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.bca_web.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.bca_web.data_disks
+      image                         = var.workloads.alt.client.bca_web.image
+      capacity_reservation_group_id = var.workloads.alt.client.bca_web.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.bca_web.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -683,12 +683,12 @@ module "epic" {
       }
     }
 
-    alt_care_everywhere = try(var.virtual_machine_sets.alt.care_everywhere, null) == null ? null : {
+    alt_care_everywhere = try(var.workloads.alt.client.care_everywhere, null) == null ? null : {
       name                          = "${local.alt_location_prefix}cev"
       resource_group_name           = "${local.alt_location}-care-everywhere"
-      image                         = var.virtual_machine_sets.alt.care_everywhere.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.care_everywhere.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.care_everywhere.data_disks
+      image                         = var.workloads.alt.client.care_everywhere.image
+      capacity_reservation_group_id = var.workloads.alt.client.care_everywhere.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.care_everywhere.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -704,12 +704,12 @@ module "epic" {
       }
     }
 
-    alt_care_everywhere_arr = try(var.virtual_machine_sets.alt.care_everywhere_arr, null) == null ? null : {
+    alt_care_everywhere_arr = try(var.workloads.alt.client.care_everywhere_arr, null) == null ? null : {
       name                          = "${local.alt_location_prefix}car"
       resource_group_name           = "${local.alt_location}-care-everywhere-arr"
-      image                         = var.virtual_machine_sets.alt.care_everywhere_arr.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.care_everywhere_arr.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.care_everywhere_arr.data_disks
+      image                         = var.workloads.alt.client.care_everywhere_arr.image
+      capacity_reservation_group_id = var.workloads.alt.client.care_everywhere_arr.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.care_everywhere_arr.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -725,12 +725,12 @@ module "epic" {
       }
     }
 
-    alt_digital_signing = try(var.virtual_machine_sets.alt.digital_signing, null) == null ? null : {
+    alt_digital_signing = try(var.workloads.alt.client.digital_signing, null) == null ? null : {
       name                          = "${local.alt_location_prefix}dss"
       resource_group_name           = "${local.alt_location}-dss"
-      image                         = var.virtual_machine_sets.alt.digital_signing.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.digital_signing.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.digital_signing.data_disks
+      image                         = var.workloads.alt.client.digital_signing.image
+      capacity_reservation_group_id = var.workloads.alt.client.digital_signing.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.digital_signing.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -746,12 +746,12 @@ module "epic" {
       }
     }
 
-    alt_epiccare_link = try(var.virtual_machine_sets.alt.epiccare_link, null) == null ? null : {
+    alt_epiccare_link = try(var.workloads.alt.client.epiccare_link, null) == null ? null : {
       name                          = "${local.alt_location_prefix}ecl"
       resource_group_name           = "${local.alt_location}-epiccare-link"
-      image                         = var.virtual_machine_sets.alt.epiccare_link.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.epiccare_link.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.epiccare_link.data_disks
+      image                         = var.workloads.alt.client.epiccare_link.image
+      capacity_reservation_group_id = var.workloads.alt.client.epiccare_link.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.epiccare_link.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -767,12 +767,12 @@ module "epic" {
       }
     }
 
-    alt_hyperspace_web = try(var.virtual_machine_sets.alt.hyperspace_web, null) == null ? null : {
+    alt_hyperspace_web = try(var.workloads.alt.client.hyperspace_web, null) == null ? null : {
       name                          = "${local.alt_location_prefix}hsw"
       resource_group_name           = "${local.alt_location}-hyperspace-web"
-      image                         = var.virtual_machine_sets.alt.hyperspace_web.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.hyperspace_web.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.hyperspace_web.data_disks
+      image                         = var.workloads.alt.client.hyperspace_web.image
+      capacity_reservation_group_id = var.workloads.alt.client.hyperspace_web.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.hyperspace_web.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -788,12 +788,12 @@ module "epic" {
       }
     }
 
-    alt_interconnect = try(var.virtual_machine_sets.alt.interconnect, null) == null ? null : {
+    alt_interconnect = try(var.workloads.alt.client.interconnect, null) == null ? null : {
       name                          = "${local.alt_location_prefix}icn"
       resource_group_name           = "${local.alt_location}-interconnect"
-      image                         = var.virtual_machine_sets.alt.interconnect.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.interconnect.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.interconnect.data_disks
+      image                         = var.workloads.alt.client.interconnect.image
+      capacity_reservation_group_id = var.workloads.alt.client.interconnect.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.interconnect.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -809,12 +809,12 @@ module "epic" {
       }
     }
 
-    alt_mpsql = try(var.virtual_machine_sets.alt.mpsql, null) == null ? null : {
+    alt_mpsql = try(var.workloads.alt.client.mpsql, null) == null ? null : {
       name                          = "${local.alt_location_prefix}sql"
       resource_group_name           = "${local.alt_location}-mpsql"
-      image                         = var.virtual_machine_sets.alt.mpsql.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.mpsql.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.mpsql.data_disks
+      image                         = var.workloads.alt.client.mpsql.image
+      capacity_reservation_group_id = var.workloads.alt.client.mpsql.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.mpsql.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -834,12 +834,12 @@ module "epic" {
       }
     }
 
-    alt_system_pulse = try(var.virtual_machine_sets.alt.system_pulse, null) == null ? null : {
+    alt_system_pulse = try(var.workloads.alt.client.system_pulse, null) == null ? null : {
       name                          = "${local.alt_location_prefix}sps"
       resource_group_name           = "${local.alt_location}-system-pulse"
-      image                         = var.virtual_machine_sets.alt.system_pulse.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.system_pulse.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.system_pulse.data_disks
+      image                         = var.workloads.alt.client.system_pulse.image
+      capacity_reservation_group_id = var.workloads.alt.client.system_pulse.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.system_pulse.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -855,12 +855,12 @@ module "epic" {
       }
     }
 
-    alt_web_blob = try(var.virtual_machine_sets.alt.web_blob, null) == null ? null : {
+    alt_web_blob = try(var.workloads.alt.client.web_blob, null) == null ? null : {
       name                          = "${local.alt_location_prefix}wbs"
       resource_group_name           = "${local.alt_location}-web-blob"
-      image                         = var.virtual_machine_sets.alt.web_blob.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.web_blob.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.web_blob.data_disks
+      image                         = var.workloads.alt.client.web_blob.image
+      capacity_reservation_group_id = var.workloads.alt.client.web_blob.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.web_blob.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -876,12 +876,12 @@ module "epic" {
       }
     }
 
-    alt_eps = try(var.virtual_machine_sets.alt.eps, null) == null ? null : {
+    alt_eps = try(var.workloads.alt.client.eps, null) == null ? null : {
       name                          = "${local.alt_location_prefix}eps"
       resource_group_name           = "${local.alt_location}-eps"
-      image                         = var.virtual_machine_sets.alt.eps.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.eps.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.eps.data_disks
+      image                         = var.workloads.alt.client.eps.image
+      capacity_reservation_group_id = var.workloads.alt.client.eps.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.eps.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -897,12 +897,12 @@ module "epic" {
       }
     }
 
-    alt_kuiper = try(var.virtual_machine_sets.alt.kuiper, null) == null ? null : {
+    alt_kuiper = try(var.workloads.alt.client.kuiper, null) == null ? null : {
       name                          = "${local.alt_location_prefix}kpr"
       resource_group_name           = "${local.alt_location}-kuiper"
-      image                         = var.virtual_machine_sets.alt.kuiper.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.kuiper.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.kuiper.data_disks
+      image                         = var.workloads.alt.client.kuiper.image
+      capacity_reservation_group_id = var.workloads.alt.client.kuiper.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.kuiper.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -918,12 +918,12 @@ module "epic" {
       }
     }
 
-    alt_mychart = try(var.virtual_machine_sets.alt.mychart, null) == null ? null : {
+    alt_mychart = try(var.workloads.alt.client.mychart, null) == null ? null : {
       name                          = "${local.alt_location_prefix}myc"
       resource_group_name           = "${local.alt_location}-mychart"
-      image                         = var.virtual_machine_sets.alt.mychart.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.mychart.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.mychart.data_disks
+      image                         = var.workloads.alt.client.mychart.image
+      capacity_reservation_group_id = var.workloads.alt.client.mychart.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.mychart.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -939,12 +939,12 @@ module "epic" {
       }
     }
 
-    alt_sts = try(var.virtual_machine_sets.alt.sts, null) == null ? null : {
+    alt_sts = try(var.workloads.alt.client.sts, null) == null ? null : {
       name                          = "${local.alt_location_prefix}adc"
       resource_group_name           = "${local.alt_location}-domain-controllers"
-      image                         = var.virtual_machine_sets.alt.sts.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.sts.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.sts.data_disks
+      image                         = var.workloads.alt.client.sts.image
+      capacity_reservation_group_id = var.workloads.alt.client.sts.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.sts.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -960,12 +960,12 @@ module "epic" {
       }
     }
 
-    alt_citrix_cc = try(var.virtual_machine_sets.alt.citrix_cc, null) == null ? null : {
+    alt_citrix_cc = try(var.workloads.alt.client.citrix_cc, null) == null ? null : {
       name                          = "${local.alt_location_prefix}ccc"
       resource_group_name           = "${local.alt_location}-citrix-cc"
-      image                         = var.virtual_machine_sets.alt.citrix_cc.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.citrix_cc.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.citrix_cc.data_disks
+      image                         = var.workloads.alt.client.citrix_cc.image
+      capacity_reservation_group_id = var.workloads.alt.client.citrix_cc.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.citrix_cc.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -981,12 +981,12 @@ module "epic" {
       }
     }
 
-    alt_willow = try(var.virtual_machine_sets.alt.willow, null) == null ? null : {
+    alt_willow = try(var.workloads.alt.client.willow, null) == null ? null : {
       name                          = "${local.alt_location_prefix}wlw"
       resource_group_name           = "${local.alt_location}-willow"
-      image                         = var.virtual_machine_sets.alt.willow.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.willow.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.willow.data_disks
+      image                         = var.workloads.alt.client.willow.image
+      capacity_reservation_group_id = var.workloads.alt.client.willow.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.willow.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -1002,12 +1002,12 @@ module "epic" {
       }
     }
 
-    alt_image_exchange = try(var.virtual_machine_sets.alt.image_exchange, null) == null ? null : {
+    alt_image_exchange = try(var.workloads.alt.client.image_exchange, null) == null ? null : {
       name                          = "${local.alt_location_prefix}imx"
       resource_group_name           = "${local.alt_location}-image-exchange"
-      image                         = var.virtual_machine_sets.alt.image_exchange.image
-      capacity_reservation_group_id = var.virtual_machine_sets.alt.image_exchange.capacity_reservation_group_id
-      data_disks                    = var.virtual_machine_sets.alt.image_exchange.data_disks
+      image                         = var.workloads.alt.client.image_exchange.image
+      capacity_reservation_group_id = var.workloads.alt.client.image_exchange.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.client.image_exchange.data_disks
       location_name                 = "alt"
       os_type                       = "Windows"
 
@@ -1025,44 +1025,44 @@ module "epic" {
   }
 
   virtual_machine_set_specs = {
-    primary_arr                 = var.virtual_machine_specs.primary.arr
-    primary_bca_pc              = var.virtual_machine_specs.primary.bca_pc
-    primary_bca_web             = var.virtual_machine_specs.primary.bca_web
-    primary_care_everywhere     = var.virtual_machine_specs.primary.care_everywhere
-    primary_care_everywhere_arr = var.virtual_machine_specs.primary.care_everywhere_arr
-    primary_digital_signing     = var.virtual_machine_specs.primary.digital_signing
-    primary_epiccare_link       = var.virtual_machine_specs.primary.epiccare_link
-    primary_hyperspace_web      = var.virtual_machine_specs.primary.hyperspace_web
-    primary_interconnect        = var.virtual_machine_specs.primary.interconnect
-    primary_mpsql               = var.virtual_machine_specs.primary.mpsql
-    primary_system_pulse        = var.virtual_machine_specs.primary.system_pulse
-    primary_web_blob            = var.virtual_machine_specs.primary.web_blob
-    primary_eps                 = var.virtual_machine_specs.primary.eps
-    primary_kuiper              = var.virtual_machine_specs.primary.kuiper
-    primary_mychart             = var.virtual_machine_specs.primary.mychart
-    primary_sts                 = var.virtual_machine_specs.primary.sts
-    primary_citrix_cc           = var.virtual_machine_specs.primary.citrix_cc
-    primary_willow              = var.virtual_machine_specs.primary.willow
-    primary_image_exchange      = var.virtual_machine_specs.primary.image_exchange
+    primary_arr                 = var.workload_specs.primary.client.arr
+    primary_bca_pc              = var.workload_specs.primary.client.bca_pc
+    primary_bca_web             = var.workload_specs.primary.client.bca_web
+    primary_care_everywhere     = var.workload_specs.primary.client.care_everywhere
+    primary_care_everywhere_arr = var.workload_specs.primary.client.care_everywhere_arr
+    primary_digital_signing     = var.workload_specs.primary.client.digital_signing
+    primary_epiccare_link       = var.workload_specs.primary.client.epiccare_link
+    primary_hyperspace_web      = var.workload_specs.primary.client.hyperspace_web
+    primary_interconnect        = var.workload_specs.primary.client.interconnect
+    primary_mpsql               = var.workload_specs.primary.client.mpsql
+    primary_system_pulse        = var.workload_specs.primary.client.system_pulse
+    primary_web_blob            = var.workload_specs.primary.client.web_blob
+    primary_eps                 = var.workload_specs.primary.client.eps
+    primary_kuiper              = var.workload_specs.primary.client.kuiper
+    primary_mychart             = var.workload_specs.primary.client.mychart
+    primary_sts                 = var.workload_specs.primary.client.sts
+    primary_citrix_cc           = var.workload_specs.primary.client.citrix_cc
+    primary_willow              = var.workload_specs.primary.client.willow
+    primary_image_exchange      = var.workload_specs.primary.client.image_exchange
 
-    alt_arr                 = var.virtual_machine_specs.alt.arr
-    alt_bca_pc              = var.virtual_machine_specs.alt.bca_pc
-    alt_bca_web             = var.virtual_machine_specs.alt.bca_web
-    alt_care_everywhere     = var.virtual_machine_specs.alt.care_everywhere
-    alt_care_everywhere_arr = var.virtual_machine_specs.alt.care_everywhere_arr
-    alt_digital_signing     = var.virtual_machine_specs.alt.digital_signing
-    alt_epiccare_link       = var.virtual_machine_specs.alt.epiccare_link
-    alt_hyperspace_web      = var.virtual_machine_specs.alt.hyperspace_web
-    alt_interconnect        = var.virtual_machine_specs.alt.interconnect
-    alt_mpsql               = var.virtual_machine_specs.alt.mpsql
-    alt_system_pulse        = var.virtual_machine_specs.alt.system_pulse
-    alt_web_blob            = var.virtual_machine_specs.alt.web_blob
-    alt_eps                 = var.virtual_machine_specs.alt.eps
-    alt_kuiper              = var.virtual_machine_specs.alt.kuiper
-    alt_mychart             = var.virtual_machine_specs.alt.mychart
-    alt_sts                 = var.virtual_machine_specs.alt.sts
-    alt_citrix_cc           = var.virtual_machine_specs.alt.citrix_cc
-    alt_willow              = var.virtual_machine_specs.alt.willow
-    alt_image_exchange      = var.virtual_machine_specs.alt.image_exchange
+    alt_arr                 = var.workload_specs.alt.client.arr
+    alt_bca_pc              = var.workload_specs.alt.client.bca_pc
+    alt_bca_web             = var.workload_specs.alt.client.bca_web
+    alt_care_everywhere     = var.workload_specs.alt.client.care_everywhere
+    alt_care_everywhere_arr = var.workload_specs.alt.client.care_everywhere_arr
+    alt_digital_signing     = var.workload_specs.alt.client.digital_signing
+    alt_epiccare_link       = var.workload_specs.alt.client.epiccare_link
+    alt_hyperspace_web      = var.workload_specs.alt.client.hyperspace_web
+    alt_interconnect        = var.workload_specs.alt.client.interconnect
+    alt_mpsql               = var.workload_specs.alt.client.mpsql
+    alt_system_pulse        = var.workload_specs.alt.client.system_pulse
+    alt_web_blob            = var.workload_specs.alt.client.web_blob
+    alt_eps                 = var.workload_specs.alt.client.eps
+    alt_kuiper              = var.workload_specs.alt.client.kuiper
+    alt_mychart             = var.workload_specs.alt.client.mychart
+    alt_sts                 = var.workload_specs.alt.client.sts
+    alt_citrix_cc           = var.workload_specs.alt.client.citrix_cc
+    alt_willow              = var.workload_specs.alt.client.willow
+    alt_image_exchange      = var.workload_specs.alt.client.image_exchange
   }
 }

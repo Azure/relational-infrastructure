@@ -22,7 +22,6 @@ locals {
       location_ref        = network.location_name
       name                = lower(coalesce(network.name, "${var.deployment_prefix}-${network_ref}"))
       resource_group_name = local.network_resource_groups[network.location_name].name
-      lock_mode           = network.lock_mode
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {
@@ -30,7 +29,6 @@ locals {
           name                = lower(coalesce(subnet.name, subnet_ref))
           security_group_name = subnet.security_group_name
           security_rules      = subnet.security_rules
-          lock_mode           = coalesce(subnet.lock_mode, network.lock_mode)
         }
       }
     } if network != null
