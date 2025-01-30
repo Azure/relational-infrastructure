@@ -83,15 +83,17 @@ variable "resource_tags" {
   nullable    = true
 }
 
+variable "lock_mode" {
+  type        = string
+  description = "The lock mode to apply to all resources."
+  default     = null
+  nullable    = true
+}
+
 variable "virtual_machine_count" {
   type        = number
   description = "The total number of virtual machines to deploy."
   nullable    = false
-
-  validation {
-    condition     = var.virtual_machine_count >= 2
-    error_message = "[virtual_machine_count] must be 2 or more."
-  }
 }
 
 variable "enable_virtual_machine_boot_diagnostics" {
@@ -240,9 +242,10 @@ variable "virtual_machine_image" {
 
 variable "virtual_machine_network_interfaces" {
   type = map(object({
-    private_ip            = optional(string)
-    private_ip_allocation = optional(string, "Dynamic")
-    subnet_id             = string
+    private_ip                    = optional(string)
+    private_ip_allocation         = optional(string, "Dynamic")
+    enable_accelerated_networking = optional(bool, true)
+    subnet_id                     = string
   }))
 
   description = "A map of network interfaces to create for each virtual machine."
@@ -348,32 +351,32 @@ variable "virtual_machine_zone_distribution" {
   nullable    = true
 
   validation {
-    condition     = (var.virtual_machine_zone_distribution.custom != null) != (var.virtual_machine_zone_distribution.even != null)
+    condition     = (try(var.virtual_machine_zone_distribution.custom, null) == null) != (try(var.virtual_machine_zone_distribution.even, null) == null)
     error_message = "You must configure either the 'custom' or 'even' zone distribution strategy, but not both."
   }
 
   validation {
-    condition     = var.virtual_machine_zone_distribution.custom == null ? true : ((length(distinct(keys(var.virtual_machine_zone_distribution.custom))) >= 2) && (alltrue([for zone in keys(var.virtual_machine_zone_distribution.custom) : contains(["1", "2", "3"], zone)])))
+    condition     = try(var.virtual_machine_zone_distribution.custom, null) == null ? true : ((length(distinct(keys(var.virtual_machine_zone_distribution.custom))) >= 2) && (alltrue([for zone in keys(var.virtual_machine_zone_distribution.custom) : contains(["1", "2", "3"], zone)])))
     error_message = "If provided, [virtual_machine_zone_distribution.custom] must be a map with keys of at least two (2) of the following availability zones: '1', '2', '3'."
   }
 
   validation {
-    condition     = var.virtual_machine_zone_distribution.custom == null ? true : (length(distinct(keys(var.virtual_machine_zone_distribution.custom))) == length(keys(var.virtual_machine_zone_distribution.custom)))
+    condition     = try(var.virtual_machine_zone_distribution.custom, null) == null ? true : (length(distinct(keys(var.virtual_machine_zone_distribution.custom))) == length(keys(var.virtual_machine_zone_distribution.custom)))
     error_message = "If provided, [virtual_machine_zone_distribution.custom] must not contain duplicate availability zones."
   }
 
   validation {
-    condition     = var.virtual_machine_zone_distribution.custom == null ? true : (sum(values(var.virtual_machine_zone_distribution.custom)) == var.virtual_machine_count)
+    condition     = try(var.virtual_machine_zone_distribution.custom, null) == null ? true : (sum(values(var.virtual_machine_zone_distribution.custom)) == var.virtual_machine_count)
     error_message = "If provided, [virtual_machine_zone_distribution.custom] virtual machine counts must add up to [virtual_machine_count]."
   }
 
   validation {
-    condition     = var.virtual_machine_zone_distribution.even == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) >= 2) && (alltrue([for zone in var.virtual_machine_zone_distribution.even : contains(["1", "2", "3"], zone)])))
+    condition     = try(var.virtual_machine_zone_distribution.even, null) == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) >= 2) && (alltrue([for zone in var.virtual_machine_zone_distribution.even : contains(["1", "2", "3"], zone)])))
     error_message = "If provided, [virtual_machine_zone_distribution.even] must be a list of at least two (2) of the following availability zones: '1', '2', '3'."
   }
 
   validation {
-    condition     = var.virtual_machine_zone_distribution.even == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) == length(var.virtual_machine_zone_distribution.even)))
+    condition     = try(var.virtual_machine_zone_distribution.even, null) == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) == length(var.virtual_machine_zone_distribution.even)))
     error_message = "If provided, [virtual_machine_zone_distribution.even] must not contain duplicate availability zones."
   }
 }

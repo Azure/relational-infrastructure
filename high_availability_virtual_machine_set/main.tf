@@ -13,6 +13,7 @@ module "virtual_machines" {
   count  = var.virtual_machine_count
 
   name                                   = local.virtual_machine_names[count.index]
+  lock                                   = var.lock_mode == null ? null : { kind = lookup(local.lock_modes, var.lock_mode, null) }
   tags                                   = var.resource_tags
   location                               = var.location
   computer_name                          = local.virtual_machine_computer_names[count.index]
