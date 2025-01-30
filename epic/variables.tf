@@ -6,6 +6,11 @@ variable "environment_name" {
   type = string
 }
 
+variable "include_label_tags" {
+  type    = bool
+  default = true
+}
+
 variable "locations" {
   type = object({
     alt     = optional(string, null),
@@ -2030,19 +2035,169 @@ variable "workloads" {
       }), null)
       odb = optional(object({
         odb = optional(object({
+          capacity_reservation_group_id = optional(string, null)
 
+          image = object({
+            id = optional(string, null) # or...
+            reference = optional(object({
+              offer     = string
+              publisher = string
+              sku       = string
+              version   = string
+            }), null)
+          })
+
+          data_disks = optional(map(object({
+            lun     = number
+            caching = optional(string, "ReadWrite")
+            image = optional(object({
+              copy = optional(object({
+                resource_id = string
+              }), null) # or...
+              import = optional(object({
+                uri    = string
+                secure = optional(bool, true)
+              }), null) # or...
+              platform = optional(object({
+                image_reference_id = string
+              }), null) # or...
+              restore = optional(object({
+                resource_id = string
+              }), null)
+            }), null)
+          })), {})
         }), null)
         odb_ecp_app = optional(object({
+          capacity_reservation_group_id = optional(string, null)
 
+          image = object({
+            id = optional(string, null) # or...
+            reference = optional(object({
+              offer     = string
+              publisher = string
+              sku       = string
+              version   = string
+            }), null)
+          })
+
+          data_disks = optional(map(object({
+            lun     = number
+            caching = optional(string, "ReadWrite")
+            image = optional(object({
+              copy = optional(object({
+                resource_id = string
+              }), null) # or...
+              import = optional(object({
+                uri    = string
+                secure = optional(bool, true)
+              }), null) # or...
+              platform = optional(object({
+                image_reference_id = string
+              }), null) # or...
+              restore = optional(object({
+                resource_id = string
+              }), null)
+            }), null)
+          })), {})
         }), null)
         odb_ecp_util = optional(object({
+          capacity_reservation_group_id = optional(string, null)
 
+          image = object({
+            id = optional(string, null) # or...
+            reference = optional(object({
+              offer     = string
+              publisher = string
+              sku       = string
+              version   = string
+            }), null)
+          })
+
+          data_disks = optional(map(object({
+            lun     = number
+            caching = optional(string, "ReadWrite")
+            image = optional(object({
+              copy = optional(object({
+                resource_id = string
+              }), null) # or...
+              import = optional(object({
+                uri    = string
+                secure = optional(bool, true)
+              }), null) # or...
+              platform = optional(object({
+                image_reference_id = string
+              }), null) # or...
+              restore = optional(object({
+                resource_id = string
+              }), null)
+            }), null)
+          })), {})
         }), null)
         rpt = optional(object({
+          capacity_reservation_group_id = optional(string, null)
 
+          image = object({
+            id = optional(string, null) # or...
+            reference = optional(object({
+              offer     = string
+              publisher = string
+              sku       = string
+              version   = string
+            }), null)
+          })
+
+          data_disks = optional(map(object({
+            lun     = number
+            caching = optional(string, "ReadWrite")
+            image = optional(object({
+              copy = optional(object({
+                resource_id = string
+              }), null) # or...
+              import = optional(object({
+                uri    = string
+                secure = optional(bool, true)
+              }), null) # or...
+              platform = optional(object({
+                image_reference_id = string
+              }), null) # or...
+              restore = optional(object({
+                resource_id = string
+              }), null)
+            }), null)
+          })), {})
         }), null)
         rpt_ecp_util = optional(object({
+          capacity_reservation_group_id = optional(string, null)
 
+          image = object({
+            id = optional(string, null) # or...
+            reference = optional(object({
+              offer     = string
+              publisher = string
+              sku       = string
+              version   = string
+            }), null)
+          })
+
+          data_disks = optional(map(object({
+            lun     = number
+            caching = optional(string, "ReadWrite")
+            image = optional(object({
+              copy = optional(object({
+                resource_id = string
+              }), null) # or...
+              import = optional(object({
+                uri    = string
+                secure = optional(bool, true)
+              }), null) # or...
+              platform = optional(object({
+                image_reference_id = string
+              }), null) # or...
+              restore = optional(object({
+                resource_id = string
+              }), null)
+            }), null)
+          })), {})
         }), null)
       }), null)
     })

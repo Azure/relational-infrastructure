@@ -77,28 +77,6 @@ resource "azurerm_virtual_network_peering" "peerings" {
   remote_virtual_network_id = module.networks[each.value.peer_to_network_name].resource_id
 }
 
-module "route_tables" {
-  source   = "Azure/avm-res-network-routetable/azurerm"
-  for_each = local.route_tables
-
-  location            = var.locations[each.value.location_ref]
-  name                = each.value.name
-  resource_group_name = module.network_resource_groups[each.value.location_ref].name
-
-  subnet_resource_ids = {
-    "${each.value.subnet_ref}" = module.networks[each.value.network_ref].subnets[each.value.subnet_ref].resource_id
-  }
-
-  routes = {
-    for route_name, route in each.value.routes : route_name => {
-      address_prefix      = route.address_prefix
-      name                = route.name
-      next_hop_ip_address = route.next_hop_ip_address
-      next_hop_type       = route.next_hop_type
-    }
-  }
-}
-
 module "virtual_machine_set_resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
@@ -123,7 +101,7 @@ module "virtual_machine_sets" {
   virtual_machine_image                         = each.value.image
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
-  virtual_machine_zone_distribution             = lookup(var.virtual_machine_set_zone_distribution, each.key, { custom = null, even = ["1", "2", "3"] })
+  virtual_machine_zone_distribution             = coalesce(var.virtual_machine_set_zone_distribution[each.key], { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
 
@@ -139,8 +117,9 @@ module "virtual_machine_sets" {
 
   virtual_machine_network_interfaces = {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
-      private_ip_allocation = nic.private_ip_allocation
-      subnet_id             = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
+      private_ip_allocation         = nic.private_ip_allocation
+      enable_accelerated_networking = nic.enable_accelerated_networking
+      subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
     }
   }
 

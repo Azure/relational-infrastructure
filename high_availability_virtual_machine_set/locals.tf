@@ -43,7 +43,7 @@ locals {
         name                           = "${local.virtual_machine_names[i]}${nic_name}nic"
         lock                           = var.lock_mode == null ? null : { kind = lookup(local.lock_modes, var.lock_mode, null) }
         tags                           = var.resource_tags
-        accelerated_networking_enabled = true
+        accelerated_networking_enabled = nic_config.enable_accelerated_networking
         ip_configurations = {
           ip_configuration_1 = {
             name                          = lower("${local.virtual_machine_names[i]}${nic_name}ipconfig01")

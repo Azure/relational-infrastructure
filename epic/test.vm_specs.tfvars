@@ -164,6 +164,74 @@ workload_specs = {
         }
       }
     }
+    cogito = {
+      clarity_db = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      caboodle_db = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      cubes = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      slicer_dicer = {
+        vm_count = 2
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      bi_restful = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      clarity_console = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+    }
+    odb = {
+      odb = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+      rpt = {
+        vm_count = 1
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+    }
   }
   alt = {
     client = {
@@ -323,6 +391,16 @@ workload_specs = {
       }
       web_blob = {
         vm_count = 2
+        sku_size = "Standard_D2s_v3"
+        os_disk = {
+          disk_size_gb         = 128
+          storage_account_type = "Premium_LRS"
+        }
+      }
+    }
+    odb = {
+      odb = {
+        vm_count = 1
         sku_size = "Standard_D2s_v3"
         os_disk = {
           disk_size_gb         = 128

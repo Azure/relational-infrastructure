@@ -1,7 +1,8 @@
 module "epic" {
   source = "../high_availability_virtual_machine_map"
 
-  deployment_prefix = var.deployment_prefix
+  deployment_prefix  = var.deployment_prefix
+  include_label_tags = var.include_label_tags
 
   tags = {
     epic-env = var.environment_name
@@ -425,8 +426,9 @@ module "epic" {
           subnet_name  = "management"
         }
         cluster = {
-          network_name = "primary_shared_infra"
-          subnet_name  = "management"
+          network_name                  = "primary_shared_infra"
+          subnet_name                   = "management"
+          enable_accelerated_networking = false
         }
       }
     }
@@ -616,6 +618,174 @@ module "epic" {
         default = {
           network_name = "primary_main"
           subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_caboodle_db = try(var.workloads.primary.cogito.caboodle_db, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}cbd"
+      resource_group_name           = "${local.primary_location}-caboodle-db"
+      image                         = var.workloads.primary.cogito.caboodle_db.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.caboodle_db.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.caboodle_db.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "caboodle-db"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    primary_clarity_db = try(var.workloads.primary.cogito.clarity_db, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}cld"
+      resource_group_name           = "${local.primary_location}-clarity-db"
+      image                         = var.workloads.primary.cogito.clarity_db.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.clarity_db.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.clarity_db.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "clarity-db"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    primary_cubes = try(var.workloads.primary.cogito.cubes, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}cub"
+      resource_group_name           = "${local.primary_location}-cubes"
+      image                         = var.workloads.primary.cogito.cubes.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.cubes.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.cubes.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "cubes"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    primary_slicer_dicer = try(var.workloads.primary.cogito.slicer_dicer, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}sld"
+      resource_group_name           = "${local.primary_location}-slicer-dicer"
+      image                         = var.workloads.primary.cogito.slicer_dicer.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.slicer_dicer.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.slicer_dicer.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "slicerdicer"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_clarity_console = try(var.workloads.primary.cogito.clarity_console, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}clc"
+      resource_group_name           = "${local.primary_location}-clarity-console"
+      image                         = var.workloads.primary.cogito.clarity_console.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.clarity_console.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.clarity_console.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "clarity-console"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_bi_restful = try(var.workloads.primary.cogito.bi_restful, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}bir"
+      resource_group_name           = "${local.primary_location}-bi-restful"
+      image                         = var.workloads.primary.cogito.bi_restful.image
+      capacity_reservation_group_id = var.workloads.primary.cogito.bi_restful.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.cogito.bi_restful.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "birestful"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    primary_odb = try(var.workloads.primary.odb.odb, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}odb"
+      resource_group_name           = "${local.primary_location}-odb"
+      image                         = var.workloads.primary.odb.odb.image
+      capacity_reservation_group_id = var.workloads.primary.odb.odb.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.odb.odb.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "odb"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    primary_rpt = try(var.workloads.primary.odb.rpt, null) == null ? null : {
+      name                          = "${local.primary_location_prefix}rpt"
+      resource_group_name           = "${local.primary_location}-rpt"
+      image                         = var.workloads.primary.odb.rpt.image
+      capacity_reservation_group_id = var.workloads.primary.odb.rpt.capacity_reservation_group_id
+      data_disks                    = var.workloads.primary.odb.rpt.data_disks
+      location_name                 = "primary"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "rpt"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "primary_main"
+          subnet_name  = "odb"
         }
       }
     }
@@ -828,8 +998,9 @@ module "epic" {
           subnet_name  = "management"
         }
         cluster = {
-          network_name = "alt_shared_infra"
-          subnet_name  = "management"
+          network_name                  = "alt_shared_infra"
+          subnet_name                   = "management"
+          enable_accelerated_networking = false
         }
       }
     }
@@ -1022,47 +1193,266 @@ module "epic" {
         }
       }
     }
+
+    alt_caboodle_db = try(var.workloads.alt.cogito.caboodle_db, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}cbd"
+      resource_group_name           = "${local.alt_location}-caboodle-db"
+      image                         = var.workloads.alt.cogito.caboodle_db.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.caboodle_db.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.caboodle_db.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "caboodle-db"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    alt_clarity_db = try(var.workloads.alt.cogito.clarity_db, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}cld"
+      resource_group_name           = "${local.alt_location}-clarity-db"
+      image                         = var.workloads.alt.cogito.clarity_db.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.clarity_db.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.clarity_db.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "clarity-db"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    alt_cubes = try(var.workloads.alt.cogito.cubes, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}cub"
+      resource_group_name           = "${local.alt_location}-cubes"
+      image                         = var.workloads.alt.cogito.cubes.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.cubes.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.cubes.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "cubes"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+
+    alt_slicer_dicer = try(var.workloads.alt.cogito.slicer_dicer, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}sld"
+      resource_group_name           = "${local.alt_location}-slicer-dicer"
+      image                         = var.workloads.alt.cogito.slicer_dicer.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.slicer_dicer.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.slicer_dicer.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "slicerdicer"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    alt_clarity_console = try(var.workloads.alt.cogito.clarity_console, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}clc"
+      resource_group_name           = "${local.alt_location}-clarity-console"
+      image                         = var.workloads.alt.cogito.clarity_console.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.clarity_console.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.clarity_console.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "clarity-console"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    alt_bi_restful = try(var.workloads.alt.cogito.bi_restful, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}bir"
+      resource_group_name           = "${local.alt_location}-bi-restful"
+      image                         = var.workloads.alt.cogito.bi_restful.image
+      capacity_reservation_group_id = var.workloads.alt.cogito.bi_restful.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.cogito.bi_restful.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "birestful"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "wss"
+        }
+      }
+    }
+
+    alt_odb = try(var.workloads.alt.odb.odb, null) == null ? null : {
+      name                          = "${local.alt_location_prefix}odb"
+      resource_group_name           = "${local.alt_location}-odb"
+      image                         = var.workloads.alt.odb.odb.image
+      capacity_reservation_group_id = var.workloads.alt.odb.odb.capacity_reservation_group_id
+      data_disks                    = var.workloads.alt.odb.odb.data_disks
+      location_name                 = "alt"
+      os_type                       = "Windows"
+
+      tags = {
+        epic-app = "odb"
+      }
+
+      network_interfaces = {
+        default = {
+          network_name = "alt_main"
+          subnet_name  = "odb"
+        }
+      }
+    }
+  }
+
+  virtual_machine_set_zone_distribution = {
+    primary_arr                 = try(var.workload_zone_distribution.primary.client.arr, { custom = null, even = ["1", "2", "3"] })
+    primary_bca_pc              = try(var.workload_zone_distribution.primary.client.bca_pc, { custom = null, even = ["1", "2", "3"] })
+    primary_bca_web             = try(var.workload_zone_distribution.primary.client.bca_web, { custom = null, even = ["1", "2", "3"] })
+    primary_care_everywhere     = try(var.workload_zone_distribution.primary.client.care_everywhere, { custom = null, even = ["1", "2", "3"] })
+    primary_care_everywhere_arr = try(var.workload_zone_distribution.primary.client.care_everywhere_arr, { custom = null, even = ["1", "2", "3"] })
+    primary_digital_signing     = try(var.workload_zone_distribution.primary.client.digital_signing, { custom = null, even = ["1", "2", "3"] })
+    primary_epiccare_link       = try(var.workload_zone_distribution.primary.client.epiccare_link, { custom = null, even = ["1", "2", "3"] })
+    primary_hyperspace_web      = try(var.workload_zone_distribution.primary.client.hyperspace_web, { custom = null, even = ["1", "2", "3"] })
+    primary_interconnect        = try(var.workload_zone_distribution.primary.client.interconnect, { custom = null, even = ["1", "2", "3"] })
+    primary_mpsql               = try(var.workload_zone_distribution.primary.client.mpsql, { custom = null, even = ["1", "2", "3"] })
+    primary_system_pulse        = try(var.workload_zone_distribution.primary.client.system_pulse, { custom = null, even = ["1", "2", "3"] })
+    primary_web_blob            = try(var.workload_zone_distribution.primary.client.web_blob, { custom = null, even = ["1", "2", "3"] })
+    primary_eps                 = try(var.workload_zone_distribution.primary.client.eps, { custom = null, even = ["1", "2", "3"] })
+    primary_kuiper              = try(var.workload_zone_distribution.primary.client.kuiper, { custom = null, even = ["1", "2", "3"] })
+    primary_mychart             = try(var.workload_zone_distribution.primary.client.mychart, { custom = null, even = ["1", "2", "3"] })
+    primary_sts                 = try(var.workload_zone_distribution.primary.client.sts, { custom = null, even = ["1", "2", "3"] })
+    primary_citrix_cc           = try(var.workload_zone_distribution.primary.client.citrix_cc, { custom = null, even = ["1", "2", "3"] })
+    primary_willow              = try(var.workload_zone_distribution.primary.client.willow, { custom = null, even = ["1", "2", "3"] })
+    primary_image_exchange      = try(var.workload_zone_distribution.primary.client.image_exchange, { custom = null, even = ["1", "2", "3"] })
+    primary_clarity_db          = try(var.workload_zone_distribution.primary.cogito.clarity_db, { custom = null, even = ["1", "2", "3"] })
+    primary_caboodle_db         = try(var.workload_zone_distribution.primary.cogito.caboodle_db, { custom = null, even = ["1", "2", "3"] })
+    primary_cubes               = try(var.workload_zone_distribution.primary.cogito.cubes, { custom = null, even = ["1", "2", "3"] })
+    primary_slicer_dicer        = try(var.workload_zone_distribution.primary.cogito.slicer_dicer, { custom = null, even = ["1", "2", "3"] })
+    primary_clarity_console     = try(var.workload_zone_distribution.primary.cogito.clarity_console, { custom = null, even = ["1", "2", "3"] })
+    primary_bi_restful          = try(var.workload_zone_distribution.primary.cogito.bi_restful, { custom = null, even = ["1", "2", "3"] })
+    primary_odb                 = try(var.workload_zone_distribution.primary.odb.odb, { custom = null, even = ["1", "2", "3"] })
+    primary_rpt                 = try(var.workload_zone_distribution.primary.odb.rpt, { custom = null, even = ["1", "2", "3"] })
+
+    alt_arr                 = try(var.workload_zone_distribution.alt.client.arr, { custom = null, even = ["1", "2", "3"] })
+    alt_bca_pc              = try(var.workload_zone_distribution.alt.client.bca_pc, { custom = null, even = ["1", "2", "3"] })
+    alt_bca_web             = try(var.workload_zone_distribution.alt.client.bca_web, { custom = null, even = ["1", "2", "3"] })
+    alt_care_everywhere     = try(var.workload_zone_distribution.alt.client.care_everywhere, { custom = null, even = ["1", "2", "3"] })
+    alt_care_everywhere_arr = try(var.workload_zone_distribution.alt.client.care_everywhere_arr, { custom = null, even = ["1", "2", "3"] })
+    alt_digital_signing     = try(var.workload_zone_distribution.alt.client.digital_signing, { custom = null, even = ["1", "2", "3"] })
+    alt_epiccare_link       = try(var.workload_zone_distribution.alt.client.epiccare_link, { custom = null, even = ["1", "2", "3"] })
+    alt_hyperspace_web      = try(var.workload_zone_distribution.alt.client.hyperspace_web, { custom = null, even = ["1", "2", "3"] })
+    alt_interconnect        = try(var.workload_zone_distribution.alt.client.interconnect, { custom = null, even = ["1", "2", "3"] })
+    alt_mpsql               = try(var.workload_zone_distribution.alt.client.mpsql, { custom = null, even = ["1", "2", "3"] })
+    alt_system_pulse        = try(var.workload_zone_distribution.alt.client.system_pulse, { custom = null, even = ["1", "2", "3"] })
+    alt_web_blob            = try(var.workload_zone_distribution.alt.client.web_blob, { custom = null, even = ["1", "2", "3"] })
+    alt_eps                 = try(var.workload_zone_distribution.alt.client.eps, { custom = null, even = ["1", "2", "3"] })
+    alt_kuiper              = try(var.workload_zone_distribution.alt.client.kuiper, { custom = null, even = ["1", "2", "3"] })
+    alt_mychart             = try(var.workload_zone_distribution.alt.client.mychart, { custom = null, even = ["1", "2", "3"] })
+    alt_sts                 = try(var.workload_zone_distribution.alt.client.sts, { custom = null, even = ["1", "2", "3"] })
+    alt_citrix_cc           = try(var.workload_zone_distribution.alt.client.citrix_cc, { custom = null, even = ["1", "2", "3"] })
+    alt_willow              = try(var.workload_zone_distribution.alt.client.willow, { custom = null, even = ["1", "2", "3"] })
+    alt_image_exchange      = try(var.workload_zone_distribution.alt.client.image_exchange, { custom = null, even = ["1", "2", "3"] })
+    alt_clarity_db          = try(var.workload_zone_distribution.alt.cogito.clarity_db, { custom = null, even = ["1", "2", "3"] })
+    alt_caboodle_db         = try(var.workload_zone_distribution.alt.cogito.caboodle_db, { custom = null, even = ["1", "2", "3"] })
+    alt_cubes               = try(var.workload_zone_distribution.alt.cogito.cubes, { custom = null, even = ["1", "2", "3"] })
+    alt_slicer_dicer        = try(var.workload_zone_distribution.alt.cogito.slicer_dicer, { custom = null, even = ["1", "2", "3"] })
+    alt_clarity_console     = try(var.workload_zone_distribution.alt.cogito.clarity_console, { custom = null, even = ["1", "2", "3"] })
+    alt_bi_restful          = try(var.workload_zone_distribution.alt.cogito.bi_restful, { custom = null, even = ["1", "2", "3"] })
+    alt_odb                 = try(var.workload_zone_distribution.alt.odb.odb, { custom = null, even = ["1", "2", "3"] })
   }
 
   virtual_machine_set_specs = {
-    primary_arr                 = var.workload_specs.primary.client.arr
-    primary_bca_pc              = var.workload_specs.primary.client.bca_pc
-    primary_bca_web             = var.workload_specs.primary.client.bca_web
-    primary_care_everywhere     = var.workload_specs.primary.client.care_everywhere
-    primary_care_everywhere_arr = var.workload_specs.primary.client.care_everywhere_arr
-    primary_digital_signing     = var.workload_specs.primary.client.digital_signing
-    primary_epiccare_link       = var.workload_specs.primary.client.epiccare_link
-    primary_hyperspace_web      = var.workload_specs.primary.client.hyperspace_web
-    primary_interconnect        = var.workload_specs.primary.client.interconnect
-    primary_mpsql               = var.workload_specs.primary.client.mpsql
-    primary_system_pulse        = var.workload_specs.primary.client.system_pulse
-    primary_web_blob            = var.workload_specs.primary.client.web_blob
-    primary_eps                 = var.workload_specs.primary.client.eps
-    primary_kuiper              = var.workload_specs.primary.client.kuiper
-    primary_mychart             = var.workload_specs.primary.client.mychart
-    primary_sts                 = var.workload_specs.primary.client.sts
-    primary_citrix_cc           = var.workload_specs.primary.client.citrix_cc
-    primary_willow              = var.workload_specs.primary.client.willow
-    primary_image_exchange      = var.workload_specs.primary.client.image_exchange
+    primary_arr                 = try(var.workload_specs.primary.client.arr, null)
+    primary_bca_pc              = try(var.workload_specs.primary.client.bca_pc, null)
+    primary_bca_web             = try(var.workload_specs.primary.client.bca_web, null)
+    primary_care_everywhere     = try(var.workload_specs.primary.client.care_everywhere, null)
+    primary_care_everywhere_arr = try(var.workload_specs.primary.client.care_everywhere_arr, null)
+    primary_digital_signing     = try(var.workload_specs.primary.client.digital_signing, null)
+    primary_epiccare_link       = try(var.workload_specs.primary.client.epiccare_link, null)
+    primary_hyperspace_web      = try(var.workload_specs.primary.client.hyperspace_web, null)
+    primary_interconnect        = try(var.workload_specs.primary.client.interconnect, null)
+    primary_mpsql               = try(var.workload_specs.primary.client.mpsql, null)
+    primary_system_pulse        = try(var.workload_specs.primary.client.system_pulse, null)
+    primary_web_blob            = try(var.workload_specs.primary.client.web_blob, null)
+    primary_eps                 = try(var.workload_specs.primary.client.eps, null)
+    primary_kuiper              = try(var.workload_specs.primary.client.kuiper, null)
+    primary_mychart             = try(var.workload_specs.primary.client.mychart, null)
+    primary_sts                 = try(var.workload_specs.primary.client.sts, null)
+    primary_citrix_cc           = try(var.workload_specs.primary.client.citrix_cc, null)
+    primary_willow              = try(var.workload_specs.primary.client.willow, null)
+    primary_image_exchange      = try(var.workload_specs.primary.client.image_exchange, null)
+    primary_clarity_db          = try(var.workload_specs.primary.cogito.clarity_db, null)
+    primary_caboodle_db         = try(var.workload_specs.primary.cogito.caboodle_db, null)
+    primary_cubes               = try(var.workload_specs.primary.cogito.cubes, null)
+    primary_slicer_dicer        = try(var.workload_specs.primary.cogito.slicer_dicer, null)
+    primary_clarity_console     = try(var.workload_specs.primary.cogito.clarity_console, null)
+    primary_bi_restful          = try(var.workload_specs.primary.cogito.bi_restful, null)
+    primary_odb                 = try(var.workload_specs.primary.odb.odb, null)
+    primary_rpt                 = try(var.workload_specs.primary.odb.rpt, null)
 
-    alt_arr                 = var.workload_specs.alt.client.arr
-    alt_bca_pc              = var.workload_specs.alt.client.bca_pc
-    alt_bca_web             = var.workload_specs.alt.client.bca_web
-    alt_care_everywhere     = var.workload_specs.alt.client.care_everywhere
-    alt_care_everywhere_arr = var.workload_specs.alt.client.care_everywhere_arr
-    alt_digital_signing     = var.workload_specs.alt.client.digital_signing
-    alt_epiccare_link       = var.workload_specs.alt.client.epiccare_link
-    alt_hyperspace_web      = var.workload_specs.alt.client.hyperspace_web
-    alt_interconnect        = var.workload_specs.alt.client.interconnect
-    alt_mpsql               = var.workload_specs.alt.client.mpsql
-    alt_system_pulse        = var.workload_specs.alt.client.system_pulse
-    alt_web_blob            = var.workload_specs.alt.client.web_blob
-    alt_eps                 = var.workload_specs.alt.client.eps
-    alt_kuiper              = var.workload_specs.alt.client.kuiper
-    alt_mychart             = var.workload_specs.alt.client.mychart
-    alt_sts                 = var.workload_specs.alt.client.sts
-    alt_citrix_cc           = var.workload_specs.alt.client.citrix_cc
-    alt_willow              = var.workload_specs.alt.client.willow
-    alt_image_exchange      = var.workload_specs.alt.client.image_exchange
+    alt_arr                 = try(var.workload_specs.alt.client.arr, null)
+    alt_bca_pc              = try(var.workload_specs.alt.client.bca_pc, null)
+    alt_bca_web             = try(var.workload_specs.alt.client.bca_web, null)
+    alt_care_everywhere     = try(var.workload_specs.alt.client.care_everywhere, null)
+    alt_care_everywhere_arr = try(var.workload_specs.alt.client.care_everywhere_arr, null)
+    alt_digital_signing     = try(var.workload_specs.alt.client.digital_signing, null)
+    alt_epiccare_link       = try(var.workload_specs.alt.client.epiccare_link, null)
+    alt_hyperspace_web      = try(var.workload_specs.alt.client.hyperspace_web, null)
+    alt_interconnect        = try(var.workload_specs.alt.client.interconnect, null)
+    alt_mpsql               = try(var.workload_specs.alt.client.mpsql, null)
+    alt_system_pulse        = try(var.workload_specs.alt.client.system_pulse, null)
+    alt_web_blob            = try(var.workload_specs.alt.client.web_blob, null)
+    alt_eps                 = try(var.workload_specs.alt.client.eps, null)
+    alt_kuiper              = try(var.workload_specs.alt.client.kuiper, null)
+    alt_mychart             = try(var.workload_specs.alt.client.mychart, null)
+    alt_sts                 = try(var.workload_specs.alt.client.sts, null)
+    alt_citrix_cc           = try(var.workload_specs.alt.client.citrix_cc, null)
+    alt_willow              = try(var.workload_specs.alt.client.willow, null)
+    alt_image_exchange      = try(var.workload_specs.alt.client.image_exchange, null)
+    alt_clarity_db          = try(var.workload_specs.alt.cogito.clarity_db, null)
+    alt_caboodle_db         = try(var.workload_specs.alt.cogito.caboodle_db, null)
+    alt_cubes               = try(var.workload_specs.alt.cogito.cubes, null)
+    alt_slicer_dicer        = try(var.workload_specs.alt.cogito.slicer_dicer, null)
+    alt_clarity_console     = try(var.workload_specs.alt.cogito.clarity_console, null)
+    alt_bi_restful          = try(var.workload_specs.alt.cogito.bi_restful, null)
+    alt_odb                 = try(var.workload_specs.alt.odb.odb, null)
   }
 }

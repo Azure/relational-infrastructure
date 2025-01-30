@@ -197,6 +197,90 @@ workloads = {
         }
       }
     }
+    cogito = {
+      clarity_db = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      caboodle_db = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      cubes = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      slicer_dicer = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      clarity_console = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      bi_restful = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+    }
+    odb = {
+      odb = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+      rpt = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+    }
   }
   alt = {
     client = {
@@ -386,6 +470,18 @@ workloads = {
         }
       }
       image_exchange = {
+        image = {
+          reference = {
+            offer     = "WindowsServer"
+            publisher = "MicrosoftWindowsServer"
+            sku       = "2019-Datacenter"
+            version   = "latest"
+          }
+        }
+      }
+    }
+    odb = {
+      odb = {
         image = {
           reference = {
             offer     = "WindowsServer"
