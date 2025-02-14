@@ -3,6 +3,16 @@ variable "deployment_prefix" {
   nullable = false
 }
 
+variable "ddos_protection_plan_name" {
+  type     = string
+  nullable = true
+}
+
+variable "enable_automatic_updates" {
+  type    = bool
+  default = false
+}
+
 variable "include_label_tags" {
   type        = bool
   default     = false
@@ -74,16 +84,39 @@ ERROR_MESSAGE
 
 variable "networks" {
   type = map(object({
-    location_name = string
-    address_space = string
-    name          = optional(string, null)
-    peered_to     = optional(list(string), [])
+    location_name          = string
+    address_space          = string
+    name                   = optional(string, null)
+    peered_to              = optional(list(string), [])
+    dns_ip_addresses       = optional(set(string), null)
+    enable_ddos_protection = optional(bool, false)
 
     subnets = map(object({
       address_space       = string
       name                = optional(string, null)
+      route_table_name    = optional(string, null)
       security_group_name = optional(string, null)
       lock_mode           = optional(string, null)
+
+      route_traffic = optional(map(object({
+        destined_for = object({
+          address_space = optional(string, null)
+          network = optional(object({
+            network_name = string
+          }), null)
+          subnet = optional(object({
+            network_name = string
+            subnet_name  = string
+          }), null)
+        })
+        route_name  = optional(string, null)
+        to_gateway  = optional(bool, false)
+        to_internet = optional(bool, false)
+        to_nowhere  = optional(bool, false)
+        to_appliance = optional(object({
+          ip_address = string
+        }), null)
+      })), null)
 
       security_rules = optional(map(object({
         name     = optional(string, null)
@@ -241,6 +274,7 @@ variable "virtual_machine_sets" {
     network_interfaces = map(object({
       network_name                  = string
       subnet_name                   = string
+      private_ip                    = optional(string, null)
       private_ip_allocation         = optional(string, "Dynamic")
       enable_accelerated_networking = optional(bool, true)
     }))

@@ -7,26 +7,71 @@ module "network_resource_groups" {
   tags     = var.tags
 }
 
+module "ddos_protection_plan" {
+  source = "Azure/avm-res-network-ddosprotectionplan/azurerm"
+  count  = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
+
+  location            = var.locations["primary"]
+  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddos-plan")
+  resource_group_name = module.network_resource_groups["primary"].name
+}
+
 module "networks" {
-  source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  for_each = local.networks
+  source = "Azure/avm-ptn-hubnetworking/azurerm"
+
+  hub_virtual_networks = {
+    for network_name, network in local.networks : network_name => {
+      name                            = network.name
+      location                        = var.locations[network.location_ref]
+      address_space                   = [network.address_space]
+      resource_group_name             = module.network_resource_groups[network.location_ref].name
+      ddos_protection_plan_id         = (network.enable_ddos_protection ? module.ddos_protection_plan[0].resource_id : null)
+      dns_servers                     = (network.dns_ips == null ? null : network.dns_ips)
+      tags                            = merge(var.tags, (var.include_label_tags ? { network_label = network_name } : {}))
+      mesh_peering_enabled            = false # We are explicit about the peerings that should be created
+      resource_group_creation_enabled = false # The resource group already exists
+
+      subnets = {
+        for subnet_name, subnet in network.subnets : subnet_name => {
+          name             = coalesce(subnet.name, subnet_name)
+          address_prefixes = [subnet.address_space]
+
+          network_security_group = (
+            contains(keys(local.network_security_groups), "${network_name}_${subnet_name}")
+            ? { id = module.network_security_groups["${network_name}_${subnet_name}"].resource_id }
+            : null
+          )
+
+          route_table = (
+            contains(keys(local.route_tables), "${network_name}_${subnet_name}")
+            ? { id = module.route_tables["${network_name}_${subnet_name}"].resource_id }
+            : null
+          )
+        }
+      }
+    }
+  }
+}
+
+module "route_tables" {
+  source   = "Azure/avm-res-network-routetable/azurerm"
+  for_each = local.route_tables
 
   location            = var.locations[each.value.location_ref]
   name                = each.value.name
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
-  address_space       = [each.value.address_space]
-  tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.key } : {}))
 
-  subnets = {
-    for subnet_name, subnet in each.value.subnets : subnet_name => {
-      address_prefix = subnet.address_space
-      name           = coalesce(subnet.name, subnet_name)
+  tags = merge(var.tags,
+    (var.include_label_tags ?
+      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
+  {}))
 
-      network_security_group = (
-        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
-        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
-        : null
-      )
+  routes = {
+    for route_ref, route in each.value.routes : route_ref => {
+      name                   = route.route_name
+      address_prefix         = route.address_prefix
+      next_hop_type          = route.next_hop_type
+      next_hop_in_ip_address = route.next_hop_ip_address
     }
   }
 }
@@ -38,7 +83,11 @@ module "network_security_groups" {
   location            = var.locations[each.value.location_ref]
   name                = each.value.name
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
-  tags                = merge(var.tags, (var.include_label_tags ? { network_label = each.value.network_ref } : {}))
+
+  tags = merge(var.tags,
+    (var.include_label_tags ?
+      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
+  {}))
 
   security_rules = {
     for rule_ref, rule in merge(
@@ -73,8 +122,8 @@ resource "azurerm_virtual_network_peering" "peerings" {
 
   name                      = each.key
   resource_group_name       = local.networks[each.value.peer_from_network_name].resource_group_name
-  virtual_network_name      = module.networks[each.value.peer_from_network_name].name
-  remote_virtual_network_id = module.networks[each.value.peer_to_network_name].resource_id
+  virtual_network_name      = module.networks.virtual_networks[each.value.peer_from_network_name].name
+  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
 }
 
 module "virtual_machine_set_resource_groups" {
@@ -95,13 +144,14 @@ module "virtual_machine_sets" {
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
   resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
+  enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
   virtual_machine_image                         = each.value.image
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
-  virtual_machine_zone_distribution             = coalesce(var.virtual_machine_set_zone_distribution[each.key], { custom = null, even = ["1", "2", "3"] })
+  virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
 
@@ -117,9 +167,9 @@ module "virtual_machine_sets" {
 
   virtual_machine_network_interfaces = {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
-      private_ip_allocation         = nic.private_ip_allocation
+      private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
+      subnet_id                     = module.networks.virtual_networks[nic.network_name].subnets["${nic.network_name}-${nic.subnet_name}"].resource_id
     }
   }
 

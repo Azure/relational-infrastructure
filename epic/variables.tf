@@ -2,6 +2,12 @@ variable "deployment_prefix" {
   type = string
 }
 
+variable "ddos_protection_plan_name" {
+  type     = string
+  default  = null
+  nullable = true
+}
+
 variable "environment_name" {
   type = string
 }
@@ -9,6 +15,11 @@ variable "environment_name" {
 variable "include_label_tags" {
   type    = bool
   default = true
+}
+
+variable "enable_automatic_updates" {
+  type    = bool
+  default = false
 }
 
 variable "locations" {
@@ -22,7 +33,9 @@ variable "networks" {
   type = object({
     alt = object({
       dmz = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           firewall = object({
             address_space = string
@@ -36,7 +49,9 @@ variable "networks" {
         })
       })
       shared_infra = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           gateway = object({
             address_space = string
@@ -47,7 +62,9 @@ variable "networks" {
         })
       })
       main = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           cogito = object({
             address_space = string
@@ -61,7 +78,9 @@ variable "networks" {
         })
       })
       hyperspace = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           hyperspace = object({
             address_space = string
@@ -69,7 +88,9 @@ variable "networks" {
         })
       })
       hyperspace_web = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           hyperspace_web = object({
             address_space = string
@@ -79,7 +100,9 @@ variable "networks" {
     })
     primary = object({
       dmz = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           firewall = object({
             address_space = string
@@ -93,7 +116,9 @@ variable "networks" {
         })
       })
       shared_infra = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           gateway = object({
             address_space = string
@@ -104,7 +129,9 @@ variable "networks" {
         })
       })
       main = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           cogito = object({
             address_space = string
@@ -118,7 +145,9 @@ variable "networks" {
         })
       })
       hyperspace = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           hyperspace = object({
             address_space = string
@@ -126,7 +155,9 @@ variable "networks" {
         })
       })
       hyperspace_web = object({
-        address_space = string
+        address_space          = string
+        dns_ip_addresses       = optional(set(string), null)
+        enable_ddos_protection = optional(bool, false)
         subnets = object({
           hyperspace_web = object({
             address_space = string

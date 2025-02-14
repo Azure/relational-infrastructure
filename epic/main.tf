@@ -1,8 +1,10 @@
 module "epic" {
   source = "../high_availability_virtual_machine_map"
 
-  deployment_prefix  = var.deployment_prefix
-  include_label_tags = var.include_label_tags
+  ddos_protection_plan_name = var.ddos_protection_plan_name
+  deployment_prefix         = var.deployment_prefix
+  enable_automatic_updates  = var.enable_automatic_updates
+  include_label_tags        = var.include_label_tags
 
   tags = {
     epic-env = var.environment_name
@@ -15,9 +17,11 @@ module "epic" {
 
   networks = {
     primary_dmz = {
-      location_name = "primary"
-      name          = "${var.deployment_prefix}-${var.locations["primary"]}-dmz-net01"
-      address_space = var.networks.primary.dmz.address_space
+      location_name          = "primary"
+      name                   = "${var.deployment_prefix}-${local.primary_location}-dmz-net01"
+      address_space          = var.networks.primary.dmz.address_space
+      dns_ip_addresses       = var.networks.primary.dmz.dns_ip_addresses
+      enable_ddos_protection = var.networks.primary.dmz.enable_ddos_protection
 
       subnets = {
         firewall = {
@@ -34,9 +38,11 @@ module "epic" {
     }
 
     primary_shared_infra = {
-      location_name = "primary"
-      name          = "${var.deployment_prefix}-${var.locations["primary"]}-shared-infra-net01"
-      address_space = var.networks.primary.shared_infra.address_space
+      location_name          = "primary"
+      name                   = "${var.deployment_prefix}-${local.primary_location}-shared-infra-net01"
+      address_space          = var.networks.primary.shared_infra.address_space
+      dns_ip_addresses       = var.networks.primary.shared_infra.dns_ip_addresses
+      enable_ddos_protection = var.networks.primary.shared_infra.enable_ddos_protection
 
       subnets = {
         gateway = {
@@ -45,6 +51,79 @@ module "epic" {
         }
         management = {
           address_space = var.networks.primary.shared_infra.subnets.management.address_space
+
+          route_traffic = {
+            to_main_through_appliance = {
+              destined_for = {
+                network = {
+                  network_name = "primary_main"
+                }
+              }
+              to_appliance = {
+                ip_address = "10.0.1.254"
+              }
+            }
+            to_main_odb_subnet_to_nowhere = {
+              destined_for = {
+                subnet = {
+                  network_name = "primary_main"
+                  subnet_name  = "odb"
+                }
+              }
+              to_nowhere = true
+            }
+            to_main_cogito_subnet_to_gateway = {
+              destined_for = {
+                subnet = {
+                  network_name = "primary_main"
+                  subnet_name  = "cogito"
+                }
+              }
+              to_gateway = true
+            }
+          }
+
+          security_rules = {
+            allow_in_from_hyperspace_web = {
+              priority = 100
+              protocol = "Tcp"
+              allow = { in = { from = {
+                network = {
+                  network_name = "primary_hyperspace_web"
+                } }
+                to = {
+                  port_range = 443
+                } }
+              }
+            }
+            allow_out_from_management = {
+              priority = 110
+              allow = { out = { from = {
+                subnet = {
+                  network_name = "primary_shared_infra"
+                  subnet_name  = "management"
+                } } }
+              }
+            }
+            deny_in_to_management = {
+              priority = 120
+              deny = { in = { to = {
+                subnet = {
+                  network_name = "primary_shared_infra"
+                  subnet_name  = "management"
+                } } }
+              }
+            }
+            deny_out_from_gateway = {
+              priority = 130
+              deny = { out = { from = {
+                subnet = {
+                  network_name = "primary_shared_infra"
+                  subnet_name  = "gateway"
+                } } }
+              }
+            }
+          }
         }
       }
 
@@ -56,9 +135,11 @@ module "epic" {
     }
 
     primary_main = {
-      location_name = "primary"
-      name          = "${var.deployment_prefix}-${var.locations["primary"]}-main-net01"
-      address_space = var.networks.primary.main.address_space
+      location_name          = "primary"
+      name                   = "${var.deployment_prefix}-${local.primary_location}-main-net01"
+      address_space          = var.networks.primary.main.address_space
+      dns_ip_addresses       = var.networks.primary.main.dns_ip_addresses
+      enable_ddos_protection = var.networks.primary.main.enable_ddos_protection
 
       subnets = {
         cogito = {
@@ -80,9 +161,11 @@ module "epic" {
     }
 
     primary_hyperspace = {
-      location_name = "primary"
-      name          = "${var.deployment_prefix}-${var.locations["primary"]}-hyperspace-net01"
-      address_space = var.networks.primary.hyperspace.address_space
+      location_name          = "primary"
+      name                   = "${var.deployment_prefix}-${local.primary_location}-hyperspace-net01"
+      address_space          = var.networks.primary.hyperspace.address_space
+      dns_ip_addresses       = var.networks.primary.hyperspace.dns_ip_addresses
+      enable_ddos_protection = var.networks.primary.hyperspace.enable_ddos_protection
 
       subnets = {
         hyperspace = {
@@ -98,9 +181,11 @@ module "epic" {
     }
 
     primary_hyperspace_web = {
-      location_name = "primary"
-      name          = "${var.deployment_prefix}-${var.locations["primary"]}-hyperspace-web-net01"
-      address_space = var.networks.primary.hyperspace_web.address_space
+      location_name          = "primary"
+      name                   = "${var.deployment_prefix}-${local.primary_location}-hyperspace-web-net01"
+      address_space          = var.networks.primary.hyperspace_web.address_space
+      dns_ip_addresses       = var.networks.primary.hyperspace_web.dns_ip_addresses
+      enable_ddos_protection = var.networks.primary.hyperspace_web.enable_ddos_protection
 
       subnets = {
         hyperspace_web = {
@@ -116,9 +201,11 @@ module "epic" {
     }
 
     alt_dmz = {
-      location_name = "alt"
-      name          = "${var.deployment_prefix}-${var.locations["alt"]}-dmz-net01"
-      address_space = var.networks.alt.dmz.address_space
+      location_name          = "alt"
+      name                   = "${var.deployment_prefix}-${local.alt_location}-dmz-net01"
+      address_space          = var.networks.alt.dmz.address_space
+      dns_ip_addresses       = var.networks.alt.dmz.dns_ip_addresses
+      enable_ddos_protection = var.networks.alt.dmz.enable_ddos_protection
 
       subnets = {
         firewall = {
@@ -135,9 +222,11 @@ module "epic" {
     }
 
     alt_shared_infra = {
-      location_name = "alt"
-      name          = "${var.deployment_prefix}-${var.locations["alt"]}-shared-infra-net01"
-      address_space = var.networks.alt.shared_infra.address_space
+      location_name          = "alt"
+      name                   = "${var.deployment_prefix}-${local.alt_location}-shared-infra-net01"
+      address_space          = var.networks.alt.shared_infra.address_space
+      dns_ip_addresses       = var.networks.alt.shared_infra.dns_ip_addresses
+      enable_ddos_protection = var.networks.alt.shared_infra.enable_ddos_protection
 
       subnets = {
         gateway = {
@@ -157,9 +246,11 @@ module "epic" {
     }
 
     alt_main = {
-      location_name = "alt"
-      name          = "${var.deployment_prefix}-${var.locations["alt"]}-main-net01"
-      address_space = var.networks.alt.main.address_space
+      location_name          = "alt"
+      name                   = "${var.deployment_prefix}-${local.alt_location}-main-net01"
+      address_space          = var.networks.alt.main.address_space
+      dns_ip_addresses       = var.networks.alt.main.dns_ip_addresses
+      enable_ddos_protection = var.networks.alt.main.enable_ddos_protection
 
       subnets = {
         cogito = {
@@ -181,9 +272,11 @@ module "epic" {
     }
 
     alt_hyperspace = {
-      location_name = "alt"
-      name          = "${var.deployment_prefix}-${var.locations["alt"]}-hyperspace-net01"
-      address_space = var.networks.alt.hyperspace.address_space
+      location_name          = "alt"
+      name                   = "${var.deployment_prefix}-${local.alt_location}-hyperspace-net01"
+      address_space          = var.networks.alt.hyperspace.address_space
+      dns_ip_addresses       = var.networks.alt.hyperspace.dns_ip_addresses
+      enable_ddos_protection = var.networks.alt.hyperspace.enable_ddos_protection
 
       subnets = {
         hyperspace = {
@@ -199,9 +292,11 @@ module "epic" {
     }
 
     alt_hyperspace_web = {
-      location_name = "alt"
-      name          = "${var.deployment_prefix}-${var.locations["alt"]}-hyperspace-web-net01"
-      address_space = var.networks.alt.hyperspace_web.address_space
+      location_name          = "alt"
+      name                   = "${var.deployment_prefix}-${local.alt_location}-hyperspace-web-net01"
+      address_space          = var.networks.alt.hyperspace_web.address_space
+      dns_ip_addresses       = var.networks.alt.hyperspace_web.dns_ip_addresses
+      enable_ddos_protection = var.networks.alt.hyperspace_web.enable_ddos_protection
 
       subnets = {
         hyperspace_web = {

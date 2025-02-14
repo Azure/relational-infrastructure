@@ -1,5 +1,6 @@
-deployment_prefix  = "eptst11"
-include_label_tags = true
+deployment_prefix         = "eptst42"
+include_label_tags        = true
+ddos_protection_plan_name = null
 
 tags = {
   epic-env = "production"
@@ -12,9 +13,10 @@ locations = {
 
 networks = {
   primary_dmz = {
-    name          = "primary-dmz-net"
-    location_name = "primary"
-    address_space = "10.0.0.0/16"
+    name                   = "primary-dmz-net"
+    location_name          = "primary"
+    address_space          = "10.0.0.0/16"
+    enable_ddos_protection = true
 
     subnets = {
       firewall = {
@@ -131,9 +133,10 @@ networks = {
   }
 
   alt_dmz = {
-    name          = "alt-dmz-net"
-    location_name = "alt"
-    address_space = "10.10.0.0/16"
+    name                   = "alt-dmz-net"
+    location_name          = "alt"
+    address_space          = "10.10.0.0/16"
+    enable_ddos_protection = true
 
     subnets = {
       firewall = {

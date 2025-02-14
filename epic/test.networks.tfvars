@@ -1,7 +1,12 @@
 networks = {
   primary = {
     dmz = {
-      address_space = "10.0.0.0/16"
+      address_space          = "10.0.0.0/16"
+      enable_ddos_protection = true
+      dns_ip_addresses = [
+        "10.0.0.250",
+        "10.0.0.251"
+      ]
       subnets = {
         firewall = {
           address_space = "10.0.0.0/24"
@@ -58,7 +63,8 @@ networks = {
   }
   alt = {
     dmz = {
-      address_space = "10.10.0.0/16"
+      address_space          = "10.10.0.0/16"
+      enable_ddos_protection = true
       subnets = {
         firewall = {
           address_space = "10.10.0.0/24"

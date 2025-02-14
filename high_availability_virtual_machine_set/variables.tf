@@ -65,6 +65,11 @@ Azure Powershell: Get-AzLocation | Select-Object Location
   }
 }
 
+variable "enable_automatic_updates" {
+  type    = bool
+  default = false
+}
+
 variable "resource_prefix" {
   type        = string
   description = "This naming prefix will be applied to all resources."
@@ -243,7 +248,6 @@ variable "virtual_machine_image" {
 variable "virtual_machine_network_interfaces" {
   type = map(object({
     private_ip                    = optional(string)
-    private_ip_allocation         = optional(string, "Dynamic")
     enable_accelerated_networking = optional(bool, true)
     subnet_id                     = string
   }))

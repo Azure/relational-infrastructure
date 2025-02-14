@@ -46,9 +46,9 @@ locals {
         accelerated_networking_enabled = nic_config.enable_accelerated_networking
         ip_configurations = {
           ip_configuration_1 = {
-            name                          = lower("${local.virtual_machine_names[i]}${nic_name}ipconfig01")
+            name                          = lower("${local.virtual_machine_names[i]}${nic_name}ipcfg01")
             private_ip_subnet_resource_id = nic_config.subnet_id
-            private_ip_address_allocation = lookup(nic_config, "private_ip_allocation", "Dynamic")
+            private_ip_address_allocation = lookup(nic_config, "private_ip", null) == null ? "Dynamic" : "Static"
             private_ip_address            = lookup(nic_config, "private_ip", null)
           }
         }

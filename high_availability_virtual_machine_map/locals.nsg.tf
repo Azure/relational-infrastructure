@@ -39,7 +39,11 @@ locals {
                 address_space = (
                   inbound_rule.allow.in.to.subnet != null
                   ? local.networks[inbound_rule.allow.in.to.subnet.network_name].subnets[inbound_rule.allow.in.to.subnet.subnet_name].address_space
-                  : coalesce(inbound_rule.allow.in.to.address_space, "*")
+                  : (
+                    inbound_rule.allow.in.to.network != null
+                    ? local.networks[inbound_rule.allow.in.to.network.network_name].address_space
+                    : coalesce(inbound_rule.allow.in.to.address_space, "*")
+                  )
                 )
                 port_range = coalesce(inbound_rule.allow.in.to.port_range, "*")
               }
@@ -55,7 +59,11 @@ locals {
                 address_space = (
                   inbound_rule.allow.in.from.subnet != null
                   ? local.networks[inbound_rule.allow.in.from.subnet.network_name].subnets[inbound_rule.allow.in.from.subnet.subnet_name].address_space
-                  : coalesce(inbound_rule.allow.in.from.address_space, "*")
+                  : (
+                    inbound_rule.allow.in.from.network != null
+                    ? local.networks[inbound_rule.allow.in.from.network.network_name].address_space
+                    : coalesce(inbound_rule.allow.in.from.address_space, "*")
+                  )
                 )
                 port_range = coalesce(inbound_rule.allow.in.from.port_range, "*")
               }

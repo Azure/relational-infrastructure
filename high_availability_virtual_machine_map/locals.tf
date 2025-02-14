@@ -18,10 +18,12 @@ locals {
 
   networks = {
     for network_ref, network in var.networks : network_ref => {
-      address_space       = network.address_space
-      location_ref        = network.location_name
-      name                = lower(coalesce(network.name, "${var.deployment_prefix}-${network_ref}"))
-      resource_group_name = local.network_resource_groups[network.location_name].name
+      address_space          = network.address_space
+      dns_ips                = network.dns_ip_addresses
+      enable_ddos_protection = network.enable_ddos_protection
+      location_ref           = network.location_name
+      name                   = lower(coalesce(network.name, "${var.deployment_prefix}-${network_ref}"))
+      resource_group_name    = local.network_resource_groups[network.location_name].name
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {
@@ -29,6 +31,8 @@ locals {
           name                = lower(coalesce(subnet.name, subnet_ref))
           security_group_name = subnet.security_group_name
           security_rules      = subnet.security_rules
+          route_table_name    = subnet.route_table_name
+          routes              = subnet.route_traffic
         }
       }
     } if network != null
