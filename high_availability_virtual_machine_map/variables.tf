@@ -13,16 +13,52 @@ variable "enable_automatic_updates" {
   default = false
 }
 
+variable "enable_full_network_mesh" {
+  type        = bool
+  default     = false
+  description = "Whether to enable full network mesh for all virtual machines."
+}
+
 variable "include_label_tags" {
   type        = bool
   default     = false
   description = "Whether to include label tags."
 }
 
-variable "tags" {
+variable "global_tags" {
   type        = map(string)
   default     = {}
   description = "A map of universal tags to apply to all resources."
+}
+
+variable "global_extensions" {
+  type        = list(string)
+  default     = []
+  description = "A set of extension names to apply to all virtual machines."
+}
+
+variable "virtual_machine_extensions" {
+  type = map(object({
+    name                        = string
+    publisher                   = string
+    type                        = string
+    type_handler_version        = string
+    auto_upgrade_minor_version  = optional(bool)
+    automatic_upgrade_enabled   = optional(bool)
+    deploy_sequence             = optional(number, 3)
+    failure_suppression_enabled = optional(bool, false)
+    settings                    = optional(string)
+    protected_settings          = optional(string)
+    provision_after_extensions  = optional(list(string), [])
+    tags                        = optional(map(string), null)
+    protected_settings_from_key_vault = optional(object({
+      secret_url      = string
+      source_vault_id = string
+    }))
+  }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "locations" {
@@ -235,6 +271,7 @@ variable "virtual_machine_sets" {
     name                          = optional(string, null)
     resource_group_name           = optional(string, null)
     tags                          = optional(map(string), {})
+    extensions                    = optional(list(string), [])
     os_type                       = optional(string, "Windows")
     disk_controller_type          = optional(string, null)
     enable_boot_diagnostics       = optional(bool, false)
@@ -252,8 +289,9 @@ variable "virtual_machine_sets" {
     }), null)
 
     data_disks = optional(map(object({
-      lun     = number
-      caching = optional(string, "ReadWrite")
+      lun                          = number
+      caching                      = optional(string, "ReadWrite")
+      enable_public_network_access = optional(bool, false)
       image = optional(object({
         copy = optional(object({
           resource_id = string

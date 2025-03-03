@@ -1,6 +1,7 @@
-deployment_prefix         = "eptst42"
+deployment_prefix         = "eptst50"
 include_label_tags        = true
 ddos_protection_plan_name = null
+enable_full_network_mesh  = false
 
 tags = {
   epic-env = "production"
@@ -235,12 +236,28 @@ networks = {
   }
 }
 
+virtual_machine_extensions = {
+  azure_monitor = {
+    name                       = "AzureMonitorWindowsAgent"
+    publisher                  = "Microsoft.Azure.Monitor"
+    type                       = "AzureMonitorWindowsAgent"
+    type_handler_version       = "1.2"
+    auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
+    settings                   = null
+  }
+}
+
 virtual_machine_sets = {
   alt_bca_web = {
     name                = "altbcw"
     location_name       = "alt"
     resource_group_name = "alt-bca-web"
     os_type             = "Windows"
+
+    extensions = [
+      "azure_monitor"
+    ]
 
     tags = {
       epic-app = "bcaweb"
@@ -417,12 +434,21 @@ virtual_machine_set_specs = {
   }
 
   primary_bca_web = {
-    vm_count = 2
+    vm_count = 10
     sku_size = "Standard_D2s_v3"
 
     os_disk = {
       disk_size_gb         = 128
       storage_account_type = "Premium_LRS"
+    }
+  }
+}
+
+virtual_machine_set_zone_distribution = {
+  primary_bca_web = {
+    custom = {
+      "1" = 2
+      "2" = 8
     }
   }
 }

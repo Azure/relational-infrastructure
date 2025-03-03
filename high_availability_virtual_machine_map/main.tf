@@ -4,7 +4,7 @@ module "network_resource_groups" {
 
   location = each.value
   name     = "${var.deployment_prefix}-${each.value}-networks"
-  tags     = var.tags
+  tags     = var.global_tags
 }
 
 module "ddos_protection_plan" {
@@ -27,9 +27,9 @@ module "networks" {
       resource_group_name             = module.network_resource_groups[network.location_ref].name
       ddos_protection_plan_id         = (network.enable_ddos_protection ? module.ddos_protection_plan[0].resource_id : null)
       dns_servers                     = (network.dns_ips == null ? null : network.dns_ips)
-      tags                            = merge(var.tags, (var.include_label_tags ? { network_label = network_name } : {}))
-      mesh_peering_enabled            = false # We are explicit about the peerings that should be created
-      resource_group_creation_enabled = false # The resource group already exists
+      tags                            = merge(var.global_tags, (var.include_label_tags ? { network_label = network_name } : {}))
+      mesh_peering_enabled            = var.enable_full_network_mesh # We are explicit about the peerings that should be created
+      resource_group_creation_enabled = false                        # The resource group already exists
 
       subnets = {
         for subnet_name, subnet in network.subnets : subnet_name => {
@@ -61,7 +61,7 @@ module "route_tables" {
   name                = each.value.name
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
 
-  tags = merge(var.tags,
+  tags = merge(var.global_tags,
     (var.include_label_tags ?
       { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
   {}))
@@ -84,7 +84,7 @@ module "network_security_groups" {
   name                = each.value.name
   resource_group_name = module.network_resource_groups[each.value.location_ref].name
 
-  tags = merge(var.tags,
+  tags = merge(var.global_tags,
     (var.include_label_tags ?
       { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
   {}))
@@ -108,23 +108,25 @@ module "network_security_groups" {
   }
 }
 
-resource "azurerm_virtual_network_peering" "peerings" {
-  for_each = tomap({
-    for peering in flatten([
-      for from_network_name, from_network in var.networks : [
-        for to_network_name in from_network.peered_to : {
-          peer_from_network_name = from_network_name
-          peer_to_network_name   = to_network_name
-        }
-      ]
-    ]) : "peer-${peering.peer_from_network_name}-to-${peering.peer_to_network_name}" => peering
-  })
+# Disabled temporarily due to https://github.com/Azure/terraform-azurerm-avm-ptn-hubnetworking/issues/109.
 
-  name                      = each.key
-  resource_group_name       = local.networks[each.value.peer_from_network_name].resource_group_name
-  virtual_network_name      = module.networks.virtual_networks[each.value.peer_from_network_name].name
-  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
-}
+# resource "azurerm_virtual_network_peering" "peerings" {
+#  for_each = tomap({
+#    for peering in flatten([
+#      for from_network_name, from_network in var.networks : [
+#        for to_network_name in from_network.peered_to : {
+#          peer_from_network_name = from_network_name
+#          peer_to_network_name   = to_network_name
+#        }
+#      ]
+#    ]) : "peer-${peering.peer_from_network_name}-to-${peering.peer_to_network_name}" => peering
+#  })
+#
+#  name                      = each.key
+#  resource_group_name       = local.networks[each.value.peer_from_network_name].resource_group_name
+#  virtual_network_name      = module.networks.virtual_networks[each.value.peer_from_network_name].name
+#  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
+# }
 
 module "virtual_machine_set_resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
@@ -132,7 +134,7 @@ module "virtual_machine_set_resource_groups" {
 
   location = var.locations[each.value.location_name]
   name     = "${var.deployment_prefix}-${coalesce(each.value.resource_group_name, each.key)}"
-  tags     = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
+  tags     = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
 }
 
 module "virtual_machine_sets" {
@@ -142,7 +144,7 @@ module "virtual_machine_sets" {
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.virtual_machine_set_resource_groups[each.key].name
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
-  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
+  resource_tags                                 = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
@@ -155,13 +157,18 @@ module "virtual_machine_sets" {
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
 
+  virtual_machine_extensions = {
+    for extension_name in concat(var.global_extensions, each.value.extensions) : extension_name => var.virtual_machine_extensions[extension_name]
+  }
+
   virtual_machine_data_disks = {
     for disk_name, disk in each.value.data_disks : disk_name => {
-      caching              = disk.caching
-      image                = disk.image
-      lun                  = disk.lun
-      disk_size_gb         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
-      storage_account_type = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
+      caching                      = disk.caching
+      image                        = disk.image
+      lun                          = disk.lun
+      disk_size_gb                 = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
+      storage_account_type         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
+      enable_public_network_access = disk.enable_public_network_access
     }
   }
 

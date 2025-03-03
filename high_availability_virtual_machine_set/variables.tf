@@ -70,6 +70,31 @@ variable "enable_automatic_updates" {
   default = false
 }
 
+variable "virtual_machine_extensions" {
+  type = map(object({
+    name                        = string
+    publisher                   = string
+    type                        = string
+    type_handler_version        = string
+    auto_upgrade_minor_version  = optional(bool)
+    automatic_upgrade_enabled   = optional(bool)
+    deploy_sequence             = optional(number, 3)
+    failure_suppression_enabled = optional(bool, false)
+    settings                    = optional(string)
+    protected_settings          = optional(string)
+    provision_after_extensions  = optional(list(string), [])
+    tags                        = optional(map(string), null)
+    protected_settings_from_key_vault = optional(object({
+      secret_url      = string
+      source_vault_id = string
+    }))
+  }))
+
+  default   = {}
+  nullable  = false
+  sensitive = true
+}
+
 variable "resource_prefix" {
   type        = string
   description = "This naming prefix will be applied to all resources."
@@ -160,10 +185,11 @@ variable "virtual_machine_data_disks" {
       }), null)
     }), null)
 
-    caching              = optional(string, "ReadWrite")
-    storage_account_type = optional(string, "PremiumV2_LRS")
-    disk_size_gb         = number
-    lun                  = number
+    caching                      = optional(string, "ReadWrite")
+    enable_public_network_access = optional(bool, false)
+    storage_account_type         = optional(string, "PremiumV2_LRS")
+    disk_size_gb                 = number
+    lun                          = number
   }))
 
   default     = {}
