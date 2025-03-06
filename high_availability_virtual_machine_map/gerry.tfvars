@@ -1,4 +1,4 @@
-deployment_prefix         = "gerry013"
+deployment_prefix         = "gerry014"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -434,7 +434,7 @@ virtual_machine_set_specs = {
   }
 
   primary_bca_web = {
-    vm_count = 1
+    vm_count = 2
     sku_size = "Standard_D4ads_v5"
 
     os_disk = {
@@ -457,8 +457,8 @@ virtual_machine_set_zone_distribution = {
 
 key_vaults = {
   primary = {
-    location_name                 = "primary"
-    name                          = "primary-kv"
+    location_name = "primary"
+    #name                          = "primary-kv"
     sku_name                      = "standard"
     enabled_for_disk_encryption   = true
     public_network_access_enabled = true #Only for testing purposes
@@ -489,7 +489,6 @@ key_vaults = {
 
   #Secondary Key Vault with minimal configuration
   alt = {
-    name                          = "alt-kv"
     location_name                 = "alt"
     purge_protection_enabled      = true
     public_network_access_enabled = true #Only for testing purposes

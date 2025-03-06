@@ -267,7 +267,7 @@ variable "networks" {
 
 variable "virtual_machine_sets" {
   type = map(object({
-    location_name                 = string
+    location_name                 = optional(string, null)
     name                          = optional(string, null)
     resource_group_name           = optional(string, null)
     tags                          = optional(map(string), {})

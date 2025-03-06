@@ -31,7 +31,8 @@ module "key_vaults" {
 
   location            = var.locations[each.value.location_name]
   resource_group_name = module.network_resource_groups[each.value.location_name].name
-  name                = "${module.naming.key_vault.name_unique}-${each.value.name}"
+
+  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-kv")
 
   tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
   sku_name                        = each.value.sku_name
@@ -229,10 +230,10 @@ module "virtual_machine_sets" {
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
   generated_secrets_key_vault_secret_config = {
-    key_vault_resource_id = local.key_vault_resource_ids[each.value.location_name]
-    name = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-admin-credentials"
+    key_vault_resource_id          = module.key_vaults[each.value.location_name].resource_id
+    name                           = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-creds"
     expiration_date_length_in_days = 90
-    content_type                   = "text/plain"
+    content_type                   = "password"
     tags                           = merge(var.global_tags, each.value.tags, { credential_type = "generated" })
   }
 
