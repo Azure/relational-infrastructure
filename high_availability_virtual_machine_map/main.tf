@@ -16,6 +16,75 @@ module "ddos_protection_plan" {
   resource_group_name = module.network_resource_groups["primary"].name
 }
 
+data "azurerm_client_config" "current" {}
+
+module "naming" {
+  source = "Azure/naming/azurerm"
+}
+
+
+#Create the Keyvaults
+module "key_vaults" {
+  source = "Azure/avm-res-keyvault-vault/azurerm"
+  # version = "0.10.0"
+  for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
+
+  location            = var.locations[each.value.location_name]
+  resource_group_name = module.network_resource_groups[each.value.location_name].name
+  name                = "${module.naming.key_vault.name_unique}-${each.value.name}"
+
+  tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
+  sku_name                        = each.value.sku_name
+  enabled_for_deployment          = each.value.enabled_for_deployment
+  enabled_for_disk_encryption     = each.value.enabled_for_disk_encryption
+  enabled_for_template_deployment = each.value.enabled_for_template_deployment
+  purge_protection_enabled        = each.value.purge_protection_enabled
+  public_network_access_enabled   = each.value.public_network_access_enabled
+  soft_delete_retention_days      = each.value.soft_delete_retention_days
+
+  #Wait for RBAC Operations
+  wait_for_rbac_before_key_operations     = each.value.wait_for_rbac_before_key_operations
+  wait_for_rbac_before_secret_operations  = each.value.wait_for_rbac_before_secret_operations
+  wait_for_rbac_before_contact_operations = each.value.wait_for_rbac_before_contact_operations
+
+
+  #Role Assignments
+  role_assignments = merge(
+    each.value.role_assignments,
+    {
+      current_user_admin = {
+        role_definition_id_or_name = "Key Vault Administrator"
+        principal_id               = "${data.azurerm_client_config.current.object_id}"
+      }
+    }
+  )
+
+  #Network ACLs
+  network_acls = each.value.network_acls != null ? {
+    bypass         = each.value.network_acls.bypass
+    default_action = each.value.network_acls.default_action
+    ip_rules       = each.value.network_acls.ip_rules
+    # virtual_network_subnet_ids = flatten([
+    #   for subnet_ref in each.value.network_acls.virtual_network_subnet_ids : 
+    #   (startswith(subnet_ref, "/") ? 
+    #     subnet_ref : 
+    #     contains(split(":", subnet_ref), ":") ? 
+    #       module.networks.virtual_networks[split(":", subnet_ref)[0]].subnets["${split(":", subnet_ref)[0]}-${split(":", subnet_ref)[1]}"].resource_id :
+    #       subnet_ref)
+    # ])
+  } : null
+
+  #Legacy Access Policies
+  #Private Endpoints
+  #Diagnostic Settings
+
+
+  tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
+
+}
+
+
+
 module "networks" {
   source = "Azure/avm-ptn-hubnetworking/azurerm"
 
@@ -156,6 +225,17 @@ module "virtual_machine_sets" {
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
+
+  # Pass the Key Vault resource ID for secret storage
+  # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
+  generated_secrets_key_vault_secret_config = {
+    key_vault_resource_id = local.key_vault_resource_ids[each.value.location_name]
+    name = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-admin-credentials"
+    expiration_date_length_in_days = 90
+    content_type                   = "text/plain"
+    tags                           = merge(var.global_tags, each.value.tags, { credential_type = "generated" })
+  }
+
 
   virtual_machine_extensions = {
     for extension_name in concat(var.global_extensions, each.value.extensions) : extension_name => var.virtual_machine_extensions[extension_name]

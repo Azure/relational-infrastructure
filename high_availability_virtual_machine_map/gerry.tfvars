@@ -1,4 +1,4 @@
-deployment_prefix         = "eptst50"
+deployment_prefix         = "gerry013"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -9,7 +9,7 @@ tags = {
 
 locations = {
   primary = "canadacentral"
-  alt     = "francecentral"
+  alt     = "westus3"
 }
 
 networks = {
@@ -382,8 +382,8 @@ virtual_machine_sets = {
 
 virtual_machine_set_specs = {
   alt_mpsql = {
-    vm_count = 2
-    sku_size = "Standard_D2s_v3"
+    vm_count = 1
+    sku_size = "Standard_D4ads_v5"
 
     data_disks = {
       data = {
@@ -403,8 +403,8 @@ virtual_machine_set_specs = {
   }
 
   alt_bca_web = {
-    vm_count = 2
-    sku_size = "Standard_D2s_v3"
+    vm_count = 1
+    sku_size = "Standard_D4ads_v5"
 
     os_disk = {
       disk_size_gb         = 128
@@ -413,8 +413,8 @@ virtual_machine_set_specs = {
   }
 
   primary_mpsql = {
-    vm_count = 3
-    sku_size = "Standard_D2s_v3"
+    vm_count = 1
+    sku_size = "Standard_D4ads_v5"
 
     data_disks = {
       data = {
@@ -434,8 +434,8 @@ virtual_machine_set_specs = {
   }
 
   primary_bca_web = {
-    vm_count = 10
-    sku_size = "Standard_D2s_v3"
+    vm_count = 1
+    sku_size = "Standard_D4ads_v5"
 
     os_disk = {
       disk_size_gb         = 128
@@ -446,12 +446,14 @@ virtual_machine_set_specs = {
 
 virtual_machine_set_zone_distribution = {
   primary_bca_web = {
-    custom = {
-      "1" = 2
-      "2" = 8
-    }
+    even = ["1", "2", "3"]
+    # custom = {
+    #   "1" = 1
+    #   "2" = 1
+    # }
   }
 }
+
 
 key_vaults = {
   primary = {
