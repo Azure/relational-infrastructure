@@ -410,3 +410,25 @@ variable "virtual_machine_zone_distribution" {
     error_message = "If provided, [virtual_machine_zone_distribution.even] must not contain duplicate availability zones."
   }
 }
+
+
+variable "generated_secrets_key_vault_secret_config" {
+  type = object({
+    key_vault_resource_id          = string
+    name                           = optional(string, null)
+    expiration_date_length_in_days = optional(number, 45)
+    content_type                   = optional(string, "text/plain")
+    not_before_date                = optional(string, null)
+    tags                           = optional(map(string), {})
+  })
+  default     = null
+  description = <<DESCRIPTION
+For simplicity this module provides the option to use an auto-generated admin user password or SSH key.  That password or key is then stored in a key vault provided in the `admin_credential_key_vault_resource_id` input. This variable allows the user to override the configuration for the key vault secret which stores the generated password or ssh key. The object details are:
+
+- `name` - (Optional) - The name to use for the key vault secret that stores the auto-generated ssh key or password
+- `expiration_date_length_in_days` - (Optional) - This value sets the number of days from the installation date to set the key vault expiration value. It defaults to `45` days.  This value will not be overridden in subsequent runs. If you need to maintain this virtual machine resource for a long period, generate and/or use your own password or ssh key.
+- `content_type` - (Optional) - This value sets the secret content type.  Defaults to `text/plain`
+- `not_before_date` - (Optional) - The UTC datetime (Y-m-d'T'H:M:S'Z) date before which this key is not valid.  Defaults to null.
+- `tags` - (Optional) - Specific tags to assign to this secret resource
+DESCRIPTION
+}
