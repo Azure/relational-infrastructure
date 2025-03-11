@@ -35,4 +35,6 @@ module "virtual_machines" {
   sku_size                               = var.virtual_machine_sku_size
   virtual_machine_scale_set_resource_id  = module.virtual_machine_scale_set.resource_id
   zone                                   = local.virtual_machine_zones[count.index]
+  
+  generated_secrets_key_vault_secret_config = var.generated_secrets_key_vault_secret_config == null ? null : local.virtual_machine_secret_configs[count.index]
 }
