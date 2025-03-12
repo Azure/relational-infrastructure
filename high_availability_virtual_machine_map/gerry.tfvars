@@ -1,4 +1,4 @@
-deployment_prefix         = "gerry1204"
+deployment_prefix         = "gerry1206"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -472,14 +472,6 @@ key_vaults = {
     public_network_access_enabled = true #Only for testing purposes
     soft_delete_retention_days    = 7
 
-    ##Pending to add private endpoints
-    # private_endpoints = {
-    #   primary = {
-
-    #     subnet_name  = "management"
-    #   }
-    # }
-
     network_acls = {
       bypass         = "AzureServices"
       default_action = "Allow"
@@ -546,7 +538,7 @@ private_endpoints = {
       #name = "custom-alt-kv-endpoint"
     }
   }
-  
+
   # Storage Account Private Endpoints (example for when storage accounts are implemented)
   # storage_accounts = {
   #   primary_blob = {

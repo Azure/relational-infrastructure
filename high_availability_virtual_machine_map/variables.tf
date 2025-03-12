@@ -516,23 +516,7 @@ variable "key_vaults" {
 }
 
 
-
-
-# variable "private_endpoints" {
-#   type = map(object({
-#       network_name   = string
-#       subnet_name    = string
-#       key_vault_name = string
-#       private_ip     = optional(string, null)
-#       name           = optional(string, null)
-
-#     # You can add storage_accounts and other resource types here as needed
-#   }))
-#   default     = {}
-#   description = "Configuration for private endpoints to various Azure resources."
-#   nullable    = false
-# }
-
+# Define the private endpoints configuration
 variable "private_endpoints" {
   type = object({
     key_vaults = optional(map(object({
@@ -561,7 +545,7 @@ variable "private_endpoints" {
     })), {})
 
     # Extend this with other Azure services that support private endpoints 
-    # such as SQL Server, Cosmos DB, etc.
+    # such as SQL Server, etc.
   })
   default     = { key_vaults = {}, storage_accounts = {} }
   description = "Configuration for private endpoints to various Azure services"
