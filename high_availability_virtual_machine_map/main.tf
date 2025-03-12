@@ -79,9 +79,70 @@ module "key_vaults" {
   #Private Endpoints
   #Diagnostic Settings
 
-
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
 
+}
+
+
+
+
+# Private Endpoints for all Azure services
+# Private Endpoints for all Azure services
+# module "private_endpoints" {
+#   source   = "Azure/avm-res-network-privateendpoint/azurerm"
+#   for_each = local.all_private_endpoints
+
+#   name                           = each.value.name
+#   resource_group_name            = each.value.resource_group_name
+#   location                       = each.value.location
+#   subnet_resource_id             = each.value.subnet_resource_id
+#   private_connection_resource_id = each.value.private_connection_resource_id
+#   network_interface_name         = each.value.network_interface_name
+
+#   # IP configurations if specified
+#   ip_configurations = each.value.ip_configurations != null ? each.value.ip_configurations : {}
+
+#   # Subresource names
+#   subresource_names = each.value.subresource_names
+
+#   # DNS configuration
+#   private_dns_zone_group_name   = each.value.private_dns_zone_group_name
+#   private_dns_zone_resource_ids = each.value.private_dns_zone_resource_ids
+
+#   # Service connection name
+#   private_service_connection_name = each.value.private_service_connection_name
+
+#   # Tags
+#   tags = each.value.tags
+# }
+
+# Private Endpoints for Azure services
+module "private_endpoints" {
+  source   = "Azure/avm-res-network-privateendpoint/azurerm"
+  for_each = local.all_private_endpoints
+
+  name                           = each.value.name
+  resource_group_name            = each.value.resource_group_name
+  location                       = each.value.location
+  subnet_resource_id             = each.value.subnet_resource_id
+  private_connection_resource_id = each.value.private_connection_resource_id
+  network_interface_name         = each.value.network_interface_name
+
+  # IP configurations if specified
+  ip_configurations = each.value.ip_configurations
+
+  # Subresource names
+  subresource_names = each.value.subresource_names
+
+  # DNS configuration
+  private_dns_zone_group_name   = each.value.private_dns_zone_group_name
+  private_dns_zone_resource_ids = each.value.private_dns_zone_resource_ids
+
+  # Service connection name
+  private_service_connection_name = each.value.private_service_connection_name
+
+  # Tags
+  tags = each.value.tags
 }
 
 
