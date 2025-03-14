@@ -514,3 +514,39 @@ variable "key_vaults" {
   description = "A map of Azure Key Vaults to be deployed."
   nullable    = false
 }
+
+
+# Define the private endpoints configuration
+variable "private_endpoints" {
+  type = object({
+    key_vaults = optional(map(object({
+      network_name   = string
+      subnet_name    = string
+      key_vault_name = string
+      private_ip     = optional(string, null)
+      name           = optional(string, null)
+      dns_zone_group = optional(object({
+        name                 = optional(string, "default")
+        private_dns_zone_ids = optional(list(string), [])
+      }), {})
+    })), {})
+
+    storage_accounts = optional(map(object({
+      network_name         = string
+      subnet_name          = string
+      storage_account_name = string
+      private_ip           = optional(string, null)
+      name                 = optional(string, null)
+      subresource_name     = optional(string, "blob") # blob, file, queue, table, etc.
+      dns_zone_group = optional(object({
+        name                 = optional(string, "default")
+        private_dns_zone_ids = optional(list(string), [])
+      }), {})
+    })), {})
+
+    # Extend this with other Azure services that support private endpoints 
+    # such as SQL Server, etc.
+  })
+  default     = { key_vaults = {}, storage_accounts = {} }
+  description = "Configuration for private endpoints to various Azure services"
+}
