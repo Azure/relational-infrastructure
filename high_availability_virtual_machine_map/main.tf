@@ -102,11 +102,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   registration_enabled  = false
   tags                  = merge(var.global_tags, { network_name = each.value.name })
 
-  # Add a lifecycle block to prevent recreation
-  lifecycle {
-    # Prevent destroy of links when applying changes
-    prevent_destroy = true
-  }
 }
 
 

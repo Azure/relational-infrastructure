@@ -1,4 +1,4 @@
-deployment_prefix         = "gerry1206"
+deployment_prefix         = "gerry1402"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -515,7 +515,7 @@ private_endpoints = {
   # Key Vault Private Endpoints
   key_vaults = {
     primary_vault = {
-      network_name   = "primary-main-net"  # This references the network name (not the key)
+      network_name   = "primary_main"      # This references the network key in the networks variable
       subnet_name    = "private_endpoints" # This references the subnet key in your networks.subnets variable
       key_vault_name = "primary"           # This references the key vault key in your key_vaults variable
       # Optional: Specify a static IP 
@@ -531,7 +531,7 @@ private_endpoints = {
       }
     },
     alt_vault = {
-      network_name   = "alt-main-net"
+      network_name   = "alt_main"
       subnet_name    = "private_endpoints"
       key_vault_name = "alt"
       # Customize the endpoint name (optional)
@@ -542,7 +542,7 @@ private_endpoints = {
   # Storage Account Private Endpoints (example for when storage accounts are implemented)
   # storage_accounts = {
   #   primary_blob = {
-  #     network_name         = "primary-main-net"
+  #     network_name         = "primary_main"
   #     subnet_name          = "private_endpoints"
   #     storage_account_name = "primary"       # This would reference a storage account key
   #     subresource_name     = "blob"
@@ -554,7 +554,7 @@ private_endpoints = {
   #     }
   #   },
   #   primary_file = {
-  #     network_name         = "primary-main-net"
+  #     network_name         = "primary_main"
   #     subnet_name          = "private_endpoints"
   #     storage_account_name = "primary"
   #     subresource_name     = "file"

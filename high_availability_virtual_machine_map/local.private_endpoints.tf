@@ -1,9 +1,4 @@
 locals {
-  # Helper function to find network key by network name
-  network_key_by_name = {
-    for network_ref, network in local.networks : network.name => network_ref
-  }
-
   # Pre-defined DNS zones for common Azure services
   private_dns_zones = {
     keyvault = {
@@ -19,13 +14,11 @@ locals {
   # Transform Key Vault private endpoints configuration
   key_vault_private_endpoints = {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => {
-      # Find the network_ref (key) by network name
-      network_ref = local.network_key_by_name[pe.network_name]
 
       name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_name}-kv-pe")
-      resource_group_name             = module.network_resource_groups[local.networks[local.network_key_by_name[pe.network_name]].location_ref].name
-      location                        = var.locations[local.networks[local.network_key_by_name[pe.network_name]].location_ref]
-      subnet_resource_id              = module.networks.virtual_networks[local.network_key_by_name[pe.network_name]].subnets["${local.network_key_by_name[pe.network_name]}-${pe.subnet_name}"].resource_id
+      resource_group_name             = module.network_resource_groups[local.networks[pe.network_name].location_ref].name
+      location                        = var.locations[local.networks[pe.network_name].location_ref]
+      subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
       private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id
       private_service_connection_name = "${var.deployment_prefix}-${pe.key_vault_name}-kv-psc"
       subresource_names               = ["vault"]
@@ -69,13 +62,12 @@ locals {
   # Transform Storage Account private endpoints configuration
   # storage_account_private_endpoints = {
   #   for pe_name, pe in try(var.private_endpoints.storage_accounts, {}) : pe_name => {
-  #     # Find the network_ref (key) by network name
-  #     network_ref = local.network_key_by_name[pe.network_name]
+  #     # Network key is directly used from the configuration
 
   #     name                           = coalesce(pe.name, "${var.deployment_prefix}-${pe.storage_account_name}-${pe.subresource_name}-pe")
-  #     resource_group_name            = module.network_resource_groups[local.networks[local.network_key_by_name[pe.network_name]].location_ref].name
-  #     location                       = var.locations[local.networks[local.network_key_by_name[pe.network_name]].location_ref]
-  #     subnet_resource_id             = module.networks.virtual_networks[local.network_key_by_name[pe.network_name]].subnets["${local.network_key_by_name[pe.network_name]}-${pe.subnet_name}"].resource_id
+  #     resource_group_name            = module.network_resource_groups[local.networks[pe.network_name].location_ref].name
+  #     location                       = var.locations[local.networks[pe.network_name].location_ref]
+  #     subnet_resource_id             = module.networks.virtual_networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
   #     # This requires implementing a storage accounts module and referencing its output
   #     # Uncomment and update this once storage accounts are implemented
   #     # private_connection_resource_id = module.storage_accounts[pe.storage_account_name].resource_id
@@ -85,7 +77,7 @@ locals {
   #     network_interface_name         = "${var.deployment_prefix}-${pe.storage_account_name}-${pe.subresource_name}-nic"
 
   #     # IP configurations if a specific IP is required
-  #     ip_configurations = pe.private_ip != null ? {
+  #     ip_configurations = try(pe.private_ip, null) != null ? {
   #       primary = {
   #         name               = "primary"
   #         private_ip_address = pe.private_ip
@@ -102,6 +94,7 @@ locals {
   #     tags = merge(var.global_tags, (var.include_label_tags ? { storage_account_label = pe.storage_account_name } : {}))
   #   }
   # }
+
 
 
 
