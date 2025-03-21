@@ -1,4 +1,3 @@
-
 deployment_prefix         = "sakina99"
 include_label_tags        = true
 ddos_protection_plan_name = null
@@ -237,6 +236,53 @@ networks = {
   }
 }
 
+# Add storage_accounts configuration here
+storage_accounts = {
+  sakina_primary_sa = {
+    location_name                 = "primary"
+    name                          = "sakina99primarysa"
+    tags                          = { environment = "production" }
+    access_tier                   = "Hot"
+    account_kind                  = "StorageV2"
+    account_replication_type      = "LRS"
+    account_tier                  = "Standard"
+    allow_nested_items_to_be_public = false
+    blob_properties = {
+      delete_retention_policy = {
+        days = 7
+      }
+      versioning_enabled = true
+    }
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+      ip_rules       = ["0.0.0.0/0"]
+    }
+  }
+
+  sakina_alt_sa = {
+    location_name                 = "alt"
+    name                          = "sakina99altsa"
+    tags                          = { environment = "production" }
+    access_tier                   = "Hot"
+    account_kind                  = "StorageV2"
+    account_replication_type      = "LRS"
+    account_tier                  = "Standard"
+    allow_nested_items_to_be_public = false
+    blob_properties = {
+      delete_retention_policy = {
+        days = 7
+      }
+      versioning_enabled = true
+    }
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+      ip_rules       = ["0.0.0.0/0"]
+    }
+  }
+}
+
 virtual_machine_extensions = {
   azure_monitor = {
     name                       = "AzureMonitorWindowsAgent"
@@ -454,7 +500,6 @@ virtual_machine_set_zone_distribution = {
     # }
   }
 }
-
 
 key_vaults = {
   primary = {
