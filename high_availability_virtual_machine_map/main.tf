@@ -122,50 +122,20 @@ module "storage_accounts" {
 
 
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { storageaccount_label = each.key } : {}))
-
+  
 }
 
-# Create the Azure Files
-module "storage_accounts" {
-  source = "Azure/avm-res-storage-storageaccount/azurerm"
-  # version = "0.5.0"
-
-  # Required Inputs
+# Create the File Shares within the Storage Accounts
+resource "azurerm_storage_share" "file_shares" {
   for_each = { for name, sa in var.storage_accounts : name => sa if sa != null }
-  location            = var.locations[each.value.location_name]
-  resource_group_name = module.network_resource_groups[each.value.location_name].name
-  
-  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-sa")
 
-  # Optional Inputs
+  name                 = "${each.key}-fileshare"
+  storage_account_name = azurerm_storage_account.storage_accounts[each.key].name
+  quota                = 100  # Quota in GB
+  metadata = {
+    environment = "production"
+  }
 
-  access_tier = each.value.access_tier
-  account_kind = each.value.account_kind
-  account_replication_type = each.value.account_replication_type
-  account_tier = each.value.account_tier
-  allow_nested_items_to_be_public = each.value.allow_nested_items_to_be_public
-  allowed_copy_scope = each.value.allowed_copy_scope
-  azure_files_authentication = each.value.azure_files_authentication
-  blob_properties = each.value.blob_properties
-  containers = each.value.containers
-  cross_tenant_replication_enabled = each.value.cross_tenant_replication_enabled
-  custom_domain = each.value.custom_domain
-  customer_managed_key = each.value.customer_managed_key
-  
-
-
-  # Network ACLs
-  # TODO disable public access
-  network_acls = each.value.network_acls != null ? {
-    bypass         = each.value.network_acls.bypass
-    default_action = each.value.network_acls.default_action
-    ip_rules       = each.value.network_acls.ip_rules
-  } : null
-
-
-  tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { storageaccount_label = each.key } : {}))
-
-}
 
 # Creating the Private DNS Zone for all Key Vault
 resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
