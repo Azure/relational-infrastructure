@@ -515,6 +515,11 @@ variable "key_vaults" {
   nullable    = false
 }
 
+# Define storage account configuration
+variable "storage_accounts" {
+  
+}
+
 
 # Define the private endpoints configuration
 variable "private_endpoints" {
