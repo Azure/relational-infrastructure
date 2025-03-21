@@ -1,4 +1,4 @@
-deployment_prefix         = "gerry014"
+deployment_prefix         = "gerry1402"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -17,7 +17,7 @@ networks = {
     name                   = "primary-dmz-net"
     location_name          = "primary"
     address_space          = "10.0.0.0/16"
-    enable_ddos_protection = true
+    enable_ddos_protection = false
 
     subnets = {
       firewall = {
@@ -88,6 +88,10 @@ networks = {
       wss = {
         address_space = "10.2.2.0/24"
       }
+      #For Private Endpoints
+      private_endpoints = {
+        address_space = "10.2.3.0/24"
+      }
     }
 
     peered_to = [
@@ -137,7 +141,7 @@ networks = {
     name                   = "alt-dmz-net"
     location_name          = "alt"
     address_space          = "10.10.0.0/16"
-    enable_ddos_protection = true
+    enable_ddos_protection = false
 
     subnets = {
       firewall = {
@@ -189,6 +193,10 @@ networks = {
       }
       wss = {
         address_space = "10.12.2.0/24"
+      }
+      #For Private Endpoints
+      private_endpoints = {
+        address_space = "10.12.3.0/24"
       }
     }
 
@@ -434,7 +442,7 @@ virtual_machine_set_specs = {
   }
 
   primary_bca_web = {
-    vm_count = 2
+    vm_count = 1
     sku_size = "Standard_D4ads_v5"
 
     os_disk = {
@@ -464,14 +472,6 @@ key_vaults = {
     public_network_access_enabled = true #Only for testing purposes
     soft_delete_retention_days    = 7
 
-    ##Pending to add private endpoints
-    # private_endpoints = {
-    #   primary = {
-
-    #     subnet_name  = "management"
-    #   }
-    # }
-
     network_acls = {
       bypass         = "AzureServices"
       default_action = "Allow"
@@ -492,6 +492,7 @@ key_vaults = {
     location_name                 = "alt"
     purge_protection_enabled      = true
     public_network_access_enabled = true #Only for testing purposes
+    soft_delete_retention_days    = 7
 
     network_acls = {
       bypass         = "AzureServices"
@@ -507,4 +508,56 @@ key_vaults = {
       epic-service = "security"
     }
   }
+}
+
+# Private endpoints configuration example
+private_endpoints = {
+  # Key Vault Private Endpoints
+  key_vaults = {
+    primary_vault = {
+      network_name   = "primary_main"      # This references the network key in the networks variable
+      subnet_name    = "private_endpoints" # This references the subnet key in your networks.subnets variable
+      key_vault_name = "primary"           # This references the key vault key in your key_vaults variable
+      # Optional: Specify a static IP 
+      # private_ip     = "10.1.1.10"
+      # Optional: Custom endpoint name
+      # name           = "custom-endpoint-name"
+      dns_zone_group = {
+        name = "default"
+        # Specify existing private DNS zone IDs if available
+        # private_dns_zone_ids = [
+        #   "/subscriptions/sub-id/resourceGroups/dns-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+        # ]
+      }
+    },
+    alt_vault = {
+      network_name   = "alt_main"
+      subnet_name    = "private_endpoints"
+      key_vault_name = "alt"
+      # Customize the endpoint name (optional)
+      #name = "custom-alt-kv-endpoint"
+    }
+  }
+
+  # Storage Account Private Endpoints (example for when storage accounts are implemented)
+  # storage_accounts = {
+  #   primary_blob = {
+  #     network_name         = "primary_main"
+  #     subnet_name          = "private_endpoints"
+  #     storage_account_name = "primary"       # This would reference a storage account key
+  #     subresource_name     = "blob"
+  #     dns_zone_group = {
+  #       name = "default"
+  #       private_dns_zone_ids = [
+  #         "/subscriptions/sub-id/resourceGroups/dns-rg/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.windows.net"
+  #       ]
+  #     }
+  #   },
+  #   primary_file = {
+  #     network_name         = "primary_main"
+  #     subnet_name          = "private_endpoints"
+  #     storage_account_name = "primary"
+  #     subresource_name     = "file"
+  #   }
+  # }
 }
