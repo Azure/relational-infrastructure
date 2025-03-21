@@ -516,9 +516,102 @@ variable "key_vaults" {
 }
 
 # Define storage account configuration
-variable "storage_accounts" {
+
+  variable "storage_accounts" {
+    type = map(object({
+      location_name = string
+      name          = optional(string, null)
+      tags          = optional(map(string), {})
+      access_tier   = optional(string)
+      account_kind  = optional(string)
+      account_replication_type = optional(string)
+      account_tier  = optional(string)
+      allow_nested_items_to_be_public = optional(bool, false)
+      allowed_copy_scope = optional(string)
+      azure_files_authentication = optional(object({
+        directory_type                 = optional(string, "AADKERB")
+        default_share_level_permission = optional(string)
+        active_directory = optional(object({
+          domain_guid         = string
+          domain_name         = string
+          domain_sid          = string
+          forest_name         = string
+          netbios_domain_name = string
+          storage_sid         = string
+        }))
+      }), null)
+      blob_properties = optional(object({
+        delete_retention_policy = optional(object({
+          days = optional(number)
+        }))
+        versioning_enabled = optional(bool)
+        change_feed = optional(object({
+          enabled                   = bool
+          retention_in_days         = optional(number)
+        }))
+        container_delete_retention_policy = optional(object({
+          days = optional(number)
+        }))
+      }), {})
+      containers = optional(map(object({
+        name                   = string
+        metadata               = optional(map(string), {})
+        container_access_type  = optional(string, "private")
+      })), {})
+      cross_tenant_replication_enabled = optional(bool, false)
+      custom_domain = optional(object({
+        name = string
+        use_subdomain = optional(bool, false)
+      }), null)
+      customer_managed_key = optional(object({
+        key_vault_key_id = string
+        user_assigned_identity_id = optional(string, null)
+      }), null)
   
-}
+      network_acls = optional(object({
+        bypass                     = optional(string, "AzureServices")
+        default_action             = optional(string, "Deny")
+        ip_rules                   = optional(list(string), [])
+        virtual_network_subnet_ids = optional(list(string), [])
+      }), {})
+  
+      lock = optional(object({
+        kind = string
+        name = optional(string, null)
+      }), null)
+  
+      diagnostic_settings = optional(map(object({
+        name                                     = optional(string, null)
+        log_categories                           = optional(set(string), [])
+        log_groups                               = optional(set(string), ["allLogs"])
+        metric_categories                        = optional(set(string), ["AllMetrics"])
+        log_analytics_destination_type           = optional(string, "Dedicated")
+        workspace_resource_id                    = optional(string, null)
+        storage_account_resource_id              = optional(string, null)
+        event_hub_authorization_rule_resource_id = optional(string, null)
+        event_hub_name                           = optional(string, null)
+        marketplace_partner_resource_id          = optional(string, null)
+      })), {})
+  
+      wait_for_rbac_before_key_operations = optional(object({
+        create  = optional(string, "30s")
+        destroy = optional(string, "0s")
+      }), {})
+  
+      wait_for_rbac_before_secret_operations = optional(object({
+        create  = optional(string, "30s")
+        destroy = optional(string, "0s")
+      }), {})
+  
+      wait_for_rbac_before_contact_operations = optional(object({
+        create  = optional(string, "30s")
+        destroy = optional(string, "0s")
+      }), {})
+    }))
+    default     = {}
+    description = "A map of Azure Storage Accounts to be deployed."
+    nullable    = false
+  }
 
 
 # Define the private endpoints configuration
