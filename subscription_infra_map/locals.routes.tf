@@ -17,8 +17,8 @@ locals {
                 route.destined_for.address_space != null ?
                 route.destined_for.address_space : (
                   route.destined_for.network != null ?
-                  local.networks[route.destined_for.network.network_name].address_space :
-                  local.networks[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
+                  local.network_address_spaces[route.destined_for.network.network_name].address_space :
+                  local.network_address_spaces[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
                 )
               )
 

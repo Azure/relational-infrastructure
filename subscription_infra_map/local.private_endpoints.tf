@@ -39,7 +39,7 @@ locals {
       private_dns_zone_resource_ids = try(pe.dns_zone_group.private_dns_zone_ids, [])
 
       # Tags
-      tags = merge(var.global_tags, (var.include_label_tags ? { keyvault_label = pe.key_vault_name } : {}))
+      tags = merge(var.tags, (var.include_label_tags ? { keyvault_label = pe.key_vault_name } : {}))
     }
   }
 

@@ -38,10 +38,10 @@ locals {
               : {
                 address_space = (
                   inbound_rule.allow.in.to.subnet != null
-                  ? local.networks[inbound_rule.allow.in.to.subnet.network_name].subnets[inbound_rule.allow.in.to.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[inbound_rule.allow.in.to.subnet.network_name].subnets[inbound_rule.allow.in.to.subnet.subnet_name].address_space
                   : (
                     inbound_rule.allow.in.to.network != null
-                    ? local.networks[inbound_rule.allow.in.to.network.network_name].address_space
+                    ? local.network_address_spaces[inbound_rule.allow.in.to.network.network_name].address_space
                     : coalesce(inbound_rule.allow.in.to.address_space, "*")
                   )
                 )
@@ -58,10 +58,10 @@ locals {
               : {
                 address_space = (
                   inbound_rule.allow.in.from.subnet != null
-                  ? local.networks[inbound_rule.allow.in.from.subnet.network_name].subnets[inbound_rule.allow.in.from.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[inbound_rule.allow.in.from.subnet.network_name].subnets[inbound_rule.allow.in.from.subnet.subnet_name].address_space
                   : (
                     inbound_rule.allow.in.from.network != null
-                    ? local.networks[inbound_rule.allow.in.from.network.network_name].address_space
+                    ? local.network_address_spaces[inbound_rule.allow.in.from.network.network_name].address_space
                     : coalesce(inbound_rule.allow.in.from.address_space, "*")
                   )
                 )
@@ -98,10 +98,10 @@ locals {
               : {
                 address_space = (
                   outbound_rule.allow.out.to.subnet != null
-                  ? local.networks[outbound_rule.allow.out.to.subnet.network_name].subnets[outbound_rule.allow.out.to.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[outbound_rule.allow.out.to.subnet.network_name].subnets[outbound_rule.allow.out.to.subnet.subnet_name].address_space
                   : (
                     outbound_rule.allow.out.to.network != null
-                    ? local.networks[outbound_rule.allow.out.to.network.network_name].address_space
+                    ? local.network_address_spaces[outbound_rule.allow.out.to.network.network_name].address_space
                     : coalesce(outbound_rule.allow.out.to.address_space, "*")
                   )
                 )
@@ -118,10 +118,10 @@ locals {
               : {
                 address_space = (
                   outbound_rule.allow.out.from.subnet != null
-                  ? local.networks[outbound_rule.allow.out.from.subnet.network_name].subnets[outbound_rule.allow.out.from.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[outbound_rule.allow.out.from.subnet.network_name].subnets[outbound_rule.allow.out.from.subnet.subnet_name].address_space
                   : (
                     outbound_rule.allow.out.from.network != null
-                    ? local.networks[outbound_rule.allow.out.from.network.network_name].address_space
+                    ? local.network_address_spaces[outbound_rule.allow.out.from.network.network_name].address_space
                     : coalesce(outbound_rule.allow.out.from.address_space, "*")
                   )
                 )
