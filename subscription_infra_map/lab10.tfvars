@@ -12,6 +12,13 @@ locations = {
   alt     = "francecentral"
 }
 
+resource_groups = {
+  mpsql = {
+    location_name = "primary"
+    name = "mpsql"
+  }
+}
+
 networks = {
   primary_dmz = {
     name                   = "primary-dmz-net"

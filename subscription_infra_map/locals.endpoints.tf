@@ -16,7 +16,7 @@ locals {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => {
 
       name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_name}-kv-pe")
-      resource_group_name             = module.network_resource_groups[local.networks[pe.network_name].location_ref].name
+      resource_group_name             = var.networks[pe.network_name].resource_group_name
       location                        = var.locations[local.networks[pe.network_name].location_ref]
       subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
       private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id

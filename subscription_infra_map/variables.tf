@@ -6,6 +6,7 @@ variable "deployment_prefix" {
 variable "ddos_protection_plan_name" {
   type     = string
   nullable = true
+  default  = null
 }
 
 variable "enable_automatic_updates" {
@@ -31,6 +32,13 @@ variable "default_resource_group_name" {
   description = "The name (resource_group_name) of this subscription's default resource group (defined in var.resource_groups)."
 }
 
+variable "private_link_resource_group_name" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "The name (resource_group_name) of the resource group (defined in var.resource_groups) where private link resources will be deployed."
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
@@ -45,9 +53,10 @@ variable "extensions" {
 
 variable "resource_groups" {
   type = map(object({
-    name          = string
-    location_name = string
-    tags          = optional(map(string), {})
+    name                              = optional(string, null)
+    location_name                     = optional(string, null)
+    tags                              = optional(map(string), {})
+    include_deployment_prefix_in_name = optional(bool, true)
   }))
 
   default     = {}
@@ -153,13 +162,14 @@ variable "external_networks" {
 
 variable "networks" {
   type = map(object({
-    location_name          = string
-    resource_group_name    = string
-    address_space          = string
-    name                   = optional(string, null)
-    peered_to              = optional(list(string), [])
-    dns_ip_addresses       = optional(set(string), null)
-    enable_ddos_protection = optional(bool, false)
+    location_name                     = string
+    resource_group_name               = string
+    address_space                     = string
+    name                              = optional(string, null)
+    peered_to                         = optional(list(string), [])
+    dns_ip_addresses                  = optional(set(string), null)
+    enable_ddos_protection            = optional(bool, false)
+    include_deployment_prefix_in_name = optional(bool, true)
 
     subnets = map(object({
       address_space       = string
@@ -301,17 +311,18 @@ variable "networks" {
 
 variable "virtual_machine_sets" {
   type = map(object({
-    key_vault_name                = string
-    location_name                 = string
-    resource_group_name           = string
-    name                          = string
-    tags                          = optional(map(string), {})
-    extensions                    = optional(list(string), [])
-    os_type                       = optional(string, "Windows")
-    disk_controller_type          = optional(string, null)
-    enable_boot_diagnostics       = optional(bool, false)
-    capacity_reservation_group_id = optional(string, null)
-    lock_mode                     = optional(string, null)
+    key_vault_name                    = string
+    location_name                     = string
+    resource_group_name               = string
+    name                              = string
+    tags                              = optional(map(string), {})
+    extensions                        = optional(list(string), [])
+    os_type                           = optional(string, "Windows")
+    disk_controller_type              = optional(string, null)
+    enable_boot_diagnostics           = optional(bool, false)
+    capacity_reservation_group_id     = optional(string, null)
+    lock_mode                         = optional(string, null)
+    include_deployment_prefix_in_name = optional(bool, true)
 
     image = optional(object({
       id = optional(string, null) # or...
@@ -383,19 +394,20 @@ variable "virtual_machine_set_specs" {
 
 variable "key_vaults" {
   type = map(object({
-    location_name                   = string
-    name                            = optional(string, null)
-    resource_group_name             = string
-    sku_name                        = optional(string, "standard")
-    tags                            = optional(map(string), {})
-    tenant_id                       = optional(string, null)
-    enabled_for_deployment          = optional(bool, false)
-    enabled_for_disk_encryption     = optional(bool, false)
-    enabled_for_template_deployment = optional(bool, false)
-    purge_protection_enabled        = optional(bool, true)
-    public_network_access_enabled   = optional(bool, true)
-    soft_delete_retention_days      = optional(number, 90)
-    legacy_access_policies_enabled  = optional(bool, false)
+    location_name                     = string
+    name                              = optional(string, null)
+    resource_group_name               = string
+    include_deployment_prefix_in_name = optional(bool, true)
+    sku_name                          = optional(string, "standard")
+    tags                              = optional(map(string), {})
+    tenant_id                         = optional(string, null)
+    enabled_for_deployment            = optional(bool, false)
+    enabled_for_disk_encryption       = optional(bool, false)
+    enabled_for_template_deployment   = optional(bool, false)
+    purge_protection_enabled          = optional(bool, true)
+    public_network_access_enabled     = optional(bool, true)
+    soft_delete_retention_days        = optional(number, 90)
+    legacy_access_policies_enabled    = optional(bool, false)
 
     network_acls = optional(object({
       bypass                     = optional(string, "AzureServices")
@@ -555,11 +567,13 @@ variable "key_vaults" {
 variable "private_endpoints" {
   type = object({
     key_vaults = optional(map(object({
-      network_name   = string
-      subnet_name    = string
-      key_vault_name = string
-      private_ip     = optional(string, null)
-      name           = optional(string, null)
+      network_name                      = string
+      subnet_name                       = string
+      key_vault_name                    = string
+      resource_group_name               = string
+      private_ip                        = optional(string, null)
+      name                              = optional(string, null)
+      include_deployment_prefix_in_name = optional(bool, true)
       dns_zone_group = optional(object({
         name                 = optional(string, "default")
         private_dns_zone_ids = optional(list(string), [])
@@ -567,12 +581,14 @@ variable "private_endpoints" {
     })), {})
 
     storage_accounts = optional(map(object({
-      network_name         = string
-      subnet_name          = string
-      storage_account_name = string
-      private_ip           = optional(string, null)
-      name                 = optional(string, null)
-      subresource_name     = optional(string, "blob") # blob, file, queue, table, etc.
+      network_name                      = string
+      subnet_name                       = string
+      storage_account_name              = string
+      resource_group_name               = string
+      private_ip                        = optional(string, null)
+      name                              = optional(string, null)
+      subresource_name                  = optional(string, "blob") # blob, file, queue, table, etc.
+      include_deployment_prefix_in_name = optional(bool, true)
       dns_zone_group = optional(object({
         name                 = optional(string, "default")
         private_dns_zone_ids = optional(list(string), [])

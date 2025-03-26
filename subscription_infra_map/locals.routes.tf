@@ -6,7 +6,7 @@ locals {
           location_ref        = network.location_ref
           network_ref         = network_ref
           subnet_ref          = subnet_ref
-          name                = lower(coalesce(subnet.route_table_name, "${network.name}-${subnet.name}-routes"))
+          name                = local.route_table_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
 
           routes = {

@@ -2,8 +2,13 @@ module "resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
   for_each = var.resource_groups
 
-  location = var.locations[each.value.location_name]
-  name     = each.value.name
+  location = (
+    each.value.location_name == null
+    ? values(var.locations)[0]
+    : var.locations[each.value.location_name]
+  )
+
+  name = local.resource_group_names[each.key]
 
   tags = merge(
     var.tags,
@@ -17,7 +22,7 @@ module "ddos_protection_plan" {
   count  = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
 
   location            = values(var.locations)[0]
-  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddos-plan")
+  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddosplan")
   resource_group_name = module.resource_groups[var.default_resource_group_name].name
 }
 
@@ -91,7 +96,7 @@ module "key_vaults" {
 # Creating the Private DNS Zone for all Key Vault
 resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = module.resource_groups[var.default_resource_group_name].name
+  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
   tags                = merge(var.tags, { service = "dns" })
 }
 
@@ -99,8 +104,8 @@ resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   for_each = local.networks
 
-  name                  = "${each.value.name}-link"
-  resource_group_name   = module.resource_groups[local.networks[each.key].resource_group_name].name
+  name                  = locals.key_vault_private_link_names[each.key]
+  resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
   virtual_network_id    = module.networks.virtual_networks[each.key].id
   registration_enabled  = false
@@ -113,8 +118,8 @@ module "private_endpoints" {
   source   = "Azure/avm-res-network-privateendpoint/azurerm"
   for_each = local.all_private_endpoints
 
-  name                           = each.value.name
-  resource_group_name            = each.value.resource_group_name
+  name                           = local.all_private_endpoint_names[each.key]
+  resource_group_name            = module.resource_groups[each.value.resource_group_name].name
   location                       = each.value.location
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
@@ -183,7 +188,7 @@ module "route_tables" {
   for_each = local.route_tables
 
   location            = var.locations[each.value.location_ref]
-  name                = each.value.name
+  name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
   tags = merge(var.tags,
@@ -206,7 +211,7 @@ module "network_security_groups" {
   for_each = local.network_security_groups
 
   location            = var.locations[each.value.location_ref]
-  name                = each.value.name
+  name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
   tags = merge(var.tags,

@@ -4,17 +4,10 @@ locals {
 
   default_location = values(var.locations)[0]
 
-  lock_modes = {
-    no_delete = "CanNotDelete"
-    read_only = "ReadOnly"
-  }
-
-  network_resource_groups = {
-    for location_ref, location in var.locations : location_ref => {
-      location = location
-      name     = "${var.deployment_prefix}-${location}-networks"
-    }
-  }
+  private_link_resource_group_name = coalesce(
+    var.private_link_resource_group_name,
+    var.default_resource_group_name
+  )
 
   networks = {
     for network_ref, network in var.networks : network_ref => {
@@ -23,7 +16,8 @@ locals {
       enable_ddos_protection = network.enable_ddos_protection
       location_ref           = network.location_name
       resource_group_name    = network.resource_group_name
-      name                   = lower(coalesce(network.name, "${var.deployment_prefix}-${network_ref}"))
+      name                   = local.network_names[network_ref]
+
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {

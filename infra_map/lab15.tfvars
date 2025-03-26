@@ -1,11 +1,7 @@
-deployment_prefix         = "eplab11"
+deployment_prefix         = "ep14"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
-
-subscriptions = {
-  primary = "az_subscription_1"
-}
 
 tags = {
   epic-env = "production"
@@ -16,11 +12,66 @@ locations = {
   alt     = "francecentral"
 }
 
+subscriptions = {
+  main = {
+    default_resource_group_name = "main_default"
+    subscription_slot           = "az_subscription_1"
+  }
+  hyperspace = {
+    default_resource_group_name = "hyperspace_default"
+    subscription_slot           = "az_subscription_2"
+  }
+}
+
+resource_groups = {
+  main_default = {
+    subscription_name = "main"
+    name              = "main-default"
+  }
+  hyperspace_default = {
+    subscription_name = "hyperspace"
+    name              = "hyperspace-default"
+  }
+  main_key_vaults = {
+    subscription_name = "main"
+    name              = "main-key-vaults"
+  }
+  hyperspace_key_vaults = {
+    subscription_name = "hyperspace"
+    name              = "hyperspace-key-vaults"
+  }
+  main_network = {
+    subscription_name = "main"
+    name              = "main-network"
+  }
+  hyperspace_network = {
+    subscription_name = "hyperspace"
+    name              = "hyperspace-network"
+  }
+  bca_web = {
+    subscription_name = "main"
+    name              = "bca-web"
+  }
+  mpsql = {
+    subscription_name = "main"
+    name              = "mpsql"
+  }
+  hyperspace_web = {
+    subscription_name = "main"
+    name              = "hyperspace-web"
+  }
+  hyperspace = {
+    subscription_name = "hyperspace"
+    name              = "hyperspace"
+  }
+}
+
 networks = {
   primary_dmz = {
     name                   = "primary-dmz-net"
     location_name          = "primary"
-    subscription_name      = "primary"
+    subscription_name      = "main"
+    resource_group_name    = "main_network"
     address_space          = "10.0.0.0/16"
     enable_ddos_protection = false
 
@@ -39,10 +90,11 @@ networks = {
   }
 
   primary_shared_infra = {
-    name              = "primary-shared-infra-net"
-    location_name     = "primary"
-    subscription_name = "primary"
-    address_space     = "10.1.0.0/16"
+    name                = "primary-shared-infra-net"
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.1.0.0/16"
 
     subnets = {
       gateway = {
@@ -63,10 +115,11 @@ networks = {
   }
 
   primary_main = {
-    name              = "primary-main-net"
-    location_name     = "primary"
-    subscription_name = "primary"
-    address_space     = "10.2.0.0/16"
+    name                = "primary-main-net"
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.2.0.0/16"
 
     subnets = {
       cogito = {
@@ -95,7 +148,6 @@ networks = {
       wss = {
         address_space = "10.2.2.0/24"
       }
-      #For Private Endpoints
       private_endpoints = {
         address_space = "10.2.3.0/24"
       }
@@ -109,14 +161,19 @@ networks = {
   }
 
   primary_hyperspace = {
-    name              = "primary-hyperspace-net"
-    location_name     = "primary"
-    subscription_name = "primary"
-    address_space     = "10.3.0.0/16"
+    name                = "primary-hyperspace-net"
+    location_name       = "primary"
+    subscription_name   = "hyperspace"
+    resource_group_name = "hyperspace_network"
+    address_space       = "10.3.0.0/16"
 
     subnets = {
       hyperspace = {
         address_space = "10.3.0.0/24"
+      }
+      private_endpoints = {
+        address_space = "10.3.1.0/24"
+        name          = "private-endpoints"
       }
     }
 
@@ -128,10 +185,11 @@ networks = {
   }
 
   primary_hyperspace_web = {
-    name              = "primary-hyperspace-web-net"
-    location_name     = "primary"
-    subscription_name = "primary"
-    address_space     = "10.4.0.0/16"
+    name                = "primary-hyperspace-web-net"
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.4.0.0/16"
 
     subnets = {
       hyperspace_web = {
@@ -149,7 +207,8 @@ networks = {
   alt_dmz = {
     name                   = "alt-dmz-net"
     location_name          = "alt"
-    subscription_name      = "primary"
+    subscription_name      = "main"
+    resource_group_name    = "main_network"
     address_space          = "10.10.0.0/16"
     enable_ddos_protection = false
 
@@ -168,10 +227,11 @@ networks = {
   }
 
   alt_shared_infra = {
-    name              = "alt-shared-infra-net"
-    location_name     = "alt"
-    subscription_name = "primary"
-    address_space     = "10.11.0.0/16"
+    name                = "alt-shared-infra-net"
+    location_name       = "alt"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.11.0.0/16"
 
     subnets = {
       gateway = {
@@ -191,10 +251,11 @@ networks = {
   }
 
   alt_main = {
-    name              = "alt-main-net"
-    location_name     = "alt"
-    subscription_name = "primary"
-    address_space     = "10.12.0.0/16"
+    name                = "alt-main-net"
+    location_name       = "alt"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.12.0.0/16"
 
     subnets = {
       cogito = {
@@ -206,9 +267,9 @@ networks = {
       wss = {
         address_space = "10.12.2.0/24"
       }
-      #For Private Endpoints
       private_endpoints = {
         address_space = "10.12.3.0/24"
+        name          = "private-endpoints"
       }
     }
 
@@ -220,14 +281,19 @@ networks = {
   }
 
   alt_hyperspace = {
-    name              = "alt-hyperspace-net"
-    location_name     = "alt"
-    subscription_name = "primary"
-    address_space     = "10.13.0.0/16"
+    name                = "alt-hyperspace-net"
+    location_name       = "alt"
+    subscription_name   = "hyperspace"
+    resource_group_name = "hyperspace_network"
+    address_space       = "10.13.0.0/16"
 
     subnets = {
       hyperspace = {
         address_space = "10.13.0.0/24"
+      }
+      private_endpoints = {
+        address_space = "10.13.1.0/24"
+        name          = "private-endpoints"
       }
     }
 
@@ -239,10 +305,11 @@ networks = {
   }
 
   alt_hyperspace_web = {
-    name              = "alt-hyperspace-web-net"
-    location_name     = "alt"
-    subscription_name = "primary"
-    address_space     = "10.14.0.0/16"
+    name                = "alt-hyperspace-web-net"
+    location_name       = "alt"
+    subscription_name   = "main"
+    resource_group_name = "main_network"
+    address_space       = "10.14.0.0/16"
 
     subnets = {
       hyperspace_web = {
@@ -275,8 +342,8 @@ virtual_machine_sets = {
     name                = "altbcw"
     location_name       = "alt"
     key_vault_name      = "alt"
-    resource_group_name = "alt-bca-web"
-    subscription_name   = "primary"
+    subscription_name   = "main"
+    resource_group_name = "bca_web"
     os_type             = "Windows"
 
     extensions = [
@@ -304,12 +371,78 @@ virtual_machine_sets = {
     }
   }
 
+  alt_hyperspace_web = {
+    name                = "althsw"
+    location_name       = "alt"
+    key_vault_name      = "alt"
+    subscription_name   = "main"
+    resource_group_name = "hyperspace_web"
+    os_type             = "Windows"
+
+    extensions = [
+      "azure_monitor"
+    ]
+
+    tags = {
+      epic-app = "hsw"
+    }
+
+    image = {
+      reference = {
+        offer     = "WindowsServer"
+        publisher = "MicrosoftWindowsServer"
+        sku       = "2019-Datacenter"
+        version   = "latest"
+      }
+    }
+
+    network_interfaces = {
+      general = {
+        network_name = "alt_hyperspace_web"
+        subnet_name  = "hyperspace_web"
+      }
+    }
+  }
+
+  alt_hyperspace = {
+    name                = "althsp"
+    location_name       = "alt"
+    key_vault_name      = "alt_hyperspace"
+    subscription_name   = "hyperspace"
+    resource_group_name = "hyperspace"
+    os_type             = "Windows"
+
+    extensions = [
+      "azure_monitor"
+    ]
+
+    tags = {
+      epic-app = "hyperspace"
+    }
+
+    image = {
+      reference = {
+        offer     = "WindowsServer"
+        publisher = "MicrosoftWindowsServer"
+        sku       = "2019-Datacenter"
+        version   = "latest"
+      }
+    }
+
+    network_interfaces = {
+      general = {
+        network_name = "alt_hyperspace"
+        subnet_name  = "hyperspace"
+      }
+    }
+  }
+
   alt_mpsql = {
     name                = "altsql"
     location_name       = "alt"
     key_vault_name      = "alt"
-    resource_group_name = "alt-mpsql"
-    subscription_name   = "primary"
+    subscription_name   = "main"
+    resource_group_name = "mpsql"
     os_type             = "Windows"
 
     tags = {
@@ -346,8 +479,8 @@ virtual_machine_sets = {
     name                = "prmbcw"
     location_name       = "primary"
     key_vault_name      = "primary"
-    resource_group_name = "primary-bca-web"
-    subscription_name   = "primary"
+    subscription_name   = "main"
+    resource_group_name = "bca_web"
     os_type             = "Windows"
 
     tags = {
@@ -371,12 +504,78 @@ virtual_machine_sets = {
     }
   }
 
+  primary_hyperspace_web = {
+    name                = "prmhsw"
+    location_name       = "primary"
+    key_vault_name      = "primary"
+    subscription_name   = "main"
+    resource_group_name = "hyperspace_web"
+    os_type             = "Windows"
+
+    extensions = [
+      "azure_monitor"
+    ]
+
+    tags = {
+      epic-app = "hsw"
+    }
+
+    image = {
+      reference = {
+        offer     = "WindowsServer"
+        publisher = "MicrosoftWindowsServer"
+        sku       = "2019-Datacenter"
+        version   = "latest"
+      }
+    }
+
+    network_interfaces = {
+      general = {
+        network_name = "primary_hyperspace_web"
+        subnet_name  = "hyperspace_web"
+      }
+    }
+  }
+
+  primary_hyperspace = {
+    name                = "prmhsp"
+    location_name       = "primary"
+    key_vault_name      = "primary_hyperspace"
+    subscription_name   = "hyperspace"
+    resource_group_name = "hyperspace"
+    os_type             = "Windows"
+
+    extensions = [
+      "azure_monitor"
+    ]
+
+    tags = {
+      epic-app = "hyperspace"
+    }
+
+    image = {
+      reference = {
+        offer     = "WindowsServer"
+        publisher = "MicrosoftWindowsServer"
+        sku       = "2019-Datacenter"
+        version   = "latest"
+      }
+    }
+
+    network_interfaces = {
+      general = {
+        network_name = "primary_hyperspace"
+        subnet_name  = "hyperspace"
+      }
+    }
+  }
+
   primary_mpsql = {
     name                = "prmsql"
     location_name       = "primary"
     key_vault_name      = "primary"
-    resource_group_name = "primary-mpsql"
-    subscription_name   = "primary"
+    subscription_name   = "main"
+    resource_group_name = "mpsql"
     os_type             = "Windows"
 
     tags = {
@@ -442,6 +641,26 @@ virtual_machine_set_specs = {
     }
   }
 
+  alt_hyperspace_web = {
+    vm_count = 5
+    sku_size = "Standard_D4ads_v5"
+
+    os_disk = {
+      disk_size_gb         = 128
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  alt_hyperspace = {
+    vm_count = 5
+    sku_size = "Standard_D4ads_v5"
+
+    os_disk = {
+      disk_size_gb         = 128
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
   primary_mpsql = {
     vm_count = 3
     sku_size = "Standard_D4ads_v5"
@@ -465,6 +684,26 @@ virtual_machine_set_specs = {
 
   primary_bca_web = {
     vm_count = 10
+    sku_size = "Standard_D4ads_v5"
+
+    os_disk = {
+      disk_size_gb         = 128
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  primary_hyperspace_web = {
+    vm_count = 5
+    sku_size = "Standard_D4ads_v5"
+
+    os_disk = {
+      disk_size_gb         = 128
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  primary_hyperspace = {
+    vm_count = 5
     sku_size = "Standard_D4ads_v5"
 
     os_disk = {
@@ -506,8 +745,34 @@ file_shares = {
 
 key_vaults = {
   primary = {
-    location_name     = "primary"
-    subscription_name = "primary"
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "main_key_vaults"
+    #name                          = "primary-kv"
+    sku_name                      = "standard"
+    enabled_for_disk_encryption   = true
+    public_network_access_enabled = true #Only for testing purposes
+    soft_delete_retention_days    = 7
+
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+      # ip_rules       = []
+      # virtual_network_subnet_ids = [
+      #   module.networks.primary_shared_infra.subnets.management.id
+      # ]
+    }
+
+    tags = {
+      epic-env     = "production"
+      epic-service = "security"
+    }
+  }
+
+  primary_hyperspace = {
+    location_name       = "primary"
+    subscription_name   = "hyperspace"
+    resource_group_name = "hyperspace_key_vaults"
     #name                          = "primary-kv"
     sku_name                      = "standard"
     enabled_for_disk_encryption   = true
@@ -532,7 +797,31 @@ key_vaults = {
   #Secondary Key Vault with minimal configuration
   alt = {
     location_name                 = "alt"
-    subscription_name             = "primary"
+    subscription_name             = "main"
+    resource_group_name           = "main_key_vaults"
+    purge_protection_enabled      = true
+    public_network_access_enabled = true #Only for testing purposes
+    soft_delete_retention_days    = 7
+
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+      # ip_rules       = []
+      # virtual_network_subnet_ids = [
+      #   module.networks.primary_shared_infra.subnets.management.id
+      # ]
+    }
+
+    tags = {
+      epic-env     = "production"
+      epic-service = "security"
+    }
+  }
+
+  alt_hyperspace = {
+    location_name                 = "alt"
+    subscription_name             = "hyperspace"
+    resource_group_name           = "hyperspace_key_vaults"
     purge_protection_enabled      = true
     public_network_access_enabled = true #Only for testing purposes
     soft_delete_retention_days    = 7
@@ -578,6 +867,30 @@ private_endpoints = {
       network_name   = "alt_main"
       subnet_name    = "private_endpoints"
       key_vault_name = "alt"
+      # Customize the endpoint name (optional)
+      #name = "custom-alt-kv-endpoint"
+    }
+    primary_hyperspace = {
+      network_name   = "primary_hyperspace" # This references the network key in the networks variable
+      subnet_name    = "private_endpoints"  # This references the subnet key in your networks.subnets variable
+      key_vault_name = "primary_hyperspace" # This references the key vault key in your key_vaults variable
+
+      # Optional: Specify a static IP 
+      # private_ip     = "10.1.1.10"
+      # Optional: Custom endpoint name
+      # name           = "custom-endpoint-name"
+      dns_zone_group = {
+        name = "default"
+        # Specify existing private DNS zone IDs if available
+        # private_dns_zone_ids = [
+        #   "/subscriptions/sub-id/resourceGroups/dns-rg/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+        # ]
+      }
+    },
+    alt_hyperspace = {
+      network_name   = "alt_hyperspace"
+      subnet_name    = "private_endpoints"
+      key_vault_name = "alt_hyperspace"
       # Customize the endpoint name (optional)
       #name = "custom-alt-kv-endpoint"
     }
