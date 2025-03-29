@@ -9,12 +9,7 @@ module "resource_groups" {
   )
 
   name = local.resource_group_names[each.key]
-
-  tags = merge(
-    var.tags,
-    each.value.tags,
-    (var.include_label_tags ? { resource_group_label = each.key } : {})
-  )
+  tags = local.resource_group_tags[each.key]
 }
 
 module "ddos_protection_plan" {
@@ -24,6 +19,7 @@ module "ddos_protection_plan" {
   location            = values(var.locations)[0]
   name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddosplan")
   resource_group_name = module.resource_groups[var.default_resource_group_name].name
+  tags                = var.tags
 }
 
 data "azurerm_client_config" "current" {}
@@ -38,11 +34,9 @@ module "key_vaults" {
   # version = "0.10.0"
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
-  location            = var.locations[each.value.location_name]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
-
-  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-kv")
-
+  location                        = var.locations[each.value.location_name]
+  resource_group_name             = module.resource_groups[each.value.resource_group_name].name
+  name                            = local.key_vault_names[each.key]
   tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
   sku_name                        = each.value.sku_name
   enabled_for_deployment          = each.value.enabled_for_deployment
@@ -88,7 +82,7 @@ module "key_vaults" {
   #Private Endpoints
   #Diagnostic Settings
 
-  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
+  tags = local.key_vault_tags[each.key]
 
 }
 
@@ -104,13 +98,11 @@ resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   for_each = local.networks
 
-  name                  = locals.key_vault_private_link_names[each.key]
+  name                  = local.key_vault_private_link_names[each.key]
   resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
   virtual_network_id    = module.networks.virtual_networks[each.key].id
   registration_enabled  = false
-  tags                  = merge(var.tags, { network_name = each.value.name })
-
 }
 
 # Private Endpoints for Azure services
@@ -140,7 +132,7 @@ module "private_endpoints" {
 
   # Tags
   #tags = each.value.tags
-  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
+  tags = local.private_endpoint_tags[each.key]
 
 }
 
@@ -157,7 +149,7 @@ module "networks" {
       resource_group_name             = module.resource_groups[network.resource_group_name].name
       ddos_protection_plan_id         = (network.enable_ddos_protection ? module.ddos_protection_plan[0].resource_id : null)
       dns_servers                     = (network.dns_ips == null ? null : network.dns_ips)
-      tags                            = merge(var.tags, (var.include_label_tags ? { network_label = network_name } : {}))
+      tags                            = local.network_tags[network_name]
       mesh_peering_enabled            = var.enable_full_network_mesh # We are explicit about the peerings that should be created
       resource_group_creation_enabled = false                        # The resource group already exists
 
@@ -190,11 +182,7 @@ module "route_tables" {
   location            = var.locations[each.value.location_ref]
   name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-
-  tags = merge(var.tags,
-    (var.include_label_tags ?
-      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
-  {}))
+  tags                = local.route_table_tags[each.key]
 
   routes = {
     for route_ref, route in each.value.routes : route_ref => {
@@ -213,11 +201,7 @@ module "network_security_groups" {
   location            = var.locations[each.value.location_ref]
   name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-
-  tags = merge(var.tags,
-    (var.include_label_tags ?
-      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
-  {}))
+  tags                = local.security_group_tags[each.key]
 
   security_rules = {
     for rule_ref, rule in merge(
@@ -264,8 +248,8 @@ module "virtual_machine_sets" {
 
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
-  resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
-  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
+  resource_prefix                               = local.virtual_machine_set_prefixes[each.key]
+  resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics

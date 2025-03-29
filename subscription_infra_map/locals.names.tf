@@ -4,7 +4,7 @@ locals {
     : network_name => (
       replace(
         network.name == null
-        ? "${var.deployment_prefix}-${network_ref}-vnet"
+        ? "${var.deployment_prefix}-${network_name}-vnet"
         : (
           network.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${network.name}"
@@ -72,16 +72,20 @@ locals {
   key_vault_names = {
     for vault_name, vault in var.key_vaults
     : vault_name => (
-      replace(
-        vault.name == null
-        ? "${var.deployment_prefix}-${vault_name}-kv"
-        : (
-          vault.include_deployment_prefix_in_name
-          ? "${var.deployment_prefix}-${vault.name}"
-          : vault.name
-        ),
-        "_", "-"
-      )
+      trim( # Key vault name can't end in a -.
+        substr( # Key vault must be 24 characters or less.
+          replace( # Replace _ with -. Standardize on - for Azure resource names.
+            vault.name == null
+            ? "${var.deployment_prefix}-${vault_name}-kv"
+            : (
+              vault.include_deployment_prefix_in_name
+              ? "${var.deployment_prefix}-${vault.name}"
+              : vault.name
+            ),
+            "_", "-"
+          )
+        , 0, 24)
+      , "-")
     )
   }
 
@@ -129,6 +133,25 @@ locals {
           : endpoint.name
         ),
         "_", "-"
+      )
+    )
+  }
+
+  virtual_machine_set_prefixes = {
+    for vm_set_name, vm_set in var.virtual_machine_sets
+    : vm_set_name => (
+      replace(
+        replace(
+          vm_set.name == null
+          ? "${var.deployment_prefix}${vm_set_name}"
+          : (
+            vm_set.include_deployment_prefix_in_name
+            ? "${var.deployment_prefix}${vm_set.name}"
+            : vm_set.name
+          ),
+          "_", ""
+        ),
+        "-", ""
       )
     )
   }

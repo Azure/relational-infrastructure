@@ -9,7 +9,7 @@ provider "azurerm" {
   features {}
 
   alias           = "az_subscription_2"
-  subscription_id = "00363a64-55c1-4807-92a4-7dfe011d5222"
+  subscription_id = "34d69c09-3db4-44b0-8101-64fa34527c96"
 }
 
 provider "azurerm" {
