@@ -4,10 +4,22 @@ locals {
     read_only = "ReadOnly"
   }
 
-  virtual_machine_scale_set_name = "${var.resource_prefix}vmss"
+  virtual_machine_scale_set_name = "${var.resource_prefix}-vmss"
 
-  virtual_machine_names          = [for i in range(var.virtual_machine_count) : lower("${var.resource_prefix}${format("%02d", i + 1)}")]
-  virtual_machine_computer_names = [for i in range(var.virtual_machine_count) : lower(substr("${var.resource_prefix}${format("%02d", i + 1)}", 0, 15))]
+  virtual_machines_by_zone = {
+    for zone in distinct(local.virtual_machine_zones) :
+    zone => [for i, z in local.virtual_machine_zones : i if z == zone]
+  }
+
+  virtual_machine_names = [
+    for i in range(var.virtual_machine_count) :
+    lower("${var.resource_prefix}${local.virtual_machine_zones[i]}${format("%02d", index(local.virtual_machines_by_zone[local.virtual_machine_zones[i]], i) + 1)}")
+  ]
+
+  virtual_machine_computer_names = [
+    for i in range(var.virtual_machine_count) :
+    lower(substr("${var.resource_prefix}${format("%02d", i + 1)}", 0, 15))
+  ]
 
   virtual_machine_data_disks = [
     for i in range(var.virtual_machine_count) : {
@@ -63,16 +75,16 @@ locals {
       flatten([for zone, count in var.virtual_machine_zone_distribution.custom : [for _ in range(count) : zone]])[i]
   )]
 
-#Creating VM-specific secret configurations
-virtual_machine_secret_configs = var.generated_secrets_key_vault_secret_config == null ? [] : [
-  for i in range(var.virtual_machine_count) :{
-    key_vault_resource_id = var.generated_secrets_key_vault_secret_config.key_vault_resource_id
-    name = var.generated_secrets_key_vault_secret_config.name == null ? null :  "${var.generated_secrets_key_vault_secret_config.name}-vm${i}"
-    expiration_date_length_in_days = var.generated_secrets_key_vault_secret_config.expiration_date_length_in_days
-    content_type = var.generated_secrets_key_vault_secret_config.content_type
-    not_before_date = var.generated_secrets_key_vault_secret_config.not_before_date
-    tags = var.generated_secrets_key_vault_secret_config.tags
-  }
-]
+  #Creating VM-specific secret configurations
+  virtual_machine_secret_configs = var.generated_secrets_key_vault_secret_config == null ? [] : [
+    for i in range(var.virtual_machine_count) : {
+      key_vault_resource_id          = var.generated_secrets_key_vault_secret_config.key_vault_resource_id
+      name                           = var.generated_secrets_key_vault_secret_config.name == null ? null : "${var.generated_secrets_key_vault_secret_config.name}-vm${i}"
+      expiration_date_length_in_days = var.generated_secrets_key_vault_secret_config.expiration_date_length_in_days
+      content_type                   = var.generated_secrets_key_vault_secret_config.content_type
+      not_before_date                = var.generated_secrets_key_vault_secret_config.not_before_date
+      tags                           = var.generated_secrets_key_vault_secret_config.tags
+    }
+  ]
 
 }

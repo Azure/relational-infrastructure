@@ -6,7 +6,7 @@ locals {
           location_ref        = network.location_ref
           network_ref         = network_ref
           subnet_ref          = subnet_ref
-          name                = lower(coalesce(subnet.route_table_name, "${network.name}-${subnet.name}-routes"))
+          name                = local.route_table_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
 
           routes = {
@@ -17,8 +17,8 @@ locals {
                 route.destined_for.address_space != null ?
                 route.destined_for.address_space : (
                   route.destined_for.network != null ?
-                  local.networks[route.destined_for.network.network_name].address_space :
-                  local.networks[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
+                  local.network_address_spaces[route.destined_for.network.network_name].address_space :
+                  local.network_address_spaces[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
                 )
               )
 

@@ -7,12 +7,17 @@ locals {
           network_ref         = network_ref
           subnet_ref          = subnet_ref
           subnet_name         = subnet.name
-          name                = lower(coalesce(subnet.security_group_name, "${network.name}-${subnet.name}-nsg"))
+          name                = local.security_group_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
       ] if network != null
     ]) : "${group.network_ref}_${group.subnet_ref}" => group
   })
+
+  default_network_tuple = {
+    address_space = "*"
+    port_range    = "*"
+  }
 
   allow_inbound_network_security_rules = tomap({
     for rule in flatten([
@@ -31,17 +36,14 @@ locals {
 
             destination = (
               inbound_rule.allow.in.to == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   inbound_rule.allow.in.to.subnet != null
-                  ? local.networks[inbound_rule.allow.in.to.subnet.network_name].subnets[inbound_rule.allow.in.to.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[inbound_rule.allow.in.to.subnet.network_name].subnets[inbound_rule.allow.in.to.subnet.subnet_name].address_space
                   : (
                     inbound_rule.allow.in.to.network != null
-                    ? local.networks[inbound_rule.allow.in.to.network.network_name].address_space
+                    ? local.network_address_spaces[inbound_rule.allow.in.to.network.network_name].address_space
                     : coalesce(inbound_rule.allow.in.to.address_space, "*")
                   )
                 )
@@ -51,17 +53,14 @@ locals {
 
             source = (
               inbound_rule.allow.in.from == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   inbound_rule.allow.in.from.subnet != null
-                  ? local.networks[inbound_rule.allow.in.from.subnet.network_name].subnets[inbound_rule.allow.in.from.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[inbound_rule.allow.in.from.subnet.network_name].subnets[inbound_rule.allow.in.from.subnet.subnet_name].address_space
                   : (
                     inbound_rule.allow.in.from.network != null
-                    ? local.networks[inbound_rule.allow.in.from.network.network_name].address_space
+                    ? local.network_address_spaces[inbound_rule.allow.in.from.network.network_name].address_space
                     : coalesce(inbound_rule.allow.in.from.address_space, "*")
                   )
                 )
@@ -91,17 +90,14 @@ locals {
 
             destination = (
               outbound_rule.allow.out.to == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   outbound_rule.allow.out.to.subnet != null
-                  ? local.networks[outbound_rule.allow.out.to.subnet.network_name].subnets[outbound_rule.allow.out.to.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[outbound_rule.allow.out.to.subnet.network_name].subnets[outbound_rule.allow.out.to.subnet.subnet_name].address_space
                   : (
                     outbound_rule.allow.out.to.network != null
-                    ? local.networks[outbound_rule.allow.out.to.network.network_name].address_space
+                    ? local.network_address_spaces[outbound_rule.allow.out.to.network.network_name].address_space
                     : coalesce(outbound_rule.allow.out.to.address_space, "*")
                   )
                 )
@@ -111,17 +107,14 @@ locals {
 
             source = (
               outbound_rule.allow.out.from == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   outbound_rule.allow.out.from.subnet != null
-                  ? local.networks[outbound_rule.allow.out.from.subnet.network_name].subnets[outbound_rule.allow.out.from.subnet.subnet_name].address_space
+                  ? local.network_address_spaces[outbound_rule.allow.out.from.subnet.network_name].subnets[outbound_rule.allow.out.from.subnet.subnet_name].address_space
                   : (
                     outbound_rule.allow.out.from.network != null
-                    ? local.networks[outbound_rule.allow.out.from.network.network_name].address_space
+                    ? local.network_address_spaces[outbound_rule.allow.out.from.network.network_name].address_space
                     : coalesce(outbound_rule.allow.out.from.address_space, "*")
                   )
                 )
@@ -151,10 +144,7 @@ locals {
 
             destination = (
               inbound_rule.deny.in.to == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   inbound_rule.deny.in.to.subnet != null
@@ -171,10 +161,7 @@ locals {
 
             source = (
               inbound_rule.deny.in.from == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   inbound_rule.deny.in.from.subnet != null
@@ -211,10 +198,7 @@ locals {
 
             destination = (
               outbound_rule.deny.out.to == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   outbound_rule.deny.out.to.subnet != null
@@ -231,10 +215,7 @@ locals {
 
             source = (
               outbound_rule.deny.out.from == null
-              ? {
-                address_space = "*"
-                port_range    = "*"
-              }
+              ? local.default_network_tuple
               : {
                 address_space = (
                   outbound_rule.deny.out.from.subnet != null

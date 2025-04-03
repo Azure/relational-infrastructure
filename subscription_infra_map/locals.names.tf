@@ -1,0 +1,140 @@
+locals {
+  network_names = {
+    for network_name, network in var.networks
+    : network_name => (
+      replace(
+        network.name == null
+        ? "${var.deployment_prefix}-${network_ref}-vnet"
+        : (
+          network.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${network.name}"
+          : network.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  security_group_names = {
+    for network_name, network in var.networks
+    : network_name => {
+      for subnet_name, subnet in network.subnets
+      : subnet_name => (
+        replace(
+          subnet.security_group_name == null
+          ? "${var.deployment_prefix}-${network_name}-${subnet_name}-nsg"
+          : (
+            network.include_deployment_prefix_in_name
+            ? "${var.deployment_prefix}-${subnet.security_group_name}"
+            : subnet.security_group_name
+          ),
+          "_", "-"
+        )
+      )
+    }
+  }
+
+  route_table_names = {
+    for network_name, network in var.networks
+    : network_name => {
+      for subnet_name, subnet in network.subnets
+      : subnet_name => (
+        replace(
+          subnet.route_table_name == null
+          ? "${var.deployment_prefix}-${network_name}-${subnet_name}-rt"
+          : (
+            network.include_deployment_prefix_in_name
+            ? "${var.deployment_prefix}-${subnet.route_table_name}"
+            : subnet.route_table_name
+          ),
+          "_", "-"
+        )
+      )
+    }
+  }
+
+  resource_group_names = {
+    for group_name, group in var.resource_groups
+    : group_name => (
+      replace(
+        group.name == null
+        ? "${var.deployment_prefix}-${group_name}-rg"
+        : (
+          group.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${group.name}"
+          : group.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  key_vault_names = {
+    for vault_name, vault in var.key_vaults
+    : vault_name => (
+      replace(
+        vault.name == null
+        ? "${var.deployment_prefix}-${vault_name}-kv"
+        : (
+          vault.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${vault.name}"
+          : vault.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  key_vault_private_link_names = {
+    for network_name, network in var.networks
+    : network_name => (
+      replace(
+        network.name == null
+        ? "${var.deployment_prefix}-${network_name}-kv-pl"
+        : (
+          network.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${network.name}-kv-pl"
+          : "${network.name}-kv-pl"
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  key_vault_private_endpoint_names = {
+    for endpoint_name, endpoint in var.private_endpoints.key_vaults
+    : endpoint_name => (
+      replace(
+        endpoint.name == null
+        ? "${var.deployment_prefix}-${endpoint_name}-kv-pep"
+        : (
+          endpoint.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${endpoint.name}"
+          : endpoint.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  storage_account_private_endpoint_names = {
+    for endpoint_name, endpoint in var.private_endpoints.storage_accounts
+    : endpoint_name => (
+      replace(
+        endpoint.name == null
+        ? "${var.deployment_prefix}-${endpoint_name}-st-pep"
+        : (
+          endpoint.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${endpoint.name}"
+          : endpoint.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  all_private_endpoint_names = merge(
+    local.key_vault_private_endpoint_names,
+    local.storage_account_private_endpoint_names
+  )
+}

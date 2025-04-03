@@ -4,17 +4,10 @@ locals {
 
   default_location = values(var.locations)[0]
 
-  lock_modes = {
-    no_delete = "CanNotDelete"
-    read_only = "ReadOnly"
-  }
-
-  network_resource_groups = {
-    for location_ref, location in var.locations : location_ref => {
-      location = location
-      name     = "${var.deployment_prefix}-${location}-networks"
-    }
-  }
+  private_link_resource_group_name = coalesce(
+    var.private_link_resource_group_name,
+    var.default_resource_group_name
+  )
 
   networks = {
     for network_ref, network in var.networks : network_ref => {
@@ -22,8 +15,9 @@ locals {
       dns_ips                = network.dns_ip_addresses
       enable_ddos_protection = network.enable_ddos_protection
       location_ref           = network.location_name
-      name                   = lower(coalesce(network.name, "${var.deployment_prefix}-${network_ref}"))
-      resource_group_name    = local.network_resource_groups[network.location_name].name
+      resource_group_name    = network.resource_group_name
+      name                   = local.network_names[network_ref]
+
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {
@@ -33,6 +27,20 @@ locals {
           security_rules      = subnet.security_rules
           route_table_name    = subnet.route_table_name
           routes              = subnet.route_traffic
+        }
+      }
+    } if network != null
+  }
+
+  network_address_spaces = {
+    for network_name, network in merge(var.networks, var.external_networks)
+    : network_name => {
+      address_space = network.address_space
+
+      subnets = {
+        for subnet_name, subnet in network.subnets
+        : subnet_name => {
+          address_space = subnet.address_space
         }
       }
     } if network != null

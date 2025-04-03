@@ -1,19 +1,29 @@
-module "network_resource_groups" {
+module "resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
-  for_each = var.locations
+  for_each = var.resource_groups
 
-  location = each.value
-  name     = "${var.deployment_prefix}-${each.value}-networks"
-  tags     = var.global_tags
+  location = (
+    each.value.location_name == null
+    ? values(var.locations)[0]
+    : var.locations[each.value.location_name]
+  )
+
+  name = local.resource_group_names[each.key]
+
+  tags = merge(
+    var.tags,
+    each.value.tags,
+    (var.include_label_tags ? { resource_group_label = each.key } : {})
+  )
 }
 
 module "ddos_protection_plan" {
   source = "Azure/avm-res-network-ddosprotectionplan/azurerm"
   count  = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
 
-  location            = var.locations["primary"]
-  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddos-plan")
-  resource_group_name = module.network_resource_groups["primary"].name
+  location            = values(var.locations)[0]
+  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddosplan")
+  resource_group_name = module.resource_groups[var.default_resource_group_name].name
 }
 
 data "azurerm_client_config" "current" {}
@@ -22,7 +32,6 @@ module "naming" {
   source = "Azure/naming/azurerm"
 }
 
-
 #Create the Keyvaults
 module "key_vaults" {
   source = "Azure/avm-res-keyvault-vault/azurerm"
@@ -30,7 +39,7 @@ module "key_vaults" {
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
   location            = var.locations[each.value.location_name]
-  resource_group_name = module.network_resource_groups[each.value.location_name].name
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
   name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-kv")
 
@@ -79,7 +88,7 @@ module "key_vaults" {
   #Private Endpoints
   #Diagnostic Settings
 
-  tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
+  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
 
 }
 
@@ -87,33 +96,30 @@ module "key_vaults" {
 # Creating the Private DNS Zone for all Key Vault
 resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = module.network_resource_groups["primary"].name
-  tags                = merge(var.global_tags, { service = "dns" })
+  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
+  tags                = merge(var.tags, { service = "dns" })
 }
 
 # Create Virtual Network Links for all networks that need to resolve the private endpoint
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   for_each = local.networks
 
-  name                  = "${each.value.name}-link"
-  resource_group_name   = module.network_resource_groups["primary"].name
+  name                  = locals.key_vault_private_link_names[each.key]
+  resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
   virtual_network_id    = module.networks.virtual_networks[each.key].id
   registration_enabled  = false
-  tags                  = merge(var.global_tags, { network_name = each.value.name })
+  tags                  = merge(var.tags, { network_name = each.value.name })
 
 }
-
-
-
 
 # Private Endpoints for Azure services
 module "private_endpoints" {
   source   = "Azure/avm-res-network-privateendpoint/azurerm"
   for_each = local.all_private_endpoints
 
-  name                           = each.value.name
-  resource_group_name            = each.value.resource_group_name
+  name                           = local.all_private_endpoint_names[each.key]
+  resource_group_name            = module.resource_groups[each.value.resource_group_name].name
   location                       = each.value.location
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
@@ -134,7 +140,7 @@ module "private_endpoints" {
 
   # Tags
   #tags = each.value.tags
-  tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
+  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
 
 }
 
@@ -148,10 +154,10 @@ module "networks" {
       name                            = network.name
       location                        = var.locations[network.location_ref]
       address_space                   = [network.address_space]
-      resource_group_name             = module.network_resource_groups[network.location_ref].name
+      resource_group_name             = module.resource_groups[network.resource_group_name].name
       ddos_protection_plan_id         = (network.enable_ddos_protection ? module.ddos_protection_plan[0].resource_id : null)
       dns_servers                     = (network.dns_ips == null ? null : network.dns_ips)
-      tags                            = merge(var.global_tags, (var.include_label_tags ? { network_label = network_name } : {}))
+      tags                            = merge(var.tags, (var.include_label_tags ? { network_label = network_name } : {}))
       mesh_peering_enabled            = var.enable_full_network_mesh # We are explicit about the peerings that should be created
       resource_group_creation_enabled = false                        # The resource group already exists
 
@@ -182,10 +188,10 @@ module "route_tables" {
   for_each = local.route_tables
 
   location            = var.locations[each.value.location_ref]
-  name                = each.value.name
-  resource_group_name = module.network_resource_groups[each.value.location_ref].name
+  name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
-  tags = merge(var.global_tags,
+  tags = merge(var.tags,
     (var.include_label_tags ?
       { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
   {}))
@@ -205,10 +211,10 @@ module "network_security_groups" {
   for_each = local.network_security_groups
 
   location            = var.locations[each.value.location_ref]
-  name                = each.value.name
-  resource_group_name = module.network_resource_groups[each.value.location_ref].name
+  name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
-  tags = merge(var.global_tags,
+  tags = merge(var.tags,
     (var.include_label_tags ?
       { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
   {}))
@@ -252,23 +258,14 @@ module "network_security_groups" {
 #  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
 # }
 
-module "virtual_machine_set_resource_groups" {
-  source   = "Azure/avm-res-resources-resourcegroup/azurerm"
-  for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
-
-  location = var.locations[each.value.location_name]
-  name     = "${var.deployment_prefix}-${coalesce(each.value.resource_group_name, each.key)}"
-  tags     = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
-}
-
 module "virtual_machine_sets" {
-  source   = "../high_availability_virtual_machine_set"
+  source   = "../infra_map_vm_set"
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
 
   location                                      = var.locations[each.value.location_name]
-  resource_group_name                           = module.virtual_machine_set_resource_groups[each.key].name
+  resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
-  resource_tags                                 = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
+  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
@@ -284,16 +281,16 @@ module "virtual_machine_sets" {
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
   generated_secrets_key_vault_secret_config = {
-    key_vault_resource_id          = module.key_vaults[each.value.location_name].resource_id
+    key_vault_resource_id          = module.key_vaults[each.value.key_vault_name].resource_id
     name                           = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-creds"
     expiration_date_length_in_days = 90
     content_type                   = "password"
-    tags                           = merge(var.global_tags, each.value.tags, { credential_type = "generated" })
+    tags                           = merge(var.tags, each.value.tags, { credential_type = "generated" })
   }
 
 
   virtual_machine_extensions = {
-    for extension_name in concat(var.global_extensions, each.value.extensions) : extension_name => var.virtual_machine_extensions[extension_name]
+    for extension_name in concat(var.extensions, each.value.extensions) : extension_name => var.virtual_machine_extensions[extension_name]
   }
 
   virtual_machine_data_disks = {
