@@ -15,7 +15,7 @@ This project offers a modular Terraform framework for deploying Azure IaaS resou
     - **infra_map:** Extends resource mapping for multi-subscription environments.
   
   - **Private Layer:**  
-    - **epic:** Tailored for specific deployments (like Epic in healthcare) while leveraging the public modules for common functionality.
+    - **epic:** Tailored specifically for Epic on Azure deployments while leveraging the public modules for common functionality.
 
 - **Relational Schema & Modularity:**  
   Resources are defined as maps and objects, establishing clear relationships (e.g., linking VMs to networks). This relational approach mirrors database design, simplifying management and enhancing scalability.
