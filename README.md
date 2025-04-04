@@ -2,8 +2,6 @@
 
 This project offers a modular Terraform framework for deploying Azure IaaS resources. Its design centers on making even private patterns generic, so that as much of the framework as possible is public and reusable. This means that while specialized needs (like Epic-specific deployments) are handled in a private layer, the core components are designed to be flexible and broadly applicable.
 
----
-
 ## High-Level Design Philosophy
 
 - **Generic Yet Specialized:**  
@@ -25,8 +23,6 @@ This project offers a modular Terraform framework for deploying Azure IaaS resou
 - **Scalability & Security:**  
   The framework supports deployments across multiple subscriptions and regions. It also incorporates best practices for security with private endpoints, network ACLs, and Azure Key Vault integrations.
 
----
-
 ## Key Concepts
 
 1. **Modularity:**  
@@ -37,8 +33,6 @@ This project offers a modular Terraform framework for deploying Azure IaaS resou
 
 3. **Customization:**  
    Users can override defaults and adjust configurations (like VM images, disk settings, or network interfaces) to tailor the deployment to their unique requirements.
-
----
 
 ## Navigating the Project
 
@@ -69,8 +63,6 @@ The `variables.tf` files in each module define all configurable inputs. They use
 ### Validation
 
 Input validation blocks ensure that all required fields are provided and that the values (like Azure locations) are valid.
-
----
 
 ## Examples
 
@@ -147,8 +139,6 @@ variable "key_vaults" {
   }))
 }
 
----
-
 ## Getting Started
 
 1. **Review Configuration Files:**  
@@ -162,7 +152,6 @@ variable "key_vaults" {
 
 4. **Extend with Private Patterns:**  
    For specialized deployments (e.g., Epic on Azure), extend the public modules within your private layer, ensuring that you benefit from both reusability and compliance with specific requirements.
-
 
 ## Contributing
 
