@@ -1,4 +1,4 @@
-# Terraform Azure Modules: Design Philosophy & Usage Guide
+# Epic on Azure Terraform Module Stack
 
 This project offers a modular Terraform framework for deploying Azure IaaS resources. Its design centers on making even private patterns generic, so that as much of the framework as possible is public and reusable. This means that while specialized needs (like Epic-specific deployments) are handled in a private layer, the core components are designed to be flexible and broadly applicable.
 
