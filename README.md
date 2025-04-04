@@ -26,7 +26,7 @@ This project offers a modular Terraform framework for deploying Azure IaaS resou
 ## Key Concepts
 
 1. **Modularity:**  
-   Each module focuses on a specific part of the deployment (e.g., VMs, networks, Key Vaults) so that they can be used independently or combined as needed.
+   Each module focuses on a specific layer of the deployment (e.g., virtual machine sets, infrastructure topology, etc.) so that they can be used independently or combined as needed.
 
 2. **Reusability:**  
    By designing modules with a generic relational schema, we maximize the potential for reuse across different environments—public or private.
