@@ -78,7 +78,6 @@ Input validation blocks ensure that all required fields are provided and that th
 
 Defines detailed specifications for deploying VM sets, linking them to networks and storage.
 
-```hcl
 variable "virtual_machine_sets" {
   type = map(object({
     key_vault_name                    = string
@@ -123,13 +122,11 @@ variable "virtual_machine_sets" {
     }))
   }))
 }
-```
 
 ### Example 2: Key Vaults
 
 Showcases how to configure Azure Key Vaults, including secrets and network ACLs, in a reusable manner.
 
-```hcl
 variable "key_vaults" {
   type = map(object({
     location_name                     = string
@@ -149,7 +146,6 @@ variable "key_vaults" {
     })), {})
   }))
 }
-```
 
 ---
 
@@ -166,6 +162,7 @@ variable "key_vaults" {
 
 4. **Extend with Private Patterns:**  
    For specialized deployments (e.g., Epic on Azure), extend the public modules within your private layer, ensuring that you benefit from both reusability and compliance with specific requirements.
+
 
 ## Contributing
 
