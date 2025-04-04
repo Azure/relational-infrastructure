@@ -1,4 +1,3 @@
-```markdown
 # Terraform Azure Modules: Design Philosophy & Usage Guide
 
 This project offers a modular Terraform framework for deploying Azure IaaS resources. Its design centers on making even private patterns generic, so that as much of the framework as possible is public and reusable. This means that while specialized needs (like Epic-specific deployments) are handled in a private layer, the core components are designed to be flexible and broadly applicable.
@@ -168,10 +167,6 @@ variable "key_vaults" {
 4. **Extend with Private Patterns:**  
    For specialized deployments (e.g., Epic on Azure), extend the public modules within your private layer, ensuring that you benefit from both reusability and compliance with specific requirements.
 
----
-
-This guide provides an overview of the design philosophy, key concepts, and navigation of the project. By abstracting private patterns into generic, reusable components, the framework helps you deploy scalable, secure, and flexible Azure infrastructure with Terraform.
-```
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
