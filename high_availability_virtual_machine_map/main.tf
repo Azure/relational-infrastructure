@@ -22,8 +22,7 @@ module "naming" {
   source = "Azure/naming/azurerm"
 }
 
-
-#Create the Keyvaults
+# Create the Keyvaults
 module "key_vaults" {
   source = "Azure/avm-res-keyvault-vault/azurerm"
   # version = "0.10.0"
@@ -43,13 +42,12 @@ module "key_vaults" {
   public_network_access_enabled   = each.value.public_network_access_enabled
   soft_delete_retention_days      = each.value.soft_delete_retention_days
 
-  #Wait for RBAC Operations
+  # Wait for RBAC Operations
   wait_for_rbac_before_key_operations     = each.value.wait_for_rbac_before_key_operations
   wait_for_rbac_before_secret_operations  = each.value.wait_for_rbac_before_secret_operations
   wait_for_rbac_before_contact_operations = each.value.wait_for_rbac_before_contact_operations
 
-
-  #Role Assignments
+  # Role Assignments
   role_assignments = merge(
     each.value.role_assignments,
     {
@@ -60,27 +58,22 @@ module "key_vaults" {
     }
   )
 
-  #Network ACLs
+  # Network ACLs
   network_acls = each.value.network_acls != null ? {
     bypass         = each.value.network_acls.bypass
     default_action = each.value.network_acls.default_action
     ip_rules       = each.value.network_acls.ip_rules
-    # virtual_network_subnet_ids = flatten([
-    #   for subnet_ref in each.value.network_acls.virtual_network_subnet_ids : 
-    #   (startswith(subnet_ref, "/") ? 
-    #     subnet_ref : 
-    #     contains(split(":", subnet_ref), ":") ? 
-    #       module.networks.virtual_networks[split(":", subnet_ref)[0]].subnets["${split(":", subnet_ref)[0]}-${split(":", subnet_ref)[1]}"].resource_id :
-    #       subnet_ref)
-    # ])
-  } : null
+  } : {
+    bypass         = "None"
+    default_action = "Deny"  # Disable public access
+    ip_rules       = []
+  }
 
-  #Legacy Access Policies
-  #Private Endpoints
-  #Diagnostic Settings
+  # Legacy Access Policies
+  # Private Endpoints
+  # Diagnostic Settings
 
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
-
 }
 
 # Create the Storage Accounts
@@ -96,7 +89,6 @@ module "storage_accounts" {
   name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-sa")
 
   # Optional Inputs
-
   access_tier = each.value.access_tier
   account_kind = each.value.account_kind
   account_replication_type = each.value.account_replication_type
@@ -110,32 +102,36 @@ module "storage_accounts" {
   custom_domain = each.value.custom_domain
   customer_managed_key = each.value.customer_managed_key
   
-
+  # Pass file shares to the module
+  shares = { for name, fs in var.file_shares : name => fs if fs.storage_account_name == each.key }
 
   # Network ACLs
-  # TODO disable public access
-  network_acls = each.value.network_acls != null ? {
-    bypass         = each.value.network_acls.bypass
-    default_action = each.value.network_acls.default_action
-    ip_rules       = each.value.network_acls.ip_rules
-  } : null
+# network_acls = each.value.network_acls != null ? {
+#   bypass         = each.value.network_acls.bypass
+#   default_action = each.value.network_acls.default_action
+#   ip_rules       = each.value.network_acls.ip_rules
+# } : {
+#   bypass         = "None"
+#   default_action = "Deny"  # Disable public access
+#   ip_rules       = []
+# }
 
 
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { storageaccount_label = each.key } : {}))
-  
 }
 
 # Create the File Shares within the Storage Accounts
-resource "azurerm_storage_share" "file_shares" {
-  for_each = { for name, sa in var.storage_accounts : name => sa if sa != null }
-
-  name                 = "${each.key}-fileshare"
-  storage_account_name = azurerm_storage_account.storage_accounts[each.key].name
+/* resource "azurerm_storage_share" "file_shares" {
+  for_each = { for name, fs in var.file_shares : name => fs if fs != null }
+  name                 = "${replace(lower(each.key), "_", "-")}-fileshare"
+  storage_account_name = module.storage_accounts[each.key].name
   quota                = 100  # Quota in GB
   metadata = {
     environment = "production"
   }
+} */
 
+# 
 
 # Creating the Private DNS Zone for all Key Vault
 resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
@@ -154,11 +150,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   virtual_network_id    = module.networks.virtual_networks[each.key].id
   registration_enabled  = false
   tags                  = merge(var.global_tags, { network_name = each.value.name })
-
 }
-
-
-
 
 # Private Endpoints for Azure services
 module "private_endpoints" {
@@ -186,12 +178,8 @@ module "private_endpoints" {
   private_service_connection_name = each.value.private_service_connection_name
 
   # Tags
-  #tags = each.value.tags
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
-
 }
-
-
 
 module "networks" {
   source = "Azure/avm-ptn-hubnetworking/azurerm"
@@ -331,8 +319,8 @@ module "virtual_machine_sets" {
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
-  #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
-  #                                               zone distribution is always even across all 3 zones.
+  # By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
+  # zone distribution is always even across all 3 zones.
 
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
@@ -343,7 +331,6 @@ module "virtual_machine_sets" {
     content_type                   = "password"
     tags                           = merge(var.global_tags, each.value.tags, { credential_type = "generated" })
   }
-
 
   virtual_machine_extensions = {
     for extension_name in concat(var.global_extensions, each.value.extensions) : extension_name => var.virtual_machine_extensions[extension_name]

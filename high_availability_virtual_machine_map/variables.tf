@@ -564,8 +564,8 @@ variable "key_vaults" {
         use_subdomain = optional(bool, false)
       }), null)
       customer_managed_key = optional(object({
-        key_vault_key_id = string
-        user_assigned_identity_id = optional(string, null)
+        key_vault_resource_id = string
+        key_name = optional(string, null)
       }), null)
   
       network_acls = optional(object({
@@ -612,6 +612,25 @@ variable "key_vaults" {
     description = "A map of Azure Storage Accounts to be deployed."
     nullable    = false
   }
+
+variable "file_shares" {
+  type = map(object({
+    name                   = string
+    storage_account_name = string
+    metadata               = optional(map(string), {})
+    container_access_type  = optional(string, "private")
+    share_quota            = optional(number, null)
+    protocol_types         = optional(set(string), ["SMB", "NFS"])
+    smb_properties         = optional(object({
+      smb3_properties = optional(object({
+        multichannel_enabled = optional(bool, false)
+      }), null)
+    }), null)
+  }))
+  default     = {}
+  description = "A map of Azure File Shares to be deployed."
+  nullable    = false
+}
 
 
 # Define the private endpoints configuration
