@@ -171,7 +171,7 @@ The `networks` variable identifies the model's networks. Note that this is diffe
 
       subnets = {
         subnet_a = {
-          name            = "a" // Optional; if not provided, will be derived from key "subnet_a"
+          name            = "subnet-a"     // Optional; if not provided, will be derived from key "subnet_a"
           address_space   = "10.0.0.0/24"
         }
         subnet_b = {
