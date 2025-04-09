@@ -76,7 +76,7 @@ erDiagram
 > In the sections below, the 🔑 icon represents a "foreign key" property that references another table/map variable.
 
 ### Locations
-> `var.locations`
+> Terraform: `var.locations`
 
 The `locations` variable identifies the model's Azure locations.
 
@@ -88,7 +88,7 @@ locations = {
 ```
 
 ### Subscriptions
-> `var.subscriptions`
+> Terraform: `var.subscriptions`
 
 The `subscriptions` variable identifies the model's Azure subscriptions.
 
@@ -113,7 +113,7 @@ subscriptions = {
 * `subscription_slot` refers to a static `azurerm` provider alias (`az_subscription_1` - `az_subscription_10`).
 
 ### Resource groups
-> `var.resource_groups`
+> Terraform: `var.resource_groups`
 
 The `resource_groups` variable identifies the model's Azure subscriptions.
 
@@ -137,7 +137,7 @@ resource_groups = {
   * If no `location_name` is provided, the default (i.e., first location defined in `var.locations`) will be used.
 
 ### Virtual machine extensions
-> `var.virtual_machine_extensions`
+> Terraform: `var.virtual_machine_extensions`
 
 The `virtual_machine_extensions` variable identifies the model's virtual machine extension configurations. The example below is used to configure the Azure Monitor Agent for Windows.
 
@@ -156,7 +156,7 @@ virtual_machine_extensions = {
 ```
 
 ### Networks
-> `var.networks`
+> Terraform: `var.networks`
 
 The `networks` variable identifies the model's networks. Note that this is different than external networks (which may be on-premises, in Azure, or in another cloud) defined in `var.external_networks`.
 
