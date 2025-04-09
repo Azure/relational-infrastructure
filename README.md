@@ -29,24 +29,117 @@ erDiagram
   Locations ||--o{ "Networks" : ""
   Locations ||--o{ "Role-Based VM Sets" : ""
   Locations ||--o{ "Key Vaults" : ""
+  Locations ||--o{ "Storage Accounts" : ""
   Subscriptions ||--o{ "Key Vaults" : ""
   Subscriptions ||--o{ "Resource Groups" : ""
   Subscriptions ||--o{ "Networks" : ""
   Subscriptions ||--o{ "Role-Based VM Sets" : ""
+  Subscriptions ||--o{ "Storage Accounts" : ""
   "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Key Vaults" : ""
-  "Subscriptions" ||--|| "Resource Groups" : "has a default"
-  "Subscriptions" ||--|| "Resource Groups" : "has a dedicated private link"
+  "Resource Groups" ||--o{ "Storage Accounts" : ""
+  "Subscriptions" ||..|| "Resource Groups" : "has a default"
+  "Subscriptions" ||..|| "Resource Groups" : "has a dedicated private link"
   "Subscriptions" ||--o{ "Networks" : ""
   "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
   "Subscriptions" ||--o{ "Key Vaults" : ""
-  "VM Extensions" ||--o{ "Role-Based VM Sets" : ""
-  "Networks" ||--o{ "Subnets" : ""
-  "Subnets" ||--o{ "Routes" : ""
+  "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
+  "Networks" ||..o{ "Subnets" : ""
+  "External Networks" ||..o{ "External Subnets" : ""
+  "Subnets" ||..o{ "Routes" : ""
   "Routes" ||--|| "Networks" : "to"
+  "Routes" ||--|| "External Networks" : "to"
   "Routes" ||--|| "Subnets" : "to"
+  "Routes" ||--|| "External Subnets" : "to"
+  "Subnets" ||..o{ "Security Rules" : "protect"
+  "Security Rules" ||--o{ "Networks" : "to/from"
+  "Security Rules" ||--o{ "Subnets" : "to/from"
+  "Security Rules" ||--o{ "External Networks" : "to/from"
+  "Security Rules" ||--o{ "External Subnets" : "to/from"
+  "Key Vaults" ||..o{ "Role-Based VM Sets" : "protect"
+  "Role-Based VM Sets" ||..|{ "Network Interfaces" : "have"
+  "Role-Based VM Sets" ||..|{ "Data Disks" : "have"
+  "Subnets" ||--o{ "Network Interfaces" : "contain"
+  "Role-Based VM Sets" ||--o| "Availability Zone Distribution Strategy" : "uses"
+  "Role-Based VM Sets" ||--|| "VM Set Specs" : "have"
+  "VM Set Specs" ||..o{ "Data Disk Specs" : "have"
+  "Data Disks" ||..|| "Data Disk Specs" : "have"
+  "Resource Groups" ||--o{ "Networks" : "have"
+  "Key Vaults" ||--o{ "Private Endpoints" : "have"
+  "Subnets" ||--o{ "Private Endpoints" : "have"
+  "Storage Accounts" ||--o{ "Private Endpoints" : "have"
+  "Networks" ||..o{ "Peerings" : "have"
+  "Peerings" ||--|| "Networks" : "peered to"
+  "Peerings" ||--|| "External Networks" : "peered to"
 ```
 
+> In the sections below, the 🔑 icon represents a "foreign key" property that references another table/map variable.
+
+### Locations
+
+The `locations` variable identifies the model's Azure locations.
+
+```hcl
+locations = {
+  primary = "eastus" // Must be a valid Azure location
+  alt     = "westus" // Must be a valid Azure location
+}
+```
+
+### Subscriptions
+
+The `subscriptions` variable identifies the model's Azure subscriptions.
+
+```hcl
+subscriptions = {
+  production = {
+    default_resource_group_name      = "production"               // 🔑 Must be in var.resource_groups
+    private_link_resource_group_name = "production_networks"      // 🔑 Optional; must be in var.resource_groups
+    subscription_slot                = "az_subscription_1"        // References a named azurerm provider
+  }
+  non_production = {
+    default_resource_group_name      = "non_production"          
+    private_link_resource_group_name = "non_production_networks"
+    subscription_slot                = "az_subscription_2"
+  }
+}
+```
+
+* `default_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
+* When provided, `private_link_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
+  * If not provided, `default_resource_group_name` will be used.
+* `subscription_slot` refers to a static `azurerm` provider alias (`az_subscription_1` - `az_subscription_10`).
+
+### Resource groups
+
+The `resource_groups` variable identifies the model's Azure subscriptions.
+
+```hcl
+resource_groups = {
+  production = {
+    subscription_name = "production"      // 🔑 Must be in var.subscriptions
+    location_name     = "primary"         // 🔑 Optional; Must be in var.locations
+    name              = "production"      // The actual name of the resource group
+  }
+  non_production = {
+    subscription_name = "non_production"
+    location_name     = "alt"
+    name              = "non-production"
+  }
+}
+```
+
+* `subscription_name` must refer to a subscription defined in [`var.subscriptions`](#subscriptions).
+* When provided, `location_name` must refer to a location defined in [`var.locations`](#locations).
+  * If no `location_name` is provided, the default (i.e., first location defined in `var.locations`) will be used.
+
+### Virtual machine extensions
+
+The `virtual_machine_extensions` variable identifies the model's virtual machine extension configurations.
+
+```hcl
+  
+```
 
 ## Contributing
 
