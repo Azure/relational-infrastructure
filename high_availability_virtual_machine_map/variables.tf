@@ -567,6 +567,24 @@ variable "key_vaults" {
         key_vault_resource_id = string
         key_name = optional(string, null)
       }), null)
+
+      # Add managed identity configuration here    
+      managed_identity = optional(object({      
+        type = string # Allowed values: SystemAssigned, UserAssigned, SystemAssigned,UserAssigned      
+        identity_ids = optional(list(string), []) # Required when type contains UserAssigned    
+      }), null)
+
+      # Add role assignment configuration here
+      role_assignments = optional(map(object({      
+        role_definition_id_or_name             = string      
+        principal_id                           = string      
+        description                            = optional(string, null)      
+        skip_service_principal_aad_check       = optional(bool, false)      
+        condition                              = optional(string, null)      
+        condition_version                      = optional(string, null)      
+        delegated_managed_identity_resource_id = optional(string, null)      
+        principal_type                         = optional(string, null)    
+        })), {})
   
       network_acls = optional(object({
         bypass                     = optional(string, "AzureServices")
@@ -611,6 +629,7 @@ variable "key_vaults" {
     default     = {}
     description = "A map of Azure Storage Accounts to be deployed."
     nullable    = false
+    
   }
 
 variable "file_shares" {

@@ -101,37 +101,28 @@ module "storage_accounts" {
   cross_tenant_replication_enabled = each.value.cross_tenant_replication_enabled
   custom_domain = each.value.custom_domain
   customer_managed_key = each.value.customer_managed_key
+  managed_identities = {
+    system_assigned = each.value.managed_identity == "SystemAssigned" || each.value.managed_identity == "SystemAssigned,UserAssigned"
+  }
+  
+  #role_assignments = each.value.role_assignments
+  role_assignments = merge(
+    each.value.role_assignments,
+    {
+      current_user_admin = {
+        role_definition_id_or_name = "Contributor"
+        principal_id               = "${data.azurerm_client_config.current.object_id}"
+      }
+    }
+  )
   
   # Pass file shares to the module
   shares = { for name, fs in var.file_shares : name => fs if fs.storage_account_name == each.key }
 
-  # Network ACLs
-# network_acls = each.value.network_acls != null ? {
-#   bypass         = each.value.network_acls.bypass
-#   default_action = each.value.network_acls.default_action
-#   ip_rules       = each.value.network_acls.ip_rules
-# } : {
-#   bypass         = "None"
-#   default_action = "Deny"  # Disable public access
-#   ip_rules       = []
-# }
-
-
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { storageaccount_label = each.key } : {}))
 }
 
-# Create the File Shares within the Storage Accounts
-/* resource "azurerm_storage_share" "file_shares" {
-  for_each = { for name, fs in var.file_shares : name => fs if fs != null }
-  name                 = "${replace(lower(each.key), "_", "-")}-fileshare"
-  storage_account_name = module.storage_accounts[each.key].name
-  quota                = 100  # Quota in GB
-  metadata = {
-    environment = "production"
-  }
-} */
 
-# 
 
 # Creating the Private DNS Zone for all Key Vault
 resource "azurerm_private_dns_zone" "keyvault_dns_zone" {

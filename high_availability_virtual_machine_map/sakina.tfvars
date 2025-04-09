@@ -1,4 +1,4 @@
-deployment_prefix         = "sakina99"
+deployment_prefix         = "sk991"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -247,6 +247,9 @@ storage_accounts = {
     account_replication_type      = "LRS"
     account_tier                  = "Standard"
     allow_nested_items_to_be_public = false
+    managed_identity = {
+      type = "SystemAssigned"
+    } 
     blob_properties = {
       delete_retention_policy = {
         days = 7
@@ -259,6 +262,7 @@ storage_accounts = {
       ip_rules       = ["0.0.0.0/0"]
     }
   }
+
 
   sakina_alt_sa = {
     location_name                 = "alt"
@@ -280,6 +284,17 @@ storage_accounts = {
       default_action = "Allow"
       ip_rules       = ["0.0.0.0/0"]
     }
+  }
+}
+
+file_shares = {
+  "file_share" = {
+    name                = "file_share_name"
+    storage_account_name = "sakina_primary_sa"
+    quota               = 5120
+    share_access_tier   = "Hot"
+    tags                = { environment = "production" }
+    
   }
 }
 
