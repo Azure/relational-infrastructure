@@ -8,13 +8,13 @@ These modules use normalized, table-style map variables to describe infrastructu
 
 All lower layers are generic and reusable. Solution-specific modules, such as the Epic layer, build on top of this foundation. The Epic module will remain private; others may be public or private depending on scenario.
 
-![Module stack](assets/avmstack.png)
-
 This modular approach supports:
 
 - **Reusability** – Modules are composable and useful on their own.
 - **Maintainability** – Focused layers reduce complexity and risk.
 - **Shareability** – Only the Epic-specific layer is private; the rest can be reused or published.
+
+![Module stack](assets/avmstack.png)
 
 ## Infrastructure Map Model
 
@@ -76,6 +76,7 @@ erDiagram
 > In the sections below, the 🔑 icon represents a "foreign key" property that references another table/map variable.
 
 ### Locations
+> `var.locations`
 
 The `locations` variable identifies the model's Azure locations.
 
@@ -87,6 +88,7 @@ locations = {
 ```
 
 ### Subscriptions
+> `var.subscriptions`
 
 The `subscriptions` variable identifies the model's Azure subscriptions.
 
@@ -111,6 +113,7 @@ subscriptions = {
 * `subscription_slot` refers to a static `azurerm` provider alias (`az_subscription_1` - `az_subscription_10`).
 
 ### Resource groups
+> `var.resource_groups`
 
 The `resource_groups` variable identifies the model's Azure subscriptions.
 
@@ -134,11 +137,50 @@ resource_groups = {
   * If no `location_name` is provided, the default (i.e., first location defined in `var.locations`) will be used.
 
 ### Virtual machine extensions
+> `var.virtual_machine_extensions`
 
-The `virtual_machine_extensions` variable identifies the model's virtual machine extension configurations.
+The `virtual_machine_extensions` variable identifies the model's virtual machine extension configurations. The example below is used to configure the Azure Monitor Agent for Windows.
 
 ```hcl
-  
+virtual_machine_extensions = {
+  azure_monitor = {
+    name                       = "AzureMonitorWindowsAgent"
+    publisher                  = "Microsoft.Azure.Monitor"
+    type                       = "AzureMonitorWindowsAgent"
+    type_handler_version       = "1.2"
+    auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
+    settings                   = null
+  }
+}
+```
+
+### Networks
+> `var.networks`
+
+The `networks` variable identifies the model's networks. Note that this is different than external networks (which may be on-premises, in Azure, or in another cloud) defined in `var.external_networks`.
+
+```hcl
+  networks = {
+    main = {
+      location_name       = "primary"      // 🔑 Must be in var.locations
+      subscription_name   = "production"   // 🔑 Must be in var.subscriptions
+      resource_group_name = "production"   // 🔑 Must be in var.resource_groups
+      name                = "main-vnet"    // Optional; if not provided, will be derived from key "main"
+      address_space       = "10.0.0.0/16"
+
+      subnets = {
+        subnet_a = {
+          name            = "a" // Optional; if not provided, will be derived from key "subnet_a"
+          address_space   = "10.0.0.0/24"
+        }
+        subnet_b = {
+          name            = "b"
+          address_space   = "10.0.1.0/24"
+        }
+      }     
+    }
+  }
 ```
 
 ## Contributing
