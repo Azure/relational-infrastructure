@@ -1,10 +1,26 @@
+# Epic on Azure Terraform Module Stack
+
 This repo provides a modular Terraform stack for deploying Epic on Azure, built using Microsoft’s [Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/) standards.
 
-At the base, it uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/). On top, it layers AVM-aligned pattern modules like [`avm-ptn-hub-networking`](https://registry.terraform.io/modules/Azure/avm-ptn-hubnetworking/azurerm/latest), [`infra_map`](/infra_map), `infra_map_vm_set`, and `subscription_infra_map`. These use normalized, table-style map variables to describe complex infrastructure cleanly and consistently.
+At the foundation, it uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/) to provision core Azure services. On top of that, it layers AVM-aligned pattern modules such as:
 
-- **Reusability** – Every module adds value on its own, across environments.
-- **Maintainability** – Smaller modules reduce complexity and blast radius.
-- **Shareability** – Only the Epic-specific layer is private; the rest can be published and reused.
+- [`infra_map`](/infra_map)
+- [`infra_map_vm_set`](/infra_map_vm_set)
+- [`subscription_infra_map`](/subscription_infra_map)
+
+These modules define infrastructure using normalized, table-style map variables—enabling consistent, scalable deployments across regions, subscriptions, and workloads.
+
+This modular approach supports:
+
+- **Reusability** – Modules are composable and valuable on their own.
+- **Maintainability** – Small, focused modules reduce complexity and risk.
+- **Shareability** – Only the Epic-specific layer is private; everything else can be reused or published.
+
+## Infrastructure Model
+
+This section describes the foundational infrastructure map that powers the module stack. It defines a normalized, relational model for describing Azure infrastructure in simple, structured terms. Epic-specific modules then layer on a domain-specific map—effectively a relational database of the Azure resources needed to deploy an Epic environment.
+
+
 
 ## Contributing
 
