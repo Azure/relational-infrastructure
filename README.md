@@ -1,14 +1,15 @@
 # Epic on Azure Terraform Module Stack
 
-This repo provides a modular Terraform stack for deploying Epic on Azure, built using Microsoft’s [Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/) standards.
+This repo provides a modular Terraform stack for deploying Epic on Azure, built using Microsoft’s [Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/) standards. At the foundation, it uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/) to provision core Azure services. On top of that, it layers AVM-aligned pattern modules such as:
 
-At the foundation, it uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/) to provision core Azure services. On top of that, it layers AVM-aligned pattern modules such as:
-
+- [`epic`](/epic)
 - [`infra_map`](/infra_map)
-- [`infra_map_vm_set`](/infra_map_vm_set)
 - [`subscription_infra_map`](/subscription_infra_map)
+- [`infra_map_vm_set`](/infra_map_vm_set)
 
 These modules define infrastructure using normalized, table-style map variables—enabling consistent, scalable deployments across regions, subscriptions, and workloads.
+
+![Module stack](assets/avmstack.png)
 
 This modular approach supports:
 
