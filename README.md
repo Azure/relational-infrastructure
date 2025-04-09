@@ -23,36 +23,28 @@ This section introduces the normalized infrastructure map that underpins the mod
 ```mermaid
 ---
 title: Infrastructure Map Model
-config:
-        layout: elk
 ---
 erDiagram
-  "Azure Locations" ||--o{ "Resource Groups" : ""
-  "Azure Subscriptions" ||--o{ "Resource Groups" : ""
-  "Azure Locations" ||--o{ "Virtual Networks" : ""
-  "Azure Locations" ||--o{ "Virtual Networks" : ""
-  "Azure Subscriptions" ||--o{ "Virtual Networks" : ""
-  "Resource Groups" ||--o{ "Virtual Networks" : ""
-  "Virtual Networks" ||..o{ "Subnets" : ""
-  "Virtual Networks" ||..o{ "Peerings" : ""
-  "Subnets" ||..o{ "Security Rules" : ""
-  "Subnets" ||--o{ "Network Sources" : ""
-  "Subnets" ||--o{ "Network Destinations" : ""
-  "Security Rules" ||..|| "Network Sources" : ""
-  "Security Rules" ||..|| "Network Destinations" : ""
-  "Subnets" ||..o{ "Routes" : ""
-  "Routes" ||--o{ "Network Destinations" : ""
-  "Virtual Machine Extensions" ||--o{ "Role-Based Virtual Machine Sets" : ""
-  "Azure Locations" ||--o{ "Role-Based Virtual Machine Sets" : ""
-  "Resource Groups" ||--o{ "Role-Based Virtual Machine Sets" : ""
-  "Key Vaults" ||--o{ "Role-Based Virtual Machine Sets" : ""
-  "Role-Based Virtual Machine Sets" ||--|{ "Network Interfaces" : ""
-  "Subnets" ||--o{ "Network Interfaces" : ""
-  "Role-Based Virtual Machine Sets" ||--o{ "Data Disks" : ""
-  "Virtual Machine Set Specifications" ||--|| "Role-Based Virtual Machine Sets" : ""
-  "Virtual Machine Set Specifications" ||--o{ "Data Disk Specifications" : ""
-  "Data Disks" ||--|| "Data Disk Specifications" : ""
-  "Role-Based Virtual Machine Sets" ||--o| "Availability Zone Distribution Strategies" : ""
+  Locations ||--o{ "Resource Groups" : ""
+  Locations ||--o{ "Networks" : ""
+  Locations ||--o{ "Role-Based VM Sets" : ""
+  Locations ||--o{ "Key Vaults" : ""
+  Subscriptions ||--o{ "Key Vaults" : ""
+  Subscriptions ||--o{ "Resource Groups" : ""
+  Subscriptions ||--o{ "Networks" : ""
+  Subscriptions ||--o{ "Role-Based VM Sets" : ""
+  "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
+  "Resource Groups" ||--o{ "Key Vaults" : ""
+  "Subscriptions" ||--|| "Resource Groups" : "has a default"
+  "Subscriptions" ||--|| "Resource Groups" : "has a dedicated private link"
+  "Subscriptions" ||--o{ "Networks" : ""
+  "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
+  "Subscriptions" ||--o{ "Key Vaults" : ""
+  "VM Extensions" ||--o{ "Role-Based VM Sets" : ""
+  "Networks" ||--o{ "Subnets" : ""
+  "Subnets" ||--o{ "Routes" : ""
+  "Routes" ||--|| "Networks" : "to"
+  "Routes" ||--|| "Subnets" : "to"
 ```
 
 
