@@ -1,26 +1,59 @@
 # Epic on Azure Terraform Module Stack
 
-This repo provides a modular Terraform stack for deploying Epic on Azure, built using Microsoft’s [Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/) standards. At the foundation, it uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/) to provision core Azure services. On top of that, it layers AVM-aligned pattern modules such as:
+This repo provides a Terraform module stack for deploying Epic on Azure, aligned with the Epic on Azure Well-Architected Framework (WAF) and built on Microsoft’s Azure Verified Modules (AVM).
 
-- [`epic`](/epic)
-- [`infra_map`](/infra_map)
-- [`subscription_infra_map`](/subscription_infra_map)
-- [`infra_map_vm_set`](/infra_map_vm_set)
+At the base, the stack uses official AVM resource modules that implement Microsoft’s reliability best practices by default. On top of that, it adds AVM-aligned pattern modules that capture common infrastructure patterns from Epic’s reference architecture—such as role-based virtual machine sets using VMSS Flex with built-in zone distribution.
 
-These modules define infrastructure using normalized, table-style map variables—enabling consistent, scalable deployments across regions, subscriptions, and workloads.
+These modules use normalized, table-style map variables to describe infrastructure across regions, subscriptions, and workloads. Each map functions like a relational database, linking networks, VM sets, resource groups, key vaults, and more through consistent, composable inputs.
+
+All lower layers are generic and reusable. Solution-specific modules, such as the Epic layer, build on top of this foundation. The Epic module will remain private; others may be public or private depending on scenario.
 
 ![Module stack](assets/avmstack.png)
 
 This modular approach supports:
 
-- **Reusability** – Modules are composable and valuable on their own.
-- **Maintainability** – Small, focused modules reduce complexity and risk.
-- **Shareability** – Only the Epic-specific layer is private; everything else can be reused or published.
+- **Reusability** – Modules are composable and useful on their own.
+- **Maintainability** – Focused layers reduce complexity and risk.
+- **Shareability** – Only the Epic-specific layer is private; the rest can be reused or published.
 
-## Infrastructure Model
+## Infrastructure Map Model
 
-This section describes the foundational infrastructure map that powers the module stack. It defines a normalized, relational model for describing Azure infrastructure in simple, structured terms. Epic-specific modules then layer on a domain-specific map—effectively a relational database of the Azure resources needed to deploy an Epic environment.
+This section introduces the normalized infrastructure map that underpins the module stack. It defines Azure infrastructure using a relational-style model—expressed through Terraform map variables—that cleanly connects networks, VM sets, resource groups, and other resources. Epic-specific modules build on this foundation by layering in a domain-specific map of the resources required for a complete Epic environment.
 
+```mermaid
+---
+title: Infrastructure Map Model
+config:
+        layout: elk
+---
+erDiagram
+  "Azure Locations" ||--o{ "Resource Groups" : ""
+  "Azure Subscriptions" ||--o{ "Resource Groups" : ""
+  "Azure Locations" ||--o{ "Virtual Networks" : ""
+  "Azure Locations" ||--o{ "Virtual Networks" : ""
+  "Azure Subscriptions" ||--o{ "Virtual Networks" : ""
+  "Resource Groups" ||--o{ "Virtual Networks" : ""
+  "Virtual Networks" ||..o{ "Subnets" : ""
+  "Virtual Networks" ||..o{ "Peerings" : ""
+  "Subnets" ||..o{ "Security Rules" : ""
+  "Subnets" ||--o{ "Network Sources" : ""
+  "Subnets" ||--o{ "Network Destinations" : ""
+  "Security Rules" ||..|| "Network Sources" : ""
+  "Security Rules" ||..|| "Network Destinations" : ""
+  "Subnets" ||..o{ "Routes" : ""
+  "Routes" ||--o{ "Network Destinations" : ""
+  "Virtual Machine Extensions" ||--o{ "Role-Based Virtual Machine Sets" : ""
+  "Azure Locations" ||--o{ "Role-Based Virtual Machine Sets" : ""
+  "Resource Groups" ||--o{ "Role-Based Virtual Machine Sets" : ""
+  "Key Vaults" ||--o{ "Role-Based Virtual Machine Sets" : ""
+  "Role-Based Virtual Machine Sets" ||--|{ "Network Interfaces" : ""
+  "Subnets" ||--o{ "Network Interfaces" : ""
+  "Role-Based Virtual Machine Sets" ||--o{ "Data Disks" : ""
+  "Virtual Machine Set Specifications" ||--|| "Role-Based Virtual Machine Sets" : ""
+  "Virtual Machine Set Specifications" ||--o{ "Data Disk Specifications" : ""
+  "Data Disks" ||--|| "Data Disk Specifications" : ""
+  "Role-Based Virtual Machine Sets" ||--o| "Availability Zone Distribution Strategies" : ""
+```
 
 
 ## Contributing
