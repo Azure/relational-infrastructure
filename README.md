@@ -1,18 +1,18 @@
 # Epic on Azure Terraform Module Stack
 
-This repo provides a Terraform module stack for deploying Epic on Azure, aligned with the Epic on Azure Well-Architected Framework (WAF) and built on Microsoft’s Azure Verified Modules (AVM).
+This repo provides a Terraform module stack for deploying [Epic on Azure](https://www.microsoft.com/industry/health/epic-on-azure), aligned with the Epic on Azure Well-Architected Framework (WAF) and built on [Microsoft’s Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/).
 
-At the base, the stack uses official AVM resource modules that implement Microsoft’s reliability best practices by default. On top of that, it adds AVM-aligned pattern modules that capture common infrastructure patterns from Epic’s reference architecture—such as role-based virtual machine sets using VMSS Flex with built-in zone distribution.
+At the base, the stack uses official [AVM resource modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/) that implement Microsoft’s reliability best practices by default. On top of that, it adds [AVM-aligned pattern modules](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-pattern-modules/) that capture common infrastructure patterns from Epic’s reference architecture—such as role-based [virtual machine sets using VMSS Flex](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-orchestration-modes#scale-sets-with-flexible-orchestration-recommended) with built-in zone distribution.
 
 These modules use normalized, table-style map variables to describe infrastructure across regions, subscriptions, and workloads. Each map functions like a relational database, linking networks, VM sets, resource groups, key vaults, and more through consistent, composable inputs.
 
-All lower layers are generic and reusable. Solution-specific modules, such as the Epic layer, build on top of this foundation. The Epic module will remain private; others may be public or private depending on scenario.
+All lower layers are generic and reusable. Solution-specific modules, such as the [Epic layer](/epic), build on top of this foundation. The Epic module will remain private; others may be public or private depending on scenario.
 
 This modular approach supports:
 
 - **Reusability** – Modules are composable and useful on their own.
 - **Maintainability** – Focused layers reduce complexity and risk.
-- **Shareability** – Only the Epic-specific layer is private; the rest can be reused or published.
+- **Shareability** – Only the [Epic-specific layer](/epic) is private; the rest can be reused or published.
 
 ![Module stack](assets/avmstack.png)
 
@@ -78,7 +78,7 @@ erDiagram
 ### Locations
 > Terraform variable: `var.locations`
 
-The `locations` variable identifies the model's Azure locations.
+The `locations` variable identifies the model's [Azure locations](https://learn.microsoft.com/azure/reliability/regions-list).
 
 ```hcl
 locations = {
@@ -90,7 +90,7 @@ locations = {
 ### Subscriptions
 > Terraform variable: `var.subscriptions`
 
-The `subscriptions` variable identifies the model's Azure subscriptions.
+The `subscriptions` variable identifies the model's [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy).
 
 ```hcl
 subscriptions = {
@@ -110,12 +110,12 @@ subscriptions = {
 * `default_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
 * When provided, `private_link_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
   * If not provided, `default_resource_group_name` will be used.
-* `subscription_slot` refers to a static `azurerm` provider alias (`az_subscription_1` - `az_subscription_10`).
+* `subscription_slot` refers to a static [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (`az_subscription_1` - `az_subscription_10`).
 
 ### Resource groups
 > Terraform variable: `var.resource_groups`
 
-The `resource_groups` variable identifies the model's Azure subscriptions.
+The `resource_groups` variable identifies the model's [Azure resource groups]((https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy)).
 
 ```hcl
 resource_groups = {
@@ -510,9 +510,115 @@ networks = {
 }
 ```
 
-### Role-based virtual machine set
+### Virtual Machine Sets  
+> Terraform variable: `var.virtual_machine_sets`  
 
-This module is designed to deploy highly available sets of virtual machines (VMs) that share a common role, workload, and availability characteristics after networks have been deployed. By default, VMs are evenly distributed across availability zones, but this behavior can be customized using var.virtual_machine_set_zone_distribution. The specifications for VM sets, including VM count, SKU, and disk configurations, are defined in a separate table/map variable: var.virtual_machine_set_specs. There is a 1-to-1 relationship between var.virtual_machine_sets, var.virtual_machine_set_specs, and var.virtual_machine_set_zone_distribution. These variables are separated to streamline automation, as the information often originates from different sources.
+The `virtual_machine_sets` variable defines highly available virtual machine (VM) sets that share common roles, workloads, and availability characteristics. By default, VMs are evenly distributed across availability zones, but this behavior can be customized using the `var.virtual_machine_set_zone_distribution` variable.  
+
+Key configurations for VM sets, such as VM count, SKU, and disk specifications, are defined in a separate variable: `var.virtual_machine_set_specs`. There is a 1-to-1 relationship between `var.virtual_machine_sets`, `var.virtual_machine_set_specs`, and `var.virtual_machine_set_zone_distribution`. These variables are separated to support automation, as their inputs often come from different sources.  
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    key_vault_name                    = "primary"      // 🔑 Must be in `var.key_vaults`
+    location_name                     = "primary"      // 🔑 Must be in `var.locations`
+    resource_group_name               = "production"   // 🔑 Must be in `var.resource_groups`
+    subscription_name                 = "production"   // 🔑 Must be in `var.subscriptions`
+    name                              = "db"           // All VMs in this group will be prefixed with this name
+    include_deployment_prefix_in_name = true           // Should `var.deployment_prefix` be applied to all resources? Default: false
+
+    tags = {                                           // Optional
+      role = "database"                                // All VMs will be tagged with `role`:`database`
+    }
+
+    extensions = [                                     // Optional
+      "azure_monitor"                                  // 🔑 Optional; Must be defined in `var.virtual_machine_extensions`
+    ]
+
+    os_type                 = "Windows"                // or Linux
+    disk_controller_type    = "nvme"                   // Optional; can be either SCSI or NVMe depending on VM SKU
+    enable_boot_diagnostics = true                     // Should boot diagnostics be enabled? Default: false
+  }
+}
+```
+
+* `key_vault_name` must refer to a key vault defined in [`var.key_vaults`](#key-vaults).
+* `location_name` must refer to an Azure location defined in [`var.locations`](#locations).
+* `resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
+* `subscription_name` must refer to an Azure subscription defined in [`var.subscriptions`](#subscriptions).
+* `extensions` must include only VM extensions defined in [`var.virtual_machine_extensions`](#virtual-machine-extensions).
+
+#### Virtual Machine Image    
+
+The `image` variable specifies the virtual machine image to be used when deploying VMs. This can be defined either via an image ID or a reference object containing details about the Azure Marketplace image. In Azure, virtual machine images are pre-configured operating system environments that ensure consistency, security, and compliance across deployments.  
+
+#### Example: Use a custom or shared image resource
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    ...
+
+    image = {
+      id = "/subscriptions/12345678..."  // This is the resource ID of a custom or shared image
+    }
+  }
+}
+```
+
+#### Example: Use an Azure Marketplace image
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    ...
+
+    image = {
+      reference = {
+        offer     = "UbuntuServer"  // The name of the image offer
+        publisher = "Canonical"     // The publisher of the image
+        sku       = "18.04-LTS"     // The image type or edition
+        version   = "latest"        // The version of the image
+      }
+    }
+  }
+}
+```
+
+### Virtual Machine Data Disks
+
+The `virtual_machine_set` `data_disks` describes each virtual machine's data disk configuration. Data disks are optional.
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    ...
+
+    data_disks = {
+      data = {
+        lun                          = 0            // Logical unit number (LUN) is required
+        caching                      = "ReadWrite"  // Optional; can be "None", "ReadOnly", or "ReadWrite"; Default: "ReadWrite" 
+        enable_public_network_access = true         // Optional; by default, public network access is disabled
+      }
+      logs = {
+        lun = 1          
+      }
+    }
+  }
+}
+```
+
+##### Example: Import a VHD using a source URI
+
+```hcl
+
+```
+
+##### Example: Copy an existing disk or snapshot
+
+##### Example: Copy a platform image from the Azure Marketplace
+
+##### Example: Restore image from Azure Backup or Site Recovery
 
 ## Contributing
 
