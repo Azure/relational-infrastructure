@@ -10,5 +10,9 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "442e93e4-5c85-4e06-91d6-5909a3d6314f"
+  #subscription_id = "442e93e4-5c85-4e06-91d6-5909a3d6314f"
+
+  #Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, 
+  #We need to enable the storage_use_azuread flag to use Azure AD for authentication
+  storage_use_azuread = true
 }
