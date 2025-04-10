@@ -305,7 +305,8 @@ networks = {
 #### Example: Drop all traffic destined for the Internet
 
 ```hcl
-main = {
+networks = {
+  main = {
     ...
 
     subnets = {
@@ -313,11 +314,12 @@ main = {
         destined_for = {
           address_space = "0.0.0.0/0"  // Route traffic destined for the Internet
         }
-  
+
         to_nowhere = true              // to nowhere
       }
     }
   }
+}
 ```
 
 ## Contributing
