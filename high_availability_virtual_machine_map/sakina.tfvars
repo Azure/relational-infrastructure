@@ -1,4 +1,4 @@
-deployment_prefix         = "sk991"
+deployment_prefix         = "sk1007"
 include_label_tags        = true
 ddos_protection_plan_name = null
 enable_full_network_mesh  = false
@@ -239,17 +239,20 @@ networks = {
 # Add storage_accounts configuration here
 storage_accounts = {
   sakina_primary_sa = {
-    location_name                 = "primary"
-    name                          = "sakina99primarysa"
-    tags                          = { environment = "production" }
-    access_tier                   = "Hot"
-    account_kind                  = "StorageV2"
-    account_replication_type      = "LRS"
-    account_tier                  = "Standard"
+    location_name = "primary"
+    #name                            = "sakina99primarysa" #optional
+    tags                            = { environment = "production" }
+    access_tier                     = "Hot"
+    account_kind                    = "StorageV2"
+    account_replication_type        = "LRS"
+    account_tier                    = "Standard"
     allow_nested_items_to_be_public = false
+
+
+
     managed_identity = {
       type = "SystemAssigned"
-    } 
+    }
     blob_properties = {
       delete_retention_policy = {
         days = 7
@@ -265,13 +268,13 @@ storage_accounts = {
 
 
   sakina_alt_sa = {
-    location_name                 = "alt"
-    name                          = "sakina99altsa"
-    tags                          = { environment = "production" }
-    access_tier                   = "Hot"
-    account_kind                  = "StorageV2"
-    account_replication_type      = "LRS"
-    account_tier                  = "Standard"
+    location_name = "alt"
+    #name                            = "sakina99altsa" #optional
+    tags                            = { environment = "production" }
+    access_tier                     = "Hot"
+    account_kind                    = "StorageV2"
+    account_replication_type        = "LRS"
+    account_tier                    = "Standard"
     allow_nested_items_to_be_public = false
     blob_properties = {
       delete_retention_policy = {
@@ -289,12 +292,12 @@ storage_accounts = {
 
 file_shares = {
   "file_share" = {
-    name                = "file_share_name"
+    name                 = "fileshare1"
     storage_account_name = "sakina_primary_sa"
-    quota               = 5120
-    share_access_tier   = "Hot"
-    tags                = { environment = "production" }
-    
+    quota                = 5120
+    access_tier          = "Hot"
+    enabled_protocol     = "SMB"
+    metadata             = { environment = "production" }
   }
 }
 

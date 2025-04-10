@@ -63,9 +63,9 @@ module "key_vaults" {
     bypass         = each.value.network_acls.bypass
     default_action = each.value.network_acls.default_action
     ip_rules       = each.value.network_acls.ip_rules
-  } : {
+    } : {
     bypass         = "None"
-    default_action = "Deny"  # Disable public access
+    default_action = "Deny" # Disable public access
     ip_rules       = []
   }
 
@@ -76,48 +76,73 @@ module "key_vaults" {
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
 }
 
+data "azurerm_role_definition" "contributor_role" {
+  name = "Contributor"
+}
+
 # Create the Storage Accounts
 module "storage_accounts" {
   source = "Azure/avm-res-storage-storageaccount/azurerm"
   # version = "0.5.0"
 
   # Required Inputs
-  for_each = { for name, sa in var.storage_accounts : name => sa if sa != null }
+  for_each            = { for name, sa in var.storage_accounts : name => sa if sa != null }
   location            = var.locations[each.value.location_name]
   resource_group_name = module.network_resource_groups[each.value.location_name].name
-  
-  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-sa")
+
+  name = coalesce(each.value.name,
+    lower(replace("${substr(var.deployment_prefix, 0, 10)}${substr(each.key, 0, 13)}", "/[^a-z0-9]/", ""))
+  )
 
   # Optional Inputs
-  access_tier = each.value.access_tier
-  account_kind = each.value.account_kind
-  account_replication_type = each.value.account_replication_type
-  account_tier = each.value.account_tier
-  allow_nested_items_to_be_public = each.value.allow_nested_items_to_be_public
-  allowed_copy_scope = each.value.allowed_copy_scope
-  azure_files_authentication = each.value.azure_files_authentication
-  blob_properties = each.value.blob_properties
-  containers = each.value.containers
+  access_tier                      = each.value.access_tier
+  account_kind                     = each.value.account_kind
+  account_replication_type         = each.value.account_replication_type
+  account_tier                     = each.value.account_tier
+  allow_nested_items_to_be_public  = each.value.allow_nested_items_to_be_public
+  allowed_copy_scope               = each.value.allowed_copy_scope
+  azure_files_authentication       = each.value.azure_files_authentication
+  blob_properties                  = each.value.blob_properties
+  containers                       = each.value.containers
   cross_tenant_replication_enabled = each.value.cross_tenant_replication_enabled
-  custom_domain = each.value.custom_domain
-  customer_managed_key = each.value.customer_managed_key
+  custom_domain                    = each.value.custom_domain
+  customer_managed_key             = each.value.customer_managed_key
+
+
   managed_identities = {
-    system_assigned = each.value.managed_identity == "SystemAssigned" || each.value.managed_identity == "SystemAssigned,UserAssigned"
+    system_assigned            = each.value.managed_identity != null ? (each.value.managed_identity.type == "SystemAssigned" || each.value.managed_identity.type == "SystemAssigned,UserAssigned") : false
+    user_assigned_resource_ids = each.value.managed_identity != null ? each.value.managed_identity.identity_ids : []
   }
-  
+
   #role_assignments = each.value.role_assignments
   role_assignments = merge(
     each.value.role_assignments,
     {
       current_user_admin = {
-        role_definition_id_or_name = "Contributor"
-        principal_id               = "${data.azurerm_client_config.current.object_id}"
+        role_definition_id_or_name       = data.azurerm_role_definition.contributor_role.name
+        principal_id                     = "${data.azurerm_client_config.current.object_id}"
+        skip_service_principal_aad_check = false
       }
     }
   )
-  
+
+
   # Pass file shares to the module
-  shares = { for name, fs in var.file_shares : name => fs if fs.storage_account_name == each.key }
+  # Map file shares to the shares variable expected by the module
+  shares = {
+    for name, fs in var.file_shares : name => {
+      name               = fs.name
+      quota              = fs.quota
+      access_tier        = fs.access_tier
+      enabled_protocol   = fs.enabled_protocol
+      metadata           = fs.metadata
+      root_squash        = fs.root_squash
+      signed_identifiers = fs.signed_identifiers
+      role_assignments   = fs.role_assignments
+      timeouts           = fs.timeouts
+    } if fs.storage_account_name == each.key
+  }
+
 
   tags = merge(var.global_tags, each.value.tags, (var.include_label_tags ? { storageaccount_label = each.key } : {}))
 }
