@@ -225,6 +225,9 @@ networks = {
 
 The `routes` section within `subnets`, as defined by the `networks` variable, specifies custom network routes for each subnet. These routes determine how traffic is directed, whether to a network gateway, the Internet, a virtual network appliance, or simply dropped. The sections below demonstrate how to configure `routes` for each of these scenarios. Traffic destinations can be defined either as fixed address spaces in CIDR format or as references to networks and subnets defined in `var.networks` and `var.external_networks`.
 
+> [!IMPORTANT]
+> A dedicated route table is created for each network in which you have `routes` defined. If no `routes` are defined, no route table is created.
+
 ##### Example: Route traffic to a network gateway for a fixed address space
 
 ```hcl
@@ -331,6 +334,9 @@ Each subnet in a virtual network defined in `var.networks` can include layer 4 s
 * Rule priorities (translated to NSG priorities)
 
 The fluent syntax supports defining address ranges by referencing internal networks and subnets (`var.networks`) as well as external networks and subnets (`var.external_networks`).
+
+> [!IMPORTANT]
+> A dedicated network security group is created for each network regardless of whether or not you have `security_rules` configured.
 
 ##### Example: Allow traffic in from a static address space
 
@@ -503,6 +509,10 @@ networks = {
   }
 }
 ```
+
+### Role-based virtual machine set
+
+This module is designed to deploy highly available sets of virtual machines (VMs) that share a common role, workload, and availability characteristics after networks have been deployed. By default, VMs are evenly distributed across availability zones, but this behavior can be customized using var.virtual_machine_set_zone_distribution. The specifications for VM sets, including VM count, SKU, and disk configurations, are defined in a separate table/map variable: var.virtual_machine_set_specs. There is a 1-to-1 relationship between var.virtual_machine_sets, var.virtual_machine_set_specs, and var.virtual_machine_set_zone_distribution. These variables are separated to streamline automation, as the information often originates from different sources.
 
 ## Contributing
 
