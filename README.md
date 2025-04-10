@@ -322,6 +322,188 @@ networks = {
 }
 ```
 
+#### Security rules
+
+Each subnet in a virtual network defined in `var.networks` can include layer 4 security rules, which are translated into network security group (NSG) rules in Azure during deployment. This approach uses a straightforward, fluent syntax to define security rules, as illustrated below. These rules allow you to manage:
+
+* Source and destination address ranges
+* Source and destination port ranges
+* Rule priorities (translated to NSG priorities)
+
+The fluent syntax supports defining address ranges by referencing internal networks and subnets (`var.networks`) as well as external networks and subnets (`var.external_networks`).
+
+##### Example: Allow traffic in from a static address space
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "100"                    // Rule priority is 100
+          allow = { in = { from = {           // Allow in from...
+            address_space = "192.168.1.0/24"  // Address space "192.168.1.0/24"
+            port_range    = "443"             // On port 443
+          }}}
+        }
+      }
+    }
+  }
+}
+```
+
+##### Example: Allow all traffic in from a network defined in `var.subnets`
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "110"             // Rule priority is 110
+          allow = { in = { from = {    // Allow in from...
+            network = {    
+              network_name = "alt"     // "alt" network
+              port_range   = "100-200" // On any port between 100-200
+            }
+          }}}
+        }
+      }
+    }
+  }
+
+  alt = {
+    ...
+  }
+}
+```
+
+##### Example: Deny all inbound traffic from a subnet defined in `var.networks`
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "120"              // Rule priority is 120
+          deny = { in = { from = {      // Deny in from...
+            subnet = {    
+              network_name = "alt"      // "alt" network
+              subnet_name  = "subnet_b" // "subnet_b" subnet
+              port_range   = "443"      // On port 443
+            }
+          }}}
+        }
+      }
+    }
+  }
+
+  alt = {
+    ...
+
+    subnets = {
+      subnet_b = {
+        ...
+      }
+    }
+  }
+}
+```
+
+##### Example: Allow all outbound traffic to a static address space 
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "130"                    // Rule priority is 130
+          allow = { out = { to = {            // Allow out to...
+            address_space = "192.168.1.0/24"  // Address space "192.168.1.0/24"
+            port_range    = "443"             // On port 443
+          }}}
+        }
+      }
+    }
+  }
+}
+```
+
+##### Example: Deny all outbound traffic to a network defined in `var.networks`
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "140"          // Rule priority is 140
+          deny = { out = { to = {   // Deny out to...
+            network = {
+              network_name = "alt"  // "alt" network
+            }
+
+            port_range    = "443"   // On port 443
+          }}}
+        }
+      }
+    }
+  }
+
+  alt = {
+    ...
+  }
+}
+```
+
+##### Example: Allow all outbound traffic to a subnet defined in `var.networks`
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      subnet_a = {
+        security_rules = {
+          priority = "150"               // Rule priority is 150
+          allow = { out = { to = {       // Allow out to...
+            subnet = {
+              network_name = "alt"       // "alt" network
+              subnet_name  = "subnet_b"  // "subnet_b" subnet
+            }
+
+            port_range    = "443"        // On port 443
+          }}}
+        }
+      }
+    }
+  }
+
+  alt = {
+    ...
+
+    subnets = {
+      subnet_b = {
+        ...
+      }
+    }
+  }
+}
+```
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
