@@ -175,10 +175,143 @@ The `networks` variable identifies the model's networks. Note that this is diffe
           address_space   = "10.0.0.0/24"
         }
         subnet_b = {
-          name            = "b"
+          name            = "subnet-b"
           address_space   = "10.0.1.0/24"
         }
       }     
+    }
+  }
+```
+
+* `subscription_name` must refer to a subscription defined in [`var.subscriptions`](#subscriptions).
+* `location_name` must refer to an Azure location defined in [`var.locations`](#locations).
+* `resource_group_name` must refer to a resource group in [`var.resource_groups`](#resource-groups).
+
+#### Peerings
+
+The `peerings` section of the `networks` variable describes each network's peerings. These peerings can refer to other networks and subnets described in this model (via `var.networks`) or external networks and subnets (via `var.external_networks`).
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      ...
+    }
+
+    peered_to = [
+      "alt"  // Peer this network to the "alt" network declared below
+    ]
+  }
+  alt = {
+    ...
+
+    subnets = {
+      ...
+    }
+
+    peered_to = [
+      "main"  // Peer this network to the "main" network declared above
+    ]
+  }
+}
+```
+
+* `peered_to` networks must be defined in either `var.networks` or `var.external_networks`.
+* Only `var.external_networks` that have a valid Azure `resource_id` can be peered to.
+
+#### Routes
+
+The `routes` section within `subnets`, as defined by the `networks` variable, specifies custom network routes for each subnet. These routes determine how traffic is directed, whether to a network gateway, the Internet, a virtual network appliance, or simply dropped. The sections below demonstrate how to configure `routes` for each of these scenarios. Traffic destinations can be defined either as fixed address spaces in CIDR format or as references to networks and subnets defined in `var.networks` and `var.external_networks`.
+
+##### Example: Route traffic to a network gateway for a fixed address space
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      route_traffic = {
+        destined_for = {
+          address_space = "192.168.1.0/24"  // Destined for a fixed address space
+        }
+        to_gateway = true                   // Route traffic to the gateway
+      }
+    }
+  }
+}
+```
+
+##### Example: Route traffic to the Internet for a network defined in `var.networks` 
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      route_traffic = {
+        destined_for = {
+          network_name = "alt"  // Destined for the "alt" network defined below
+        }
+        to_internet = true      // Route traffic to the Internet
+      }
+    }
+  }
+
+  alt = {                     
+    ...
+  }
+}
+```
+
+##### Example: Route traffic to an appliance for a subnet defined in `var.networks`
+
+```hcl
+networks = {
+  main = {
+    ...
+
+    subnets = {
+      route_traffic = {
+        destined_for = {
+          network_name = "alt"        // Route traffic destined for subnet "subnet_b" in
+          subnet_name  = "subnet_b"   // network "alt" defined below
+        }
+        to_appliance = {
+          ip_address = "192.168.1.1"  // To an appliance at 192.168.1.1
+        }
+      }
+    }
+  }
+
+  alt = {
+    ...
+
+    subnets = {
+      subnet_b = {
+        ...
+      }
+    }
+  }
+}
+```
+
+#### Example: Drop all traffic destined for the Internet
+
+```hcl
+main = {
+    ...
+
+    subnets = {
+      route_traffic = {
+        destined_for = {
+          address_space = "0.0.0.0/0"  // Route traffic destined for the Internet
+        }  
+        to_nowhere = true              // to nowhere
+      }
     }
   }
 ```
