@@ -237,6 +237,7 @@ networks = {
         destined_for = {
           address_space = "192.168.1.0/24"  // Destined for a fixed address space
         }
+
         to_gateway = true                   // Route traffic to the gateway
       }
     }
@@ -256,6 +257,7 @@ networks = {
         destined_for = {
           network_name = "alt"  // Destined for the "alt" network defined below
         }
+
         to_internet = true      // Route traffic to the Internet
       }
     }
@@ -280,6 +282,7 @@ networks = {
           network_name = "alt"        // Route traffic destined for subnet "subnet_b" in
           subnet_name  = "subnet_b"   // network "alt" defined below
         }
+
         to_appliance = {
           ip_address = "192.168.1.1"  // To an appliance at 192.168.1.1
         }
@@ -309,7 +312,8 @@ main = {
       route_traffic = {
         destined_for = {
           address_space = "0.0.0.0/0"  // Route traffic destined for the Internet
-        }  
+        }
+  
         to_nowhere = true              // to nowhere
       }
     }
