@@ -302,7 +302,7 @@ networks = {
 }
 ```
 
-#### Example: Drop all traffic destined for the Internet
+##### Example: Drop all traffic destined for the Internet
 
 ```hcl
 networks = {
