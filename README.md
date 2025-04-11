@@ -559,10 +559,6 @@ virtual_machine_sets = {
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
 
-Got it—thanks for the heads-up on the CSG being an Excel workbook from Epic. I’ll keep the docs clean and avoid mentioning the parsing plans, focusing instead on the separation of `virtual_machine_set_specs` as a deliberate design choice influenced by Epic’s needs, without tying it to future automation. The variable’s standalone nature makes sense now—it’s built to handle Epic’s detailed specs while staying flexible for others. I’ll adjust the descriptions to reflect this, keeping the Epic influence as a design driver, not a specific process.
-
-Here’s the updated Markdown:
-
 ### Virtual Machine Set Specs
 
 > Terraform variable: `var.virtual_machine_set_specs`
