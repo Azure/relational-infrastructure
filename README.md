@@ -17,12 +17,21 @@ The stack is organized as a set of Terraform modules, each adding a specific pie
 This layer uses AVM resource modules to deploy core Azure resources like virtual machines, storage accounts, and key vaults, following Microsoft’s best practices for reliability and security. For bigger setups, it includes AVM pattern modules for things like hub-and-spoke networking or Azure Landing Zone (ALZ) configurations, which help with governance and scalability. It’s the starting point for any solid Azure infrastructure, ensuring everything’s built on a trusted, standardized base.
 
 ### 2. infra_map_vm_set: Virtual Machine Patterns
+
+> See [`infra_map_vm_set`](./infra_map_vm_set)
+
 The `infra_map_vm_set` module makes it easy to deploy groups of virtual machines that are reliable by default. It’s based on common patterns, like organizing VMs by role (e.g., web servers, databases) and spreading them across Azure Availability Zones for high availability. Using Virtual Machine Scale Sets (VMSS Flex), it supports workloads that need to stay up and running, even during outages. While it draws inspiration from Epic’s 20+ workloads (like MyChart), it’s generic enough for any project needing organized, resilient VMs across regions like Canada Central or France Central.
 
 ### 3. infra_map and subscription_infra_map: Infrastructure Blueprints
+
+> See [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map)
+
 These modules (`infra_map` and `subscription_infra_map`) let you describe your entire Azure environment like a database. Resources—networks, subscriptions, VM sets, key vaults—are organized into Terraform maps, where each map is like a table with a unique key (e.g., `network_name` or `subscription_name`). For example, you might define a network called `primary_dmz` and link it to a subscription called `main`, with tags to track everything. This setup makes it simple to manage complex, multi-subscription environments and tweak configurations without breaking things. These modules are public and reusable for any Azure project.
 
 ### 4. Epic Module: Private Healthcare Deployments
+
+> See [`epic`](./epic)
+
 The Epic module is the private capstone, designed specifically for Epic on Azure. It uses the lower layers to deploy healthcare workloads like Hyperspace or MyChart, with preconfigured settings that meet Epic’s requirements (e.g., security, performance). You can customize it with parameters, like choosing regions or sizing VMs, but this layer stays private to protect sensitive details. It’s the only module that mentions Epic, keeping everything else open for broader use.
 
 ## Infrastructure Map Model
