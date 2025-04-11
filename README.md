@@ -466,24 +466,55 @@ virtual_machine_sets = {
 | `id` | Optional; resource ID for a custom or shared image, e.g., `/subscriptions/12345678...`. |
 | `reference` | Optional; defines a Marketplace image with `offer`, `publisher`, `sku`, and `version`. |
 
-#### Virtual Machine Data Disks
+### Virtual Machine Data Disks
 
 > Terraform variable: `var.virtual_machine_sets.data_disks`
 
-The `data_disks` section within `virtual_machine_sets` configures optional data disks for VMs, specifying settings like logical unit number (LUN) and caching. In the ERD, `data_disks` is a child of `virtual_machine_sets`, with a one-to-many relationship to disk configurations.
+The `data_disks` section within `virtual_machine_sets` configures optional data disks for VMs, specifying their attachment and content source. Each disk defines a logical unit number (LUN), caching mode, and an optional image source, such as a snapshot, VHD file, Marketplace image, restored disk, or empty disk. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_sets`, supporting multiple disks per VM set for versatile storage needs.
 
 ```hcl
 virtual_machine_sets = {
   database = {
     # Other fields...
     data_disks = {
-      data = {
-        lun                          = 0            # Required; logical unit number
-        caching                      = "ReadWrite"  # Optional; None, ReadOnly, or ReadWrite
-        enable_public_network_access = true         # Optional; default: false
+      copy_disk = {
+        lun                          = 0
+        caching                      = "ReadWrite"
+        enable_public_network_access = false
+        image = {
+          copy = {
+            resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
+          }
+        }
       }
-      logs = {
-        lun = 1                                   # Required
+      import_disk = {
+        lun = 1
+        image = {
+          import = {
+            uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
+            secure = true
+          }
+        }
+      }
+      platform_disk = {
+        lun = 2
+        image = {
+          platform = {
+            image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
+          }
+        }
+      }
+      restore_disk = {
+        lun = 3
+        image = {
+          restore = {
+            resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/snapshots/backup-snapshot"
+          }
+        }
+      }
+      empty_disk = {
+        lun = 4
+        image = null  # Creates an empty disk
       }
     }
   }
@@ -492,21 +523,10 @@ virtual_machine_sets = {
 
 | Field | Description |
 |-------|-------------|
-| `lun` | Required; logical unit number for the disk, e.g., `0`. |
-| `caching` | Optional; sets caching mode: `None`, `ReadOnly`, or `ReadWrite`. Default: `ReadWrite`. |
-| `enable_public_network_access` | Optional; if `true`, allows public network access to the disk. Default: `false`. |
-
-##### Example: Import a VHD using a source URI
-
-```hcl
-
-```
-
-##### Example: Copy an existing disk or snapshot
-
-##### Example: Copy a platform image from the Azure Marketplace
-
-##### Example: Restore image from Azure Backup or Site Recovery
+| `lun` | Required; sets the disk’s logical unit number, e.g., `0`, for attachment order. |
+| `caching` | Optional; configures caching: `None`, `ReadOnly`, or `ReadWrite`. Defaults to `ReadWrite`. |
+| `enable_public_network_access` | Optional; if `true`, allows public access to the disk for specific use cases. Defaults to `false`. |
+| `image` | Optional; specifies the disk’s source: `copy` (from a disk/snapshot), `import` (from a VHD file), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disk). |
 
 ## Contributing
 
