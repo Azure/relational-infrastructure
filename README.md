@@ -248,20 +248,20 @@ networks = {
 
 > Terraform variable: `var.networks.peered_to`
 
-The `peerings` section within the `networks` table sets up virtual network peerings, connecting VNets within this model (`var.networks`) or to external networks (`var.external_networks`). It enables traffic flow between networks, like linking a primary and alternate VNet. In the ERD, `peerings` represents a many-to-many relationship between `networks`, or between `networks` and `external_networks`, facilitating flexible network topologies.
+The `peerings` section within the [`networks`](#networks) table sets up virtual network peerings, connecting [VNets within this model (`var.networks`)](#networks) or to [external networks (`var.external_networks`)](#external-networks). It enables traffic flow between networks, like linking a primary and alternate VNet. In the ERD, `peerings` represents a many-to-many relationship between [`networks`](#networks), or between [`networks`](#networks) and [`external_networks`](#external-networks), facilitating flexible network topologies.
 
 ```hcl
 networks = {
-  main = {
-    # Other fields like location_name, subnets...
-    peered_to = [
-      "alt"  # Links to the "alt" network in var.networks
+  main = {         # 🔑 "primary" network
+                   # Other fields like location_name, subnets...
+    peered_to = [  # Multiple peerings can be declared
+      "alt"        # 🔗 Links to var.networks
     ]
   }
-  alt = {
-    # Other fields like location_name, subnets...
-    peered_to = [
-      "main"  # Links to the "main" network in var.networks
+  alt = {          # 🔑 "alt" network
+                   # Other fields like location_name, subnets...
+    peered_to = [  # Multiple peerings can be declared
+      "main"       # 🔗 Links to var.networks
     ]
   }
 }
