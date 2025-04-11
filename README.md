@@ -274,10 +274,6 @@ networks = {
 |-------|-------------|
 | `peered_to` | A list of network keys from [`var.networks`](#networks) or [`var.external_networks`](#external-networks) to peer with. For `external_networks`, a valid Azure `resource_id` is required. |
 
-My bad—thanks for catching that! You’re right: `route_traffic` is an optional map within each subnet under `networks`, not a standalone subnet property tied to a specific subnet name. I’ll rearrange the code to show `route_traffic` as a map of routes within a subnet, keeping it optional and reflecting the variable definition accurately. The HCL will nest `route_traffic` under a generic subnet (e.g., `subnet_a`) with multiple route examples, and the description will clarify its role across all subnets.
-
-Here’s the corrected `Routes` section:
-
 ### Routes
 
 > Terraform variable: `var.networks.subnets.route_traffic`
@@ -354,7 +350,7 @@ networks = {
 
 > Terraform variable: `var.networks.subnets.security_rules`
 
-The `security_rules` section within `subnets` of the `networks` table configures layer 4 network security group (NSG) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing `var.networks` or `var.external_networks`. In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
+The `security_rules` section within `subnets` of the [`networks`](#networks) table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
 
 ```hcl
 networks = {
@@ -441,22 +437,22 @@ networks = {
 
 > Terraform variable: `var.virtual_machine_sets`
 
-The `virtual_machine_sets` table configures groups of highly available VMs that share the same role, workload, and availability settings. By default, VMs are spread evenly across Azure availability zones, with custom distribution possible via `var.virtual_machine_set_zone_distribution`. Related specs like VM count, SKU, and disks are defined in `var.virtual_machine_set_specs`, maintaining a 1:1 link with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` to streamline automation. In the ERD, `virtual_machine_sets` connects one-to-one with `subscriptions`, `resource_groups`, `locations`, and `key_vaults`, and one-to-many with `extensions` and `data_disks`.
+The `virtual_machine_sets` table configures groups of highly available VMs that share the same role, workload, and availability settings. By default, VMs are spread evenly across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), with [custom distribution possible via `var.virtual_machine_set_zone_distribution`](#virtual-machine-set-zone-distribution). Related specs like VM count, SKU, and disks are defined in [`var.virtual_machine_set_specs`](#virtual-machine-set-specs), maintaining a 1:1 link with `virtual_machine_sets` and [`virtual_machine_set_zone_distribution`](#virtual-machine-set-zone-distribution) to streamline automation. In the ERD, `virtual_machine_sets` connects one-to-one with [`subscriptions`](#subscriptions), [`resource_groups`](#resource-groups), [`locations`](#locations), and [`key_vaults`](#key-vaults), and one-to-many with nested `extensions` and `data_disks`.
 
 ```hcl
 virtual_machine_sets = {
-  database = {                                        
-    key_vault_name                    = "primary"      # 🔑 Links to var.key_vaults
-    location_name                     = "primary"      # 🔑 Links to var.locations
-    resource_group_name               = "production"   # 🔑 Links to var.resource_groups
-    subscription_name                 = "production"   # 🔑 Links to var.subscriptions
+  database = {                                         # 🔑 "database" VM set                                        
+    key_vault_name                    = "primary"      # 🔗 Links to var.key_vaults
+    location_name                     = "primary"      # 🔗 Links to var.locations
+    resource_group_name               = "production"   # 🔗 Links to var.resource_groups
+    subscription_name                 = "production"   # 🔗 Links to var.subscriptions
     name                              = "db"           # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true           # Apply var.deployment_prefix? Default: false
     tags = {
       role = "database"                                # Optional; tags all VMs
     }
-    extensions = [
-      "azure_monitor"                                  # 🔑 Optional; links to var.virtual_machine_extensions
+    extensions = [                                     # Optional
+      "azure_monitor"                                  # 🔗 Links to var.virtual_machine_extensions
     ]
     os_type                 = "Windows"                # Windows or Linux
     disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
