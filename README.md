@@ -652,6 +652,52 @@ virtual_machine_set_zone_distribution = {
 | `custom` | Optional; maps zone numbers (e.g., `"1"`, `"2"`) to specific VM counts (e.g., `2`, `8`) for targeted distribution. Defaults to `null`. |
 | `even` | Optional; lists zones (e.g., `["1", "3"]`) for even VM distribution across those zones. Defaults to `null`. If both `custom` and `even` are `null`, VMs spread evenly across all zones. |
 
+### Key Vaults
+
+> Terraform variable: `var.key_vaults`
+
+The `key_vaults` table configures Azure Key Vaults for secure storage of secrets, keys, and certificates, requiring a location, subscription, and resource group as its foundation. Commonly used optional fields like SKU, tags, and network ACLs enhance its setup. While broadly applicable, its design reflects Epic’s security influence and is referenced by tables like `virtual_machine_sets`. In the ERD, `key_vaults` links one-to-one with `subscriptions`, `locations`, and `resource_groups`.
+
+```hcl
+key_vaults = {
+  primary = {
+    location_name       = "primary"          # Links to var.locations
+    subscription_name   = "main"             # Links to var.subscriptions
+    resource_group_name = "main_key_vaults"  # Links to var.resource_groups
+    sku_name            = "standard"         # Optional; standard or premium
+    tags = {
+      epic-env = "production"                # Optional; custom tags
+    }
+    network_acls = {
+      bypass         = "AzureServices"       # Optional; allow Azure services
+      default_action = "Allow"               # Optional; default access rule
+    }
+  }
+  alt = {
+    location_name       = "alt"
+    subscription_name   = "main"
+    resource_group_name = "main_key_vaults"
+    sku_name            = "standard"
+    tags = {
+      epic-env = "production"
+    }
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Required; links to a key in [`var.locations`](#locations), setting the vault’s Azure region. |
+| `subscription_name` | Required; links to a key in [`var.subscriptions`](#subscriptions), tying the vault to a subscription. |
+| `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the vault’s resource group. |
+| `sku_name` | Optional; sets the vault SKU: `standard` or `premium`. Defaults to `standard`. |
+| `tags` | Optional; applies key-value tags, e.g., `epic-env: production`. Defaults to `{}`. |
+| `network_acls` | Optional; configures network access with `bypass` (e.g., `AzureServices`) and `default_action` (e.g., `Allow`). Defaults to `{}`. |
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
