@@ -624,6 +624,34 @@ virtual_machine_set_specs = {
 | `disk_size_gb` | Required; sets the data disk size in gigabytes, e.g., `128` or `256`. |
 | `storage_account_type` | Optional; specifies the storage type, e.g., `Premium_LRS`. Defaults to `PremiumV2_LRS`. |
 
+### Virtual Machine Set Zone Distribution
+
+> Terraform variable: `var.virtual_machine_set_zone_distribution`
+
+The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from `virtual_machine_sets` across Azure availability zones, overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with `virtual_machine_sets` and `virtual_machine_set_specs` via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with `virtual_machine_sets`, tailoring zonal deployment for each set.
+
+```hcl
+virtual_machine_set_zone_distribution = {
+  primary_bca_web = {
+    custom = {
+      "1" = 2  # 2 VMs in zone 1
+      "2" = 8  # 8 VMs in zone 2
+    }
+  }
+  database = {
+    even = [
+      "1",   # Distribute VMs evenly across zones 1 and 3
+      "3"
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `custom` | Optional; maps zone numbers (e.g., `"1"`, `"2"`) to specific VM counts (e.g., `2`, `8`) for targeted distribution. Defaults to `null`. |
+| `even` | Optional; lists zones (e.g., `["1", "3"]`) for even VM distribution across those zones. Defaults to `null`. If both `custom` and `even` are `null`, VMs spread evenly across all zones. |
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
