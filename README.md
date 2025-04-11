@@ -479,22 +479,23 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.image`
 
-The `image` section within `virtual_machine_sets` selects the OS image for VMs, ensuring consistency and compliance. It can reference a custom/shared image by ID or an Azure Marketplace image by details like offer and publisher. In the ERD, `image` is a child of `virtual_machine_sets`, with a one-to-one relationship.
+The `image` section within [`virtual_machine_sets`](#virtual-machine-sets) selects the OS image for VMs, ensuring consistency and compliance. It can reference a custom/shared image by ID or an Azure Marketplace image by details like offer and publisher. In the ERD, `image` is a child of [`virtual_machine_sets`](#virtual-machine-sets), with a one-to-one relationship.
 
 ```hcl
 virtual_machine_sets = {
-  database = {
-    # Other fields...
+  database = {                        # 🔑 "database" VM set
+                                      # Other fields...
     image = {
       reference = {
-        offer     = "UbuntuServer"  # Image offer name
-        publisher = "Canonical"     # Image publisher
-        sku       = "18.04-LTS"     # Image edition
-        version   = "latest"        # Image version
+        offer     = "UbuntuServer"    # Image offer name
+        publisher = "Canonical"       # Image publisher
+        sku       = "18.04-LTS"       # Image edition
+        version   = "latest"          # Image version
       }
     }
   }
 }
+
 # Or, for a custom image:
 # image = {
 #   id = "/subscriptions/12345678..."  # Resource ID of custom/shared image
@@ -510,7 +511,7 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.data_disks`
 
-The `data_disks` section within `virtual_machine_sets` configures optional data disks for VMs, specifying their attachment and content source. Each disk defines a logical unit number (LUN), caching mode, and an optional image source, such as a snapshot, VHD file, Marketplace image, restored disk, or empty disk. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_sets`, supporting multiple disks per VM set for versatile storage needs.
+The `data_disks` section within [`virtual_machine_sets`](#virtual-machine-sets) configures optional data disks for VMs, specifying their attachment and content source. Each disk defines a logical unit number (LUN), caching mode, and an optional image source, [such as a snapshot](https://learn.microsoft.com/azure/backup/restore-managed-disks), [VHD file](https://learn.microsoft.com/azure/virtual-machines/windows/disks-upload-vhd-to-managed-disk-powershell), [Marketplace image](https://learn.microsoft.com/azure/virtual-machines/managed-disks-overview#convert-an-existing-managed-disk-to-a-new-managed-disk), restored disk from [Azure Backup](https://learn.microsoft.com/azure/backup/restore-managed-disks) or [Azure Site Recovery](https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-tutorial-failover-failback), or empty disk. In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), supporting multiple disks per VM set for versatile storage needs.
 
 ```hcl
 virtual_machine_sets = {
