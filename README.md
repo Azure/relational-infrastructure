@@ -393,103 +393,108 @@ networks = {
 | `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
 | `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
 
-### Virtual Machine Sets  
-> Terraform variable: `var.virtual_machine_sets`  
+### Virtual Machine Sets
 
-The `virtual_machine_sets` variable defines highly available virtual machine (VM) sets that share common roles, workloads, and availability characteristics. By default, VMs are evenly distributed across availability zones, but this behavior can be customized using the `var.virtual_machine_set_zone_distribution` variable.  
+> Terraform variable: `var.virtual_machine_sets`
 
-Key configurations for VM sets, such as VM count, SKU, and disk specifications, are defined in a separate variable: `var.virtual_machine_set_specs`. There is a 1-to-1 relationship between `var.virtual_machine_sets`, `var.virtual_machine_set_specs`, and `var.virtual_machine_set_zone_distribution`. These variables are separated to support automation, as their inputs often come from different sources.  
+The `virtual_machine_sets` table configures groups of highly available VMs that share the same role, workload, and availability settings. By default, VMs are spread evenly across Azure availability zones, with custom distribution possible via `var.virtual_machine_set_zone_distribution`. Related specs like VM count, SKU, and disks are defined in `var.virtual_machine_set_specs`, maintaining a 1:1 link with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` to streamline automation. In the ERD, `virtual_machine_sets` connects one-to-one with `subscriptions`, `resource_groups`, `locations`, and `key_vaults`, and one-to-many with `extensions` and `data_disks`.
 
 ```hcl
 virtual_machine_sets = {
   database = {
-    key_vault_name                    = "primary"      // 🔑 Must be in `var.key_vaults`
-    location_name                     = "primary"      // 🔑 Must be in `var.locations`
-    resource_group_name               = "production"   // 🔑 Must be in `var.resource_groups`
-    subscription_name                 = "production"   // 🔑 Must be in `var.subscriptions`
-    name                              = "db"           // All VMs in this group will be prefixed with this name
-    include_deployment_prefix_in_name = true           // Should `var.deployment_prefix` be applied to all resources? Default: false
-
-    tags = {                                           // Optional
-      role = "database"                                // All VMs will be tagged with `role`:`database`
+    key_vault_name                    = "primary"      # 🔑 Links to var.key_vaults
+    location_name                     = "primary"      # 🔑 Links to var.locations
+    resource_group_name               = "production"   # 🔑 Links to var.resource_groups
+    subscription_name                 = "production"   # 🔑 Links to var.subscriptions
+    name                              = "db"           # Prefix for all VMs in this set
+    include_deployment_prefix_in_name = true           # Apply var.deployment_prefix? Default: false
+    tags = {
+      role = "database"                                # Optional; tags all VMs
     }
-
-    extensions = [                                     // Optional
-      "azure_monitor"                                  // 🔑 Optional; Must be defined in `var.virtual_machine_extensions`
+    extensions = [
+      "azure_monitor"                                  # 🔑 Optional; links to var.virtual_machine_extensions
     ]
-
-    os_type                 = "Windows"                // or Linux
-    disk_controller_type    = "nvme"                   // Optional; can be either SCSI or NVMe depending on VM SKU
-    enable_boot_diagnostics = true                     // Should boot diagnostics be enabled? Default: false
+    os_type                 = "Windows"                # Windows or Linux
+    disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
+    enable_boot_diagnostics = true                     # Enable boot diagnostics? Default: false
   }
 }
 ```
 
-* `key_vault_name` must refer to a key vault defined in [`var.key_vaults`](#key-vaults).
-* `location_name` must refer to an Azure location defined in [`var.locations`](#locations).
-* `resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
-* `subscription_name` must refer to an Azure subscription defined in [`var.subscriptions`](#subscriptions).
-* `extensions` must include only VM extensions defined in [`var.virtual_machine_extensions`](#virtual-machine-extensions).
+| Field | Description |
+|-------|-------------|
+| `key_vault_name` | Links to a key in [`var.key_vaults`](#key-vaults), specifying the key vault for the VM set. |
+| `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
+| `name` | Prefixes all VMs in the set, used in their Azure names. |
+| `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
+| `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
+| `extensions` | Optional; lists extensions from [`var.virtual_machine_extensions`](#virtual-machine-extensions) to apply. |
+| `os_type` | Specifies the OS: `Windows` or `Linux`. |
+| `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
+| `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
 
-#### Virtual Machine Image    
+#### Virtual Machine Image
 
-The `image` variable specifies the virtual machine image to be used when deploying VMs. This can be defined either via an image ID or a reference object containing details about the Azure Marketplace image. In Azure, virtual machine images are pre-configured operating system environments that ensure consistency, security, and compliance across deployments.  
+> Terraform variable: `var.virtual_machine_sets.image`
 
-#### Example: Use a custom or shared image resource
-
-```hcl
-virtual_machine_sets = {
-  database = {
-    ...
-
-    image = {
-      id = "/subscriptions/12345678..."  // This is the resource ID of a custom or shared image
-    }
-  }
-}
-```
-
-#### Example: Use an Azure Marketplace image
+The `image` section within `virtual_machine_sets` selects the OS image for VMs, ensuring consistency and compliance. It can reference a custom/shared image by ID or an Azure Marketplace image by details like offer and publisher. In the ERD, `image` is a child of `virtual_machine_sets`, with a one-to-one relationship.
 
 ```hcl
 virtual_machine_sets = {
   database = {
-    ...
-
+    # Other fields...
     image = {
       reference = {
-        offer     = "UbuntuServer"  // The name of the image offer
-        publisher = "Canonical"     // The publisher of the image
-        sku       = "18.04-LTS"     // The image type or edition
-        version   = "latest"        // The version of the image
+        offer     = "UbuntuServer"  # Image offer name
+        publisher = "Canonical"     # Image publisher
+        sku       = "18.04-LTS"     # Image edition
+        version   = "latest"        # Image version
       }
     }
   }
 }
+# Or, for a custom image:
+# image = {
+#   id = "/subscriptions/12345678..."  # Resource ID of custom/shared image
+# }
 ```
 
-### Virtual Machine Data Disks
+| Field | Description |
+|-------|-------------|
+| `id` | Optional; resource ID for a custom or shared image, e.g., `/subscriptions/12345678...`. |
+| `reference` | Optional; defines a Marketplace image with `offer`, `publisher`, `sku`, and `version`. |
 
-The `virtual_machine_set` `data_disks` describes each virtual machine's data disk configuration. Data disks are optional.
+#### Virtual Machine Data Disks
+
+> Terraform variable: `var.virtual_machine_sets.data_disks`
+
+The `data_disks` section within `virtual_machine_sets` configures optional data disks for VMs, specifying settings like logical unit number (LUN) and caching. In the ERD, `data_disks` is a child of `virtual_machine_sets`, with a one-to-many relationship to disk configurations.
 
 ```hcl
 virtual_machine_sets = {
   database = {
-    ...
-
+    # Other fields...
     data_disks = {
       data = {
-        lun                          = 0            // Logical unit number (LUN) is required
-        caching                      = "ReadWrite"  // Optional; can be "None", "ReadOnly", or "ReadWrite"; Default: "ReadWrite" 
-        enable_public_network_access = true         // Optional; by default, public network access is disabled
+        lun                          = 0            # Required; logical unit number
+        caching                      = "ReadWrite"  # Optional; None, ReadOnly, or ReadWrite
+        enable_public_network_access = true         # Optional; default: false
       }
       logs = {
-        lun = 1          
+        lun = 1                                   # Required
       }
     }
   }
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| `lun` | Required; logical unit number for the disk, e.g., `0`. |
+| `caching` | Optional; sets caching mode: `None`, `ReadOnly`, or `ReadWrite`. Default: `ReadWrite`. |
+| `enable_public_network_access` | Optional; if `true`, allows public network access to the disk. Default: `false`. |
 
 ##### Example: Import a VHD using a source URI
 
