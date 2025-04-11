@@ -559,11 +559,15 @@ virtual_machine_sets = {
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
 
+Got it—thanks for the heads-up on the CSG being an Excel workbook from Epic. I’ll keep the docs clean and avoid mentioning the parsing plans, focusing instead on the separation of `virtual_machine_set_specs` as a deliberate design choice influenced by Epic’s needs, without tying it to future automation. The variable’s standalone nature makes sense now—it’s built to handle Epic’s detailed specs while staying flexible for others. I’ll adjust the descriptions to reflect this, keeping the Epic influence as a design driver, not a specific process.
+
+Here’s the updated Markdown:
+
 ### Virtual Machine Set Specs
 
 > Terraform variable: `var.virtual_machine_set_specs`
 
-The `virtual_machine_set_specs` table provides detailed sizing and storage specs for each VM set defined in `virtual_machine_sets`, sharing a one-to-one relationship via a common key. Tailored for Epic on Azure, it draws from the "Cloud Specifications Guide," a bill of materials auto-parsed into Terraform inputs for VM count, SKU, and disk configurations. Paired with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` (for custom zone overrides), it ensures precise deployments. In the ERD, `virtual_machine_set_specs` links one-to-one with `virtual_machine_sets`, defining the hardware backbone for each set.
+The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in `virtual_machine_sets`, linked one-to-one by a shared key. Crafted with flexibility for any Azure deployment, its design draws inspiration from Epic on Azure’s detailed VM and disk requirements, ensuring precision across use cases. It pairs with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` (for custom zone adjustments) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with `virtual_machine_sets`, anchoring compute and storage details.
 
 ```hcl
 virtual_machine_set_specs = {
@@ -595,11 +599,11 @@ virtual_machine_set_specs = {
 | `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
 | `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
 
-#### Virtual Machine Set Disk Specs
+### Virtual Machine Set Disk Specs
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disks`
 
-The `data_disks` subsection within `virtual_machine_set_specs` details the data disk specifications for each VM set, complementing the attachment settings in `virtual_machine_sets.data_disks`. It defines disk sizes and storage types, sourced from the Epic "Cloud Specifications Guide" for automated consistency. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_set_specs`, matching keys with `virtual_machine_sets.data_disks` for a unified storage config.
+The `data_disks` subsection within `virtual_machine_set_specs` outlines data disk sizes and storage types for VM sets, matching keys with `virtual_machine_sets.data_disks`. Built for broad Azure use, it’s shaped by Epic’s need for detailed disk configurations, ensuring consistency across deployments. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_set_specs`, tying storage specs to VM definitions.
 
 ```hcl
 virtual_machine_set_specs = {
