@@ -181,11 +181,11 @@ resource_groups = {
 
 > Terraform variable: `var.virtual_machine_extensions`
 
-The `virtual_machine_extensions` table sets up extensions for Azure VMs, adding capabilities like monitoring or management tools. It defines settings such as publisher, type, and versioning for consistent application across your environment. In the ERD, `virtual_machine_extensions` links one-to-many to `virtual_machine_sets`, letting multiple VM sets share the same extension config—like the Azure Monitor Agent for Windows shown below.
+The `virtual_machine_extensions` table sets up extensions for [Azure VMs](#virtual-machine-sets), adding capabilities like monitoring or management tools. It defines settings such as publisher, type, and versioning for consistent application across your environment. In the ERD, `virtual_machine_extensions` links one-to-many to [`virtual_machine_sets`](#virtual-machine-sets), letting multiple VM sets share the same extension config—like the [Azure Monitor Agent](https://learn.microsoft.com/en-us/azure/azure-monitor/agents/azure-monitor-agent-overview) for Windows shown below.
 
 ```hcl
 virtual_machine_extensions = {
-  azure_monitor = {
+  azure_monitor = {  // 🔑 "azure_monitor" extension
     name                       = "AzureMonitorWindowsAgent"
     publisher                  = "Microsoft.Azure.Monitor"
     type                       = "AzureMonitorWindowsAgent"
@@ -211,24 +211,24 @@ virtual_machine_extensions = {
 
 > Terraform variable: `var.networks`
 
-The `networks` table defines the virtual networks (VNets) in your Azure environment, distinct from external networks (e.g., on-premises or other clouds) covered in `var.external_networks`. It organizes VNets and their subnets, linking them to subscriptions, locations, and resource groups. In the ERD, `networks` connects one-to-many with `subnets` and one-to-one with `subscriptions`, `locations`, and `resource_groups`, anchoring your network topology.
+The `networks` table defines the virtual networks (VNets) in your Azure environment, distinct from external networks (e.g., on-premises or other clouds) covered in `var.external_networks`. It organizes VNets and their subnets, linking them to [subscriptions](#subscriptions), [locations](#locations), and [resource groups](#resource-groups). In the ERD, `networks` connects one-to-many with `subnets` and one-to-one with [`subscriptions`](#subscriptions), [`locations`](#locations), and [`resource_groups`](#resource-groups), anchoring your network topology.
 
 ```hcl
 networks = {
-  main = {
-    location_name       = "primary"      # 🔑 Links to var.locations
-    subscription_name   = "production"   # 🔑 Links to var.subscriptions
-    resource_group_name = "production"   # 🔑 Links to var.resource_groups
-    name                = "main-vnet"    # Optional; defaults to key "main" if unset
-    address_space       = "10.0.0.0/16"
+  main = {                               # 🔑 "main" network
+    location_name       = "primary"      # 🔗 Links to var.locations
+    subscription_name   = "production"   # 🔗 Links to var.subscriptions
+    resource_group_name = "production"   # 🔗 Links to var.resource_groups
+    name                = "main-vnet"    # Optional; defaults to key 🔑 "main" if unset
+    address_space       = "10.0.0.0/16"  # Defines network address space in CIDR format
     subnets = {
-      subnet_a = {
-        name            = "subnet-a"     # Optional; defaults to key "subnet_a" if unset
-        address_space   = "10.0.0.0/24"
+      subnet_a = {                       # 🔑 "subnet_a" subnet
+        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
       }
-      subnet_b = {
-        name            = "subnet-b"
-        address_space   = "10.0.1.0/24"
+      subnet_b = {                       # 🔑 "subnet_b" subnet
+        name            = "subnet-b"     # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space   = "10.0.1.0/24"  # Defines "subnet_a" address space in CIDR format
       }
     }
   }
