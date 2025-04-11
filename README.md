@@ -26,7 +26,7 @@ The `infra_map_vm_set` module makes it easy to deploy groups of virtual machines
 
 > See [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map) modules
 
-These modules (`infra_map` and `subscription_infra_map`) let you describe your entire Azure environment like a database. Resources—networks, subscriptions, VM sets, key vaults—are organized into Terraform maps, where each map is like a table with a unique key (e.g., `network_name` or `subscription_name`). For example, you might define a network called `primary_dmz` and link it to a subscription called `main`, with tags to track everything. This setup makes it simple to manage complex, multi-subscription environments and tweak configurations without breaking things. These modules are public and reusable for any Azure project.
+These modules (`infra_map` and `subscription_infra_map`) let you describe your entire Azure environment like a database. Resources—[networks](#networks), [subscriptions](#subscriptions), [VM sets](#virtual-machine-sets), [key vaults](#key-vaults)—are organized into Terraform maps, where each map is like a table with a unique key (e.g., `network_name` or `subscription_name`). For example, you might define a network called `primary_dmz` and link it to a subscription called `main`, with tags to track everything. This setup makes it simple to manage complex, multi-subscription environments and tweak configurations without breaking things. These modules are public and reusable for any Azure project.
 
 ### 4. Epic Module: Private Healthcare Deployments
 
