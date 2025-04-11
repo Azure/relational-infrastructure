@@ -389,29 +389,29 @@ networks = {
               }
             }}}
           },
-          allow_static_out = {
-            priority = "130"                    # NSG priority
-            allow = { out = { to = {            # Outbound rule
-              address_space = "192.168.1.0/24"  # To address space
-              port_range    = "443"             # On port 443
+          allow_static_out = {                  # 🔑 "allow_static_out" rule
+            priority = "130"                    # Rule priority is 130
+            allow = { out = { to = {            # Allow out to...
+              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
+              port_range    = "443"             # on port 443
             }}}
           },
-          deny_network_out = {
-            priority = "140"                    # NSG priority
-            deny = { out = { to = {             # Outbound rule
-              network = {
-                network_name = "alt"            # To alt network
-                port_range   = "443"            # On port 443
+          deny_network_out = {                  # 🔑 "deny_network_out" rule
+            priority = "140"                    # Rule priority is 140
+            deny = { out = { to = {             # Deny out to...
+              network = {                       # network defined in var.networks or var.external_networks
+                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
+                port_range   = "443"            # on port 443
               }
             }}}
           },
-          allow_subnet_out = {
-            priority = "150"                    # NSG priority
-            allow = { out = { to = {            # Outbound rule
-              subnet = {
-                network_name = "alt"            # To alt network
-                subnet_name  = "subnet_b"       # To subnet_b
-                port_range   = "443"            # On port 443
+          allow_subnet_out = {                  # 🔑 "allow_subnet_out" rule
+            priority = "150"                    # Rule priority is 150
+            allow = { out = { to = {            # Allow out to...
+              subnet = {                        # subnet defined in var.networks or var.external_networks
+                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
+                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
+                port_range   = "443"            # on port 443
               }
             }}}
           }
@@ -419,11 +419,11 @@ networks = {
       }
     }
   }
-  alt = {
-    # Other fields...
+  alt = {                                       # 🔑 "alt" network
+                                                # Other fields...
     subnets = {
-      subnet_b = {
-        # Subnet details...
+      subnet_b = {                              # 🔑 "subnet_b" subnet
+                                                # Subnet details...          
       }
     }
   }
