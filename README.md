@@ -358,34 +358,34 @@ The `security_rules` section within `subnets` of the `networks` table configures
 
 ```hcl
 networks = {
-  main = {
-    # Other fields like location_name...
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          allow_static_in = {
-            priority = "100"                    # NSG priority
-            allow = { in = { from = {           # Inbound rule
-              address_space = "192.168.1.0/24"  # From address space
-              port_range    = "443"             # On port 443
+  main = {                                      # 🔑 "main" network
+                                                # Other fields like location_name...
+    subnets = {                        
+      subnet_a = {                              # 🔑 "subnet_a" subnet
+        security_rules = {                      # Layer 4 (NSG) security rules
+          allow_static_in = {                   # 🔑 "allow_static_in" rule
+            priority = "100"                    # Rule priority is 100
+            allow = { in = { from = {           # Allow in from...
+              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
+              port_range    = "443"             # on port 443
             }}}
           },
-          allow_network_in = {
-            priority = "110"                    # NSG priority
-            allow = { in = { from = {           # Inbound rule
-              network = {
-                network_name = "alt"            # From alt network
-                port_range   = "100-200"        # Ports 100-200
+          allow_network_in = {                  # 🔑 "allow_network_in" rule
+            priority = "110"                    # Rule priority is 110
+            allow = { in = { from = {           # Allow in from...
+              network = {                       # network defined in var.networks or var.external_networks
+                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
+                port_range   = "100-200"        # on ports 100-200
               }
             }}}
           },
-          deny_subnet_in = {
-            priority = "120"                    # NSG priority
-            deny = { in = { from = {            # Inbound rule
-              subnet = {
-                network_name = "alt"            # From alt network
-                subnet_name  = "subnet_b"       # From subnet_b
-                port_range   = "443"            # On port 443
+          deny_subnet_in = {                    # 🔑 "deny_subnet_in" rule
+            priority = "120"                    # Rule priority is 120
+            deny = { in = { from = {            # Deny in from...
+              subnet = {                        # subnet defined in var.networks or var.external_networks
+                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
+                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
+                port_range   = "443"            # on port 443
               }
             }}}
           },
