@@ -528,6 +528,102 @@ virtual_machine_sets = {
 | `enable_public_network_access` | Optional; if `true`, allows public access to the disk for specific use cases. Defaults to `false`. |
 | `image` | Optional; specifies the disk’s source: `copy` (from a disk/snapshot), `import` (from a VHD file), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disk). |
 
+#### Virtual Machine Network Interfaces
+
+> Terraform variable: `var.virtual_machine_sets.network_interfaces`
+
+The `network_interfaces` section within `virtual_machine_sets` configures the network connectivity for VMs, linking them to specific VNets and subnets. Each interface specifies a network, subnet, and IP settings, with options for accelerated networking. In the ERD, `network_interfaces` is a one-to-many child of `virtual_machine_sets`, with one-to-one links to `networks` and `subnets` via `network_name` and `subnet_name`, ensuring each VM set connects to the right network topology.
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    # Other fields...
+    network_interfaces = {
+      primary_nic = {
+        network_name                  = "main"         # Links to var.networks
+        subnet_name                   = "subnet_a"     # Links to var.networks.main.subnets
+        private_ip                    = "10.0.0.10"    # Optional; static IP
+        private_ip_allocation         = "Static"       # Optional; static or dynamic
+        enable_accelerated_networking = true           # Optional; boost network performance
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `network_name` | Required; links to a key in [`var.networks`](#networks), specifying the VNet for the interface. |
+| `subnet_name` | Required; links to a subnet key within the specified `network_name` in [`var.networks`](#networks). |
+| `private_ip` | Optional; sets a static private IP address, e.g., `10.0.0.10`. Defaults to `null` for dynamic allocation. |
+| `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
+| `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
+
+### Virtual Machine Set Specs
+
+> Terraform variable: `var.virtual_machine_set_specs`
+
+The `virtual_machine_set_specs` table provides detailed sizing and storage specs for each VM set defined in `virtual_machine_sets`, sharing a one-to-one relationship via a common key. Tailored for Epic on Azure, it draws from the "Cloud Specifications Guide," a bill of materials auto-parsed into Terraform inputs for VM count, SKU, and disk configurations. Paired with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` (for custom zone overrides), it ensures precise deployments. In the ERD, `virtual_machine_set_specs` links one-to-one with `virtual_machine_sets`, defining the hardware backbone for each set.
+
+```hcl
+virtual_machine_set_specs = {
+  database = {
+    vm_count = 3
+    sku_size = "Standard_D4ads_v5"
+    os_disk = {
+      disk_size_gb         = 128
+      storage_account_type = "Premium_LRS"
+    }
+    data_disks = {
+      data = {
+        disk_size_gb         = 128
+        storage_account_type = "Premium_LRS"
+      }
+      logs = {
+        disk_size_gb         = 256
+        storage_account_type = "Premium_LRS"
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `vm_count` | Optional; sets the number of VMs in the set, e.g., `3`. Defaults to `2`. |
+| `sku_size` | Required; specifies the VM SKU, e.g., `Standard_D4ads_v5`, defining compute power. |
+| `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
+| `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
+
+#### Virtual Machine Set Disk Specs
+
+> Terraform variable: `var.virtual_machine_set_specs.data_disks`
+
+The `data_disks` subsection within `virtual_machine_set_specs` details the data disk specifications for each VM set, complementing the attachment settings in `virtual_machine_sets.data_disks`. It defines disk sizes and storage types, sourced from the Epic "Cloud Specifications Guide" for automated consistency. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_set_specs`, matching keys with `virtual_machine_sets.data_disks` for a unified storage config.
+
+```hcl
+virtual_machine_set_specs = {
+  database = {
+    # Other fields...
+    data_disks = {
+      data = {
+        disk_size_gb         = 128
+        storage_account_type = "Premium_LRS"
+      }
+      logs = {
+        disk_size_gb         = 256
+        storage_account_type = "Premium_LRS"
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `disk_size_gb` | Required; sets the data disk size in gigabytes, e.g., `128` or `256`. |
+| `storage_account_type` | Optional; specifies the storage type, e.g., `Premium_LRS`. Defaults to `PremiumV2_LRS`. |
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
