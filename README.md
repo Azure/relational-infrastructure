@@ -115,7 +115,7 @@ locations = {
 
 > Terraform variable: `var.subscriptions`
 
-The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to resource groups and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like `resource_groups` and `networks`, ensuring resources stay aligned.
+The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to [resource groups](#resource-groups) and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like [`resource_groups`](#resource-groups) and [`networks`](#networks), ensuring resources stay aligned.
 
 ```hcl
 subscriptions = { 
@@ -126,7 +126,7 @@ subscriptions = {
   }
   non_production = {                                              # 🔑 "non_production" subscription
     default_resource_group_name      = "non_production"           # 🔗 Links to var.resource_groups    
-    private_link_resource_group_name = "non_production_networks"  # 🔗 Links to var.resource_groups
+    private_link_resource_group_name = "non_production_networks"  # 🔗 Optional; Links to var.resource_groups
     subscription_slot                = "az_subscription_2"        # Links to an azurerm provider
   }
 }
@@ -146,15 +146,15 @@ The `resource_groups` table defines the [Azure resource groups](https://learn.mi
 
 ```hcl
 resource_groups = {
-  production = {
-    subscription_name = "production"  # 🔑 Links to var.subscriptions
-    location_name     = "primary"    # 🔑 Optional; links to var.locations
-    name              = "production" # Resource group name in Azure
+  production = {                         # 🔑 "production" resource group
+    subscription_name = "production"     # 🔗 Links to var.subscriptions
+    location_name     = "primary"        # 🔗 Optional; links to var.locations
+    name              = "production"     # Resource group name in Azure
   }
-  non_production = {
-    subscription_name = "non_production"
-    location_name     = "alt"
-    name              = "non-production"
+  non_production = {                     # 🔑 "non_production" resource group
+    subscription_name = "non_production" # 🔗 Links to var.subscriptions
+    location_name     = "alt"            # 🔗 Optional; links to var.locations
+    name              = "non-production" # Resource group name in Azure
   }
 }
 ```
