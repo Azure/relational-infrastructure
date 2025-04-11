@@ -26,7 +26,7 @@ The `infra_map_vm_set` module makes it easy to deploy groups of virtual machines
 
 > See [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map) modules
 
-These modules (`infra_map` and `subscription_infra_map`) let you describe your entire Azure environment like a database. Resources—[networks](#networks), [subscriptions](#subscriptions), [VM sets](#virtual-machine-sets), [key vaults](#key-vaults)—are organized into Terraform maps, where each map is like a table with a unique key (e.g., `network_name` or `subscription_name`). For example, you might define a network called `primary_dmz` and link it to a subscription called `main`, with tags to track everything. This setup makes it simple to manage complex, multi-subscription environments and tweak configurations without breaking things. These modules are public and reusable for any Azure project.
+These modules (`infra_map` and `subscription_infra_map`) let you describe your entire Azure environment like a database. Resources—[networks](#networks), [subscriptions](#subscriptions), [VM sets](#virtual-machine-sets), [key vaults](#key-vaults)—are organized into [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), where each map is like a table with a unique key (e.g., `network_name` or `subscription_name`). For example, you might define a network called `primary_dmz` and link it to a subscription called `main`, with tags to track everything. This setup makes it simple to manage complex, multi-subscription environments and tweak configurations without breaking things. These modules are public and reusable for any Azure project.
 
 ### 4. Epic Module: Private Healthcare Deployments
 
@@ -36,9 +36,9 @@ The Epic module is the private capstone, designed specifically for Epic on Azure
 
 ## Infrastructure Map Model
 
-This section unveils the core of the stack: a normalized infrastructure map that organizes your Azure environment like a database. Built with Terraform map variables, it creates a relational model that seamlessly ties together networks, virtual machine sets, subscriptions, key vaults, and more. It’s the blueprint that keeps everything structured and adaptable, whether you’re deploying Epic on Azure or crafting a custom infrastructure project. The private Epic module builds on this foundation, adding tailored configurations for healthcare workloads like Hyperspace or MyChart.
+This section unveils the core of the stack: a normalized infrastructure map that organizes your Azure environment like a database. Built with Terraform map variables, it creates a relational model that seamlessly ties together [networks](#networks), [virtual machine sets](#virtual-machine-sets), [subscriptions](#subscriptions), [key vaults](#key-vaults), and more. It’s the blueprint that keeps everything structured and adaptable, whether you’re deploying Epic on Azure or crafting a custom infrastructure project. The private Epic module builds on this foundation, adding tailored configurations for healthcare workloads like Hyperspace or MyChart.
 
-To bring these connections to life, we’ve included an **entity-relationship diagram (ERD)** below, showing how resources link up—with details like cardinality (e.g., one subscription to many resource groups). This model drives the stack’s flexibility, letting you reuse generic layers for any Azure setup while keeping Epic’s sensitive configurations locked down in its private module.
+To bring these connections to life, we’ve included an [**entity-relationship diagram (ERD)**](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model) below, showing how resources link up—with details like cardinality (e.g., one [subscription](#subscriptions) to many [resource groups](#resource-groups). This model drives the stack’s flexibility, letting you reuse generic layers for any Azure setup while keeping Epic’s sensitive configurations locked down in its private module.
 
 ```mermaid
 ---
@@ -410,7 +410,7 @@ The `virtual_machine_sets` table configures groups of highly available VMs that 
 
 ```hcl
 virtual_machine_sets = {
-  database = {
+  database = {                                        
     key_vault_name                    = "primary"      # 🔑 Links to var.key_vaults
     location_name                     = "primary"      # 🔑 Links to var.locations
     resource_group_name               = "production"   # 🔑 Links to var.resource_groups
