@@ -27,7 +27,9 @@ The Epic module is the private capstone, designed specifically for Epic on Azure
 
 ## Infrastructure Map Model
 
-This section introduces the normalized infrastructure map that underpins the module stack. It defines Azure infrastructure using a relational-style model—expressed through Terraform map variables—that cleanly connects networks, VM sets, resource groups, and other resources. Epic-specific modules build on this foundation by layering in a domain-specific map of the resources required for a complete Epic environment.
+This section unveils the core of the stack: a normalized infrastructure map that organizes your Azure environment like a database. Built with Terraform map variables, it creates a relational model that seamlessly ties together networks, virtual machine sets, subscriptions, key vaults, and more. It’s the blueprint that keeps everything structured and adaptable, whether you’re deploying Epic on Azure or crafting a custom infrastructure project. The private Epic module builds on this foundation, adding tailored configurations for healthcare workloads like Hyperspace or MyChart.
+
+To bring these connections to life, we’ve included an **entity-relationship diagram (ERD)** below, showing how resources link up—with details like cardinality (e.g., one subscription to many resource groups). This model drives the stack’s flexibility, letting you reuse generic layers for any Azure setup while keeping Epic’s sensitive configurations locked down in its private module.
 
 ```mermaid
 ---
@@ -85,28 +87,30 @@ erDiagram
 > In the sections below, the 🔑 icon represents a "foreign key" property that references another table/map variable.
 
 ### Locations
+
 > Terraform variable: `var.locations`
 
-The `locations` variable identifies the model's [Azure locations](https://learn.microsoft.com/azure/reliability/regions-list).
+The `locations` table defines the Azure regions where your infrastructure lives, like `eastus` or `westus`. It’s the starting point for placing resources geographically, ensuring they align with [Azure’s global regions](https://learn.microsoft.com/azure/reliability/regions-list) for availability and compliance. In the entity-relationship diagram (ERD), `locations` acts as a reference point, linking one-to-many with tables like networks or virtual machine sets to specify where they’re deployed.
 
 ```hcl
 locations = {
-  primary = "eastus" // Must be a valid Azure location
-  alt     = "westus" // Must be a valid Azure location
+  primary = "eastus"  # A valid Azure region
+  alt     = "westus"  # A valid Azure region
 }
 ```
 
-### Subscriptions
+## Subscriptions
+
 > Terraform variable: `var.subscriptions`
 
-The `subscriptions` variable identifies the model's [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy).
+The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to resource groups and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like `resource_groups` and `networks`, ensuring resources stay aligned.
 
 ```hcl
 subscriptions = {
   production = {
-    default_resource_group_name      = "production"               // 🔑 Must be in var.resource_groups
-    private_link_resource_group_name = "production_networks"      // 🔑 Optional; must be in var.resource_groups
-    subscription_slot                = "az_subscription_1"        // References a named azurerm provider
+    default_resource_group_name      = "production"          # 🔑 Links to var.resource_groups
+    private_link_resource_group_name = "production_networks" # 🔑 Optional; links to var.resource_groups
+    subscription_slot                = "az_subscription_1"   # Ties to an azurerm provider
   }
   non_production = {
     default_resource_group_name      = "non_production"          
@@ -116,22 +120,24 @@ subscriptions = {
 }
 ```
 
-* `default_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
-* When provided, `private_link_resource_group_name` must refer to a resource group defined in [`var.resource_groups`](#resource-groups).
-  * If not provided, `default_resource_group_name` will be used.
-* `subscription_slot` refers to a static [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (`az_subscription_1` - `az_subscription_10`).
+| Field | Description |
+|-------|-------------|
+| `default_resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups). Defines the primary resource group for the subscription. |
+| `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
+| `subscription_slot` | References a named [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (e.g., `az_subscription_1` to `az_subscription_10`), tying to a specific Azure subscription. |
 
-### Resource groups
+## Resource Groups
+
 > Terraform variable: `var.resource_groups`
 
-The `resource_groups` variable identifies the model's [Azure resource groups]((https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy)).
+The `resource_groups` table defines the [Azure resource groups](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy) that bundle related resources together in your environment. Each resource group ties to a subscription and, optionally, a location, organizing assets like networks or VMs. In the entity-relationship diagram (ERD), `resource_groups` links one-to-one with `subscriptions` and optionally to `locations`, acting as a container for other resources.
 
 ```hcl
 resource_groups = {
   production = {
-    subscription_name = "production"      // 🔑 Must be in var.subscriptions
-    location_name     = "primary"         // 🔑 Optional; Must be in var.locations
-    name              = "production"      // The actual name of the resource group
+    subscription_name = "production"  # 🔑 Links to var.subscriptions
+    location_name     = "primary"    # 🔑 Optional; links to var.locations
+    name              = "production" # Resource group name in Azure
   }
   non_production = {
     subscription_name = "non_production"
@@ -141,14 +147,17 @@ resource_groups = {
 }
 ```
 
-* `subscription_name` must refer to a subscription defined in [`var.subscriptions`](#subscriptions).
-* When provided, `location_name` must refer to a location defined in [`var.locations`](#locations).
-  * If no `location_name` is provided, the default (i.e., first location defined in `var.locations`) will be used.
+| Field | Description |
+|-------|-------------|
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions). Defines the subscription this resource group belongs to. |
+| `location_name` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
+| `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
-### Virtual machine extensions
+## Virtual Machine Extensions
+
 > Terraform variable: `var.virtual_machine_extensions`
 
-The `virtual_machine_extensions` variable identifies the model's virtual machine extension configurations. The example below is used to configure the Azure Monitor Agent for Windows.
+The `virtual_machine_extensions` table sets up extensions for Azure VMs, adding capabilities like monitoring or management tools. It defines settings such as publisher, type, and versioning for consistent application across your environment. In the ERD, `virtual_machine_extensions` links one-to-many to `virtual_machine_sets`, letting multiple VM sets share the same extension config—like the Azure Monitor Agent for Windows shown below.
 
 ```hcl
 virtual_machine_extensions = {
@@ -164,360 +173,225 @@ virtual_machine_extensions = {
 }
 ```
 
+| Field | Description |
+|-------|-------------|
+| `name` | Identifies the extension within the VM, e.g., `AzureMonitorWindowsAgent`. |
+| `publisher` | Specifies the extension’s provider, like `Microsoft.Azure.Monitor`. |
+| `type` | Defines the extension type, such as `AzureMonitorWindowsAgent`. |
+| `type_handler_version` | Sets the extension handler version, e.g., `1.2`. |
+| `auto_upgrade_minor_version` | Enables automatic minor version updates if `true`. |
+| `automatic_upgrade_enabled` | Activates automatic upgrades for the extension if `true`. |
+| `settings` | Optional; holds custom settings for the extension, or `null` if unused. |
+
 ### Networks
+
 > Terraform variable: `var.networks`
 
-The `networks` variable identifies the model's networks. Note that this is different than external networks (which may be on-premises, in Azure, or in another cloud) defined in `var.external_networks`.
+The `networks` table defines the virtual networks (VNets) in your Azure environment, distinct from external networks (e.g., on-premises or other clouds) covered in `var.external_networks`. It organizes VNets and their subnets, linking them to subscriptions, locations, and resource groups. In the ERD, `networks` connects one-to-many with `subnets` and one-to-one with `subscriptions`, `locations`, and `resource_groups`, anchoring your network topology.
 
 ```hcl
-  networks = {
-    main = {
-      location_name       = "primary"      // 🔑 Must be in var.locations
-      subscription_name   = "production"   // 🔑 Must be in var.subscriptions
-      resource_group_name = "production"   // 🔑 Must be in var.resource_groups
-      name                = "main-vnet"    // Optional; if not provided, will be derived from key "main"
-      address_space       = "10.0.0.0/16"
-
-      subnets = {
-        subnet_a = {
-          name            = "subnet-a"     // Optional; if not provided, will be derived from key "subnet_a"
-          address_space   = "10.0.0.0/24"
-        }
-        subnet_b = {
-          name            = "subnet-b"
-          address_space   = "10.0.1.0/24"
-        }
-      }     
+networks = {
+  main = {
+    location_name       = "primary"      # 🔑 Links to var.locations
+    subscription_name   = "production"   # 🔑 Links to var.subscriptions
+    resource_group_name = "production"   # 🔑 Links to var.resource_groups
+    name                = "main-vnet"    # Optional; defaults to key "main" if unset
+    address_space       = "10.0.0.0/16"
+    subnets = {
+      subnet_a = {
+        name            = "subnet-a"     # Optional; defaults to key "subnet_a" if unset
+        address_space   = "10.0.0.0/24"
+      }
+      subnet_b = {
+        name            = "subnet-b"
+        address_space   = "10.0.1.0/24"
+      }
     }
   }
+}
 ```
 
-* `subscription_name` must refer to a subscription defined in [`var.subscriptions`](#subscriptions).
-* `location_name` must refer to an Azure location defined in [`var.locations`](#locations).
-* `resource_group_name` must refer to a resource group in [`var.resource_groups`](#resource-groups).
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the VNet. |
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VNet to a subscription. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VNet. |
+| `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
+| `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
+| `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
 
 #### Peerings
 
-The `peerings` section of the `networks` variable describes each network's peerings. These peerings can refer to other networks and subnets described in this model (via `var.networks`) or external networks and subnets (via `var.external_networks`).
+> Terraform variable: `var.networks.peered_to`
+
+The `peerings` section within the `networks` table sets up virtual network peerings, connecting VNets within this model (`var.networks`) or to external networks (`var.external_networks`). It enables traffic flow between networks, like linking a primary and alternate VNet. In the ERD, `peerings` represents a many-to-many relationship between `networks`, or between `networks` and `external_networks`, facilitating flexible network topologies.
 
 ```hcl
 networks = {
   main = {
-    ...
-
-    subnets = {
-      ...
-    }
-
+    # Other fields like location_name, subnets...
     peered_to = [
-      "alt"  // Peer this network to the "alt" network declared below
+      "alt"  # Links to the "alt" network in var.networks
     ]
   }
   alt = {
-    ...
-
-    subnets = {
-      ...
-    }
-
+    # Other fields like location_name, subnets...
     peered_to = [
-      "main"  // Peer this network to the "main" network declared above
+      "main"  # Links to the "main" network in var.networks
     ]
   }
 }
 ```
 
-* `peered_to` networks must be defined in either `var.networks` or `var.external_networks`.
-* Only `var.external_networks` that have a valid Azure `resource_id` can be peered to.
+| Field | Description |
+|-------|-------------|
+| `peered_to` | A list of network keys from [`var.networks`](#networks) or [`var.external_networks`](#external-networks) to peer with. For `external_networks`, a valid Azure `resource_id` is required. |
 
 #### Routes
 
-The `routes` section within `subnets`, as defined by the `networks` variable, specifies custom network routes for each subnet. These routes determine how traffic is directed, whether to a network gateway, the Internet, a virtual network appliance, or simply dropped. The sections below demonstrate how to configure `routes` for each of these scenarios. Traffic destinations can be defined either as fixed address spaces in CIDR format or as references to networks and subnets defined in `var.networks` and `var.external_networks`.
+> Terraform variable: `var.networks.subnets.routes`
 
-> [!IMPORTANT]
-> A dedicated route table is created for each network in which you have `routes` defined. If no `routes` are defined, no route table is created.
-
-##### Example: Route traffic to a network gateway for a fixed address space
+The `routes` section within `subnets` of the `networks` table defines custom routing rules for each subnet, controlling traffic flow to gateways, the Internet, appliances, or nowhere (dropped). Routes can target fixed CIDR address spaces or reference networks and subnets from `var.networks` or `var.external_networks`. In the ERD, `routes` is a child of `subnets`, with one-to-many relationships to destinations, enabling precise traffic management. A route table is created only for networks with defined `routes`.
 
 ```hcl
 networks = {
   main = {
-    ...
-
+    # Other fields like location_name...
     subnets = {
       route_traffic = {
         destined_for = {
-          address_space = "192.168.1.0/24"  // Destined for a fixed address space
+          address_space = "192.168.1.0/24"  # Target address space
         }
-
-        to_gateway = true                   // Route traffic to the gateway
-      }
-    }
-  }
-}
-```
-
-##### Example: Route traffic to the Internet for a network defined in `var.networks` 
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      route_traffic = {
+        to_gateway = true                   # Route to network gateway
+      },
+      internet_traffic = {
         destined_for = {
-          network_name = "alt"  // Destined for the "alt" network defined below
+          network_name = "alt"            # Target network in var.networks
         }
-
-        to_internet = true      // Route traffic to the Internet
-      }
-    }
-  }
-
-  alt = {                     
-    ...
-  }
-}
-```
-
-##### Example: Route traffic to an appliance for a subnet defined in `var.networks`
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      route_traffic = {
+        to_internet = true                # Route to Internet
+      },
+      appliance_traffic = {
         destined_for = {
-          network_name = "alt"        // Route traffic destined for subnet "subnet_b" in
-          subnet_name  = "subnet_b"   // network "alt" defined below
+          network_name = "alt"            # Target network
+          subnet_name  = "subnet_b"       # Target subnet
         }
-
         to_appliance = {
-          ip_address = "192.168.1.1"  // To an appliance at 192.168.1.1
+          ip_address = "192.168.1.1"      # Route to appliance
         }
-      }
-    }
-  }
-
-  alt = {
-    ...
-
-    subnets = {
-      subnet_b = {
-        ...
-      }
-    }
-  }
-}
-```
-
-##### Example: Drop all traffic destined for the Internet
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      route_traffic = {
+      },
+      drop_traffic = {
         destined_for = {
-          address_space = "0.0.0.0/0"  // Route traffic destined for the Internet
+          address_space = "0.0.0.0/0"     # Target Internet
         }
-
-        to_nowhere = true              // to nowhere
+        to_nowhere = true                 # Drop traffic
       }
     }
   }
-}
-```
-
-#### Security rules
-
-Each subnet in a virtual network defined in `var.networks` can include layer 4 security rules, which are translated into network security group (NSG) rules in Azure during deployment. This approach uses a straightforward, fluent syntax to define security rules, as illustrated below. These rules allow you to manage:
-
-* Source and destination address ranges
-* Source and destination port ranges
-* Rule priorities (translated to NSG priorities)
-
-The fluent syntax supports defining address ranges by referencing internal networks and subnets (`var.networks`) as well as external networks and subnets (`var.external_networks`).
-
-> [!IMPORTANT]
-> A dedicated network security group is created for each network regardless of whether or not you have `security_rules` configured.
-
-##### Example: Allow traffic in from a static address space
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          priority = "100"                    // Rule priority is 100
-          allow = { in = { from = {           // Allow in from...
-            address_space = "192.168.1.0/24"  // Address space "192.168.1.0/24"
-            port_range    = "443"             // On port 443
-          }}}
-        }
-      }
-    }
-  }
-}
-```
-
-##### Example: Allow all traffic in from a network defined in `var.subnets`
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          priority = "110"             // Rule priority is 110
-          allow = { in = { from = {    // Allow in from...
-            network = {    
-              network_name = "alt"     // "alt" network
-              port_range   = "100-200" // On any port between 100-200
-            }
-          }}}
-        }
-      }
-    }
-  }
-
   alt = {
-    ...
-  }
-}
-```
-
-##### Example: Deny all inbound traffic from a subnet defined in `var.networks`
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          priority = "120"              // Rule priority is 120
-          deny = { in = { from = {      // Deny in from...
-            subnet = {    
-              network_name = "alt"      // "alt" network
-              subnet_name  = "subnet_b" // "subnet_b" subnet
-              port_range   = "443"      // On port 443
-            }
-          }}}
-        }
-      }
-    }
-  }
-
-  alt = {
-    ...
-
+    # Other fields...
     subnets = {
       subnet_b = {
-        ...
+        # Subnet details...
       }
     }
   }
 }
 ```
 
-##### Example: Allow all outbound traffic to a static address space 
+| Field | Description |
+|-------|-------------|
+| `destined_for` | Specifies the traffic destination, either as a CIDR `address_space` (e.g., `192.168.1.0/24`) or a `network_name` and optional `subnet_name` from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
+| `to_gateway` | If `true`, routes traffic to a network gateway. |
+| `to_internet` | If `true`, routes traffic to the Internet. |
+| `to_appliance` | Routes traffic to a virtual appliance, requiring an `ip_address` (e.g., `192.168.1.1`). |
+| `to_nowhere` | If `true`, drops traffic entirely. |
+
+#### Security Rules
+
+> Terraform variable: `var.networks.subnets.security_rules`
+
+The `security_rules` section within `subnets` of the `networks` table configures layer 4 network security group (NSG) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing `var.networks` or `var.external_networks`. In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
 
 ```hcl
 networks = {
   main = {
-    ...
-
+    # Other fields like location_name...
     subnets = {
       subnet_a = {
         security_rules = {
-          priority = "130"                    // Rule priority is 130
-          allow = { out = { to = {            // Allow out to...
-            address_space = "192.168.1.0/24"  // Address space "192.168.1.0/24"
-            port_range    = "443"             // On port 443
-          }}}
+          allow_static_in = {
+            priority = "100"                    # NSG priority
+            allow = { in = { from = {           # Inbound rule
+              address_space = "192.168.1.0/24"  # From address space
+              port_range    = "443"             # On port 443
+            }}}
+          },
+          allow_network_in = {
+            priority = "110"                    # NSG priority
+            allow = { in = { from = {           # Inbound rule
+              network = {
+                network_name = "alt"            # From alt network
+                port_range   = "100-200"        # Ports 100-200
+              }
+            }}}
+          },
+          deny_subnet_in = {
+            priority = "120"                    # NSG priority
+            deny = { in = { from = {            # Inbound rule
+              subnet = {
+                network_name = "alt"            # From alt network
+                subnet_name  = "subnet_b"       # From subnet_b
+                port_range   = "443"            # On port 443
+              }
+            }}}
+          },
+          allow_static_out = {
+            priority = "130"                    # NSG priority
+            allow = { out = { to = {            # Outbound rule
+              address_space = "192.168.1.0/24"  # To address space
+              port_range    = "443"             # On port 443
+            }}}
+          },
+          deny_network_out = {
+            priority = "140"                    # NSG priority
+            deny = { out = { to = {             # Outbound rule
+              network = {
+                network_name = "alt"            # To alt network
+                port_range   = "443"            # On port 443
+              }
+            }}}
+          },
+          allow_subnet_out = {
+            priority = "150"                    # NSG priority
+            allow = { out = { to = {            # Outbound rule
+              subnet = {
+                network_name = "alt"            # To alt network
+                subnet_name  = "subnet_b"       # To subnet_b
+                port_range   = "443"            # On port 443
+              }
+            }}}
+          }
         }
       }
     }
   }
-}
-```
-
-##### Example: Deny all outbound traffic to a network defined in `var.networks`
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          priority = "140"          // Rule priority is 140
-          deny = { out = { to = {   // Deny out to...
-            network = {
-              network_name = "alt"  // "alt" network
-            }
-
-            port_range    = "443"   // On port 443
-          }}}
-        }
-      }
-    }
-  }
-
   alt = {
-    ...
-  }
-}
-```
-
-##### Example: Allow all outbound traffic to a subnet defined in `var.networks`
-
-```hcl
-networks = {
-  main = {
-    ...
-
-    subnets = {
-      subnet_a = {
-        security_rules = {
-          priority = "150"               // Rule priority is 150
-          allow = { out = { to = {       // Allow out to...
-            subnet = {
-              network_name = "alt"       // "alt" network
-              subnet_name  = "subnet_b"  // "subnet_b" subnet
-            }
-
-            port_range    = "443"        // On port 443
-          }}}
-        }
-      }
-    }
-  }
-
-  alt = {
-    ...
-
+    # Other fields...
     subnets = {
       subnet_b = {
-        ...
+        # Subnet details...
       }
     }
   }
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| `priority` | Sets the NSG rule priority, e.g., `100`. Lower numbers take precedence. |
+| `allow`/`deny` | Defines whether the rule allows or denies traffic, with `in` or `out` specifying direction. |
+| `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
+| `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
 
 ### Virtual Machine Sets  
 > Terraform variable: `var.virtual_machine_sets`  
