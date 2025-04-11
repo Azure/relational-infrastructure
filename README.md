@@ -106,10 +106,22 @@ The `locations` table defines the Azure regions where your infrastructure lives,
 
 ```hcl
 locations = {
-  primary = "eastus"  # A valid Azure region; 🔑 "primary" location
-  alt     = "westus"  # A valid Azure region; 🔑 "alt" location
+  primary = "eastus"  # 🔑 "primary" location; must be a valid Azure region (see below)
+  alt     = "westus"  # 🔑 "alt" location; must be a valid Azure region (see below)
 }
 ```
+
+> [!TIP]
+> **Powershell Users:** For a complete list of valid Azure locations, [install the Az Powershell module](https://learn.microsoft.com/powershell/azure/install-azure-powershell), then run the following command:
+> ```powershell
+> Get-AzLocation | Select-Object -Property Name | ForEach-Object { $_.Name }
+> ```
+
+> [!TIP]
+> **Azure CLI/Bash Users:** For a complete list of valid Azure locations, [install the Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli), then run the following command:
+> ```bash
+> az account list-locations --query "[].name" -o tsv
+> ```
 
 ### Subscriptions
 
