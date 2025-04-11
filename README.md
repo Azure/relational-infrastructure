@@ -301,37 +301,37 @@ networks = {
           internet_route = {                    # 🔑 "internet_route" route
             destined_for = {                    # When traffic is destined for...
               network = {                       # Network defined in var.networks or var.external_networks...
-                network_name = "alt"            # 🔗 "alt" network is defined in var.networks
+                network_name = "alt"            # 🔗 "alt" network is defined in var.networks...
               }
             }
-            to_internet = true
+            to_internet = true                  # route to the Internet
           }
-          appliance_route = {
-            destined_for = {
-              subnet = {
-                network_name = "alt"          # Target network
-                subnet_name  = "subnet_b"     # Target subnet
+          appliance_route = {                   # 🔑 "appliance_route" route
+            destined_for = {                    # When traffic is destined for...
+              subnet = {                        # Subnet defined in var.networks or var.external_networks...
+                network_name = "alt"            # 🔗 "alt" network is defined in var.networks...
+                subnet_name  = "subnet_b"       # 🔗 "subnet_b" subnet is defined in var.networks...
               }
             }
-            to_appliance = {
-              ip_address = "192.168.1.1"      # Appliance IP
+            to_appliance = {                    # route to a virtual appliance...
+              ip_address = "192.168.1.1"        # running at "192.168.1.1"
             }
           }
-          drop_route = {
-            destined_for = {
-              address_space = "0.0.0.0/0"     # Target Internet
+          drop_route = {                        # 🔑 "drop_route" route
+            destined_for = {                    # When traffic is destined for...
+              address_space = "0.0.0.0/0"       # the Internet (0.0.0.0/0)...
             }
-            to_nowhere = true
+            to_nowhere = true                   # drop it
           }
         }
       }
     }
   }
-  alt = {
+  alt = {                                       # 🔑 "alt" network
     # Other fields...
     subnets = {
-      subnet_b = {
-        address_space = "10.1.0.0/24"
+      subnet_b = {                              # 🔑 "subnet_b" subnet
+        address_space = "10.1.0.0/24"           # Subnet address space in CIDR format
       }
     }
   }
