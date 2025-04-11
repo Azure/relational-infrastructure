@@ -99,7 +99,7 @@ locations = {
 }
 ```
 
-## Subscriptions
+### Subscriptions
 
 > Terraform variable: `var.subscriptions`
 
@@ -126,7 +126,7 @@ subscriptions = {
 | `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
 | `subscription_slot` | References a named [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (e.g., `az_subscription_1` to `az_subscription_10`), tying to a specific Azure subscription. |
 
-## Resource Groups
+### Resource Groups
 
 > Terraform variable: `var.resource_groups`
 
@@ -153,7 +153,7 @@ resource_groups = {
 | `location_name` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
 | `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
-## Virtual Machine Extensions
+### Virtual Machine Extensions
 
 > Terraform variable: `var.virtual_machine_extensions`
 
@@ -466,7 +466,7 @@ virtual_machine_sets = {
 | `id` | Optional; resource ID for a custom or shared image, e.g., `/subscriptions/12345678...`. |
 | `reference` | Optional; defines a Marketplace image with `offer`, `publisher`, `sku`, and `version`. |
 
-### Virtual Machine Data Disks
+#### Virtual Machine Data Disks
 
 > Terraform variable: `var.virtual_machine_sets.data_disks`
 
@@ -595,7 +595,7 @@ virtual_machine_set_specs = {
 | `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
 | `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
 
-### Virtual Machine Set Disk Specs
+#### Virtual Machine Set Disk Specs
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disks`
 
