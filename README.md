@@ -250,6 +250,9 @@ networks = {
 
 The `peerings` section within the [`networks`](#networks) table sets up virtual network peerings, connecting [VNets within this model (`var.networks`)](#networks) or to [external networks (`var.external_networks`)](#external-networks). It enables traffic flow between networks, like linking a primary and alternate VNet. In the ERD, `peerings` represents a many-to-many relationship between [`networks`](#networks), or between [`networks`](#networks) and [`external_networks`](#external-networks), facilitating flexible network topologies.
 
+> [!IMPORTANT]
+> Network peerings are a one-way connection. Each `peered_to` entry establishes traffic flow from the source network to the target network only. For two-way communication, you must configure reciprocal peerings in both directions (e.g., `main` to `alt` and `alt` to `main`).
+
 ```hcl
 networks = {
   main = {         # 🔑 "primary" network
@@ -271,43 +274,56 @@ networks = {
 |-------|-------------|
 | `peered_to` | A list of network keys from [`var.networks`](#networks) or [`var.external_networks`](#external-networks) to peer with. For `external_networks`, a valid Azure `resource_id` is required. |
 
-#### Routes
+My bad—thanks for catching that! You’re right: `route_traffic` is an optional map within each subnet under `networks`, not a standalone subnet property tied to a specific subnet name. I’ll rearrange the code to show `route_traffic` as a map of routes within a subnet, keeping it optional and reflecting the variable definition accurately. The HCL will nest `route_traffic` under a generic subnet (e.g., `subnet_a`) with multiple route examples, and the description will clarify its role across all subnets.
 
-> Terraform variable: `var.networks.subnets.routes`
+Here’s the corrected `Routes` section:
 
-The `routes` section within `subnets` of the `networks` table defines custom routing rules for each subnet, controlling traffic flow to gateways, the Internet, appliances, or nowhere (dropped). Routes can target fixed CIDR address spaces or reference networks and subnets from `var.networks` or `var.external_networks`. In the ERD, `routes` is a child of `subnets`, with one-to-many relationships to destinations, enabling precise traffic management. A route table is created only for networks with defined `routes`.
+### Routes
+
+> Terraform variable: `var.networks.subnets.route_traffic`
+
+The `route_traffic` section is an optional map within each subnet of the [`networks`](#networks) table, defining custom routing rules for that subnet. Each route directs traffic to gateways, the Internet, appliances, or nowhere (dropped), with destinations as CIDR address spaces, networks, or networks and subnets declared in [`var.networks`](#networks) and [`var.external_networks`](#external-networks). In the ERD, `route_traffic` is a one-to-many child of `subnets`, linking to [`networks`](#networks) or `subnets` via `destined_for`. A route table is created per subnet only if `route_traffic` is defined.
 
 ```hcl
 networks = {
-  main = {
-    # Other fields like location_name...
+  main = {                                      # 🔑 "main" network
+    # Other fields...
     subnets = {
-      route_traffic = {
-        destined_for = {
-          address_space = "192.168.1.0/24"  # Target address space
+      subnet_a = {                              # 🔑 "subnet_a" subnet
+        address_space = "10.0.0.0/24"           # Subnet address space in CIDR format
+        route_traffic = {                       # Traffic routing rules
+          gateway_route = {                     # 🔑 "gateway_route" route
+            destined_for = {                    # When traffic is destined for...
+              address_space = "192.168.1.0/24"  # the "192.168.1.0/24" address space...
+            }
+            to_gateway = true                   # route to the default network gateway
+          }
+          internet_route = {                    # 🔑 "internet_route" route
+            destined_for = {                    # When traffic is destined for...
+              network = {                       # Network defined in var.networks or var.external_networks...
+                network_name = "alt"            # 🔗 "alt" network is defined in var.networks
+              }
+            }
+            to_internet = true
+          }
+          appliance_route = {
+            destined_for = {
+              subnet = {
+                network_name = "alt"          # Target network
+                subnet_name  = "subnet_b"     # Target subnet
+              }
+            }
+            to_appliance = {
+              ip_address = "192.168.1.1"      # Appliance IP
+            }
+          }
+          drop_route = {
+            destined_for = {
+              address_space = "0.0.0.0/0"     # Target Internet
+            }
+            to_nowhere = true
+          }
         }
-        to_gateway = true                   # Route to network gateway
-      },
-      internet_traffic = {
-        destined_for = {
-          network_name = "alt"            # Target network in var.networks
-        }
-        to_internet = true                # Route to Internet
-      },
-      appliance_traffic = {
-        destined_for = {
-          network_name = "alt"            # Target network
-          subnet_name  = "subnet_b"       # Target subnet
-        }
-        to_appliance = {
-          ip_address = "192.168.1.1"      # Route to appliance
-        }
-      },
-      drop_traffic = {
-        destined_for = {
-          address_space = "0.0.0.0/0"     # Target Internet
-        }
-        to_nowhere = true                 # Drop traffic
       }
     }
   }
@@ -315,20 +331,24 @@ networks = {
     # Other fields...
     subnets = {
       subnet_b = {
-        # Subnet details...
+        address_space = "10.1.0.0/24"
       }
     }
   }
 }
 ```
 
+> [!IMPORTANT]  
+> A dedicated route table is created for each subnet with `route_traffic` defined. If no routes are specified, no route table is created.
+
 | Field | Description |
 |-------|-------------|
-| `destined_for` | Specifies the traffic destination, either as a CIDR `address_space` (e.g., `192.168.1.0/24`) or a `network_name` and optional `subnet_name` from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
-| `to_gateway` | If `true`, routes traffic to a network gateway. |
-| `to_internet` | If `true`, routes traffic to the Internet. |
-| `to_appliance` | Routes traffic to a virtual appliance, requiring an `ip_address` (e.g., `192.168.1.1`). |
-| `to_nowhere` | If `true`, drops traffic entirely. |
+| `destined_for` | Required; sets the traffic target: `address_space` (CIDR, e.g., `192.168.1.0/24`), `network` (links to [`var.networks`](#networks) via `network_name`), or `subnet` (links to [`var.networks`](#networks) via `network_name` and `subnet_name`). |
+| `route_name` | Optional; names the route, defaults to `null` (auto-generated). |
+| `to_gateway` | Optional; if `true`, routes to a network gateway. Defaults to `false`. |
+| `to_internet` | Optional; if `true`, routes to the Internet. Defaults to `false`. |
+| `to_nowhere` | Optional; if `true`, drops traffic. Defaults to `false`. |
+| `to_appliance` | Optional; routes to an appliance with `ip_address` (e.g., `192.168.1.1`). Defaults to `null`. |
 
 #### Security Rules
 
