@@ -1,11 +1,11 @@
 # Epic on Azure Terraform Stack
 
-This repository provides a Terraform module stack for deploying Epic on Azure, aligned with the Epic on Azure Well-Architected Framework (WAF) and built on Microsoft’s Azure Verified Modules (AVM). It’s designed to be both private and reusable, offering a flexible framework for managing Azure infrastructure across multiple subscriptions and workloads. The stack includes a private module for Epic-specific healthcare deployments (e.g., Hyperspace, MyChart) while keeping lower layers generic for broader use cases.
+This repository provides a Terraform module stack for deploying [Epic on Azure](https://www.microsoft.com/industry/health/epic-on-azure), aligned with the Epic on Azure Well-Architected Framework (WAF) and built on Microsoft’s [Azure Verified Modules (AVM)](https://azure.github.io/Azure-Verified-Modules/). It’s designed to be both private and reusable, offering a flexible framework for managing Azure infrastructure across multiple subscriptions and workloads. The stack includes a [private module for Epic-specific healthcare deployments (e.g., Hyperspace, MyChart)](/epic) while keeping lower layers generic for broader use cases.
 
-Each layer of the stack is a Terraform module, built to work independently or together. You can use the full stack for Epic on Azure or tap into individual layers for other projects, like setting up reliable virtual machines or organizing complex networks. Infrastructure is defined with table-like map variables (e.g., `infra_map`), which act like a blueprint to connect resources such as networks, VMs, and key vaults.
+Each layer of the stack is a Terraform module, built to work independently or together. You can use the full stack for Epic on Azure or tap into individual layers for other projects, like setting up [reliable virtual machines](#virtual-machine-sets) or organizing [complex networks](#networks). Infrastructure is defined with table-like map variables (e.g., `infra_map`), which act like a blueprint to connect resources such as networks, VMs, and [key vaults](#key-vaults).
 
 The stack delivers:
-- **Privacy**: Only the Epic module contains sensitive healthcare configurations, kept private for compliance.
+- **Privacy**: Only [the Epic module](/epic) contains sensitive healthcare configurations, kept private for compliance.
 - **Reusability**: Lower layers are public and adaptable for any Azure infrastructure project.
 - **Simplicity**: Modular design lets you choose the level of complexity you need, from basic resources to full deployments.
 
