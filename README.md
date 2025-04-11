@@ -93,7 +93,10 @@ erDiagram
   "Peerings" ||--|| "External Networks" : "peered to"
 ```
 
-> In the sections below, the 🔑 icon represents a "foreign key" property that references another table/map variable.
+> [!NOTE]
+> In the sections below:
+> * 🔑 indicates a "primary key"; typically the "one" side of a one-to-many relationship
+> * 🔗 indicates a "foreign key"; typically the "many" side of a one-to-many relationship
 
 ### Locations
 
@@ -103,8 +106,8 @@ The `locations` table defines the Azure regions where your infrastructure lives,
 
 ```hcl
 locations = {
-  primary = "eastus"  # A valid Azure region
-  alt     = "westus"  # A valid Azure region
+  primary = "eastus"  # A valid Azure region; 🔑 "primary" location
+  alt     = "westus"  # A valid Azure region; 🔑 "alt" location
 }
 ```
 
@@ -115,16 +118,16 @@ locations = {
 The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to resource groups and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like `resource_groups` and `networks`, ensuring resources stay aligned.
 
 ```hcl
-subscriptions = {
-  production = {
-    default_resource_group_name      = "production"          # 🔑 Links to var.resource_groups
-    private_link_resource_group_name = "production_networks" # 🔑 Optional; links to var.resource_groups
-    subscription_slot                = "az_subscription_1"   # Ties to an azurerm provider
+subscriptions = { 
+  production = {                                                  # 🔑 "production" subscription
+    default_resource_group_name      = "production"               # 🔗 Links to var.resource_groups
+    private_link_resource_group_name = "production_networks"      # 🔗 Optional; links to var.resource_groups
+    subscription_slot                = "az_subscription_1"        # Links to an azurerm provider
   }
-  non_production = {
-    default_resource_group_name      = "non_production"          
-    private_link_resource_group_name = "non_production_networks"
-    subscription_slot                = "az_subscription_2"
+  non_production = {                                              # 🔑 "non_production" subscription
+    default_resource_group_name      = "non_production"           # 🔗 Links to var.resource_groups    
+    private_link_resource_group_name = "non_production_networks"  # 🔗 Links to var.resource_groups
+    subscription_slot                = "az_subscription_2"        # Links to an azurerm provider
   }
 }
 ```
