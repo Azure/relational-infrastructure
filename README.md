@@ -572,16 +572,16 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.network_interfaces`
 
-The `network_interfaces` section within `virtual_machine_sets` configures the network connectivity for VMs, linking them to specific VNets and subnets. Each interface specifies a network, subnet, and IP settings, with options for accelerated networking. In the ERD, `network_interfaces` is a one-to-many child of `virtual_machine_sets`, with one-to-one links to `networks` and `subnets` via `network_name` and `subnet_name`, ensuring each VM set connects to the right network topology.
+The `network_interfaces` section within [`virtual_machine_sets`](#virtual-machine-sets) configures the network connectivity for VMs, linking them to specific VNets and subnets. Each interface specifies a network, subnet, and IP settings, with options for accelerated networking. In the ERD, `network_interfaces` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), with one-to-one links to [`networks`](#networks) and `subnets` via `network_name` and `subnet_name`, ensuring each VM set connects to the right network topology.
 
 ```hcl
 virtual_machine_sets = {
-  database = {
-    # Other fields...
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
     network_interfaces = {
-      primary_nic = {
-        network_name                  = "main"         # Links to var.networks
-        subnet_name                   = "subnet_a"     # Links to var.networks.main.subnets
+      primary_nic = {                                  # 🔑 "primary_nic" network interface
+        network_name                  = "main"         # 🔗 Links to var.networks
+        subnet_name                   = "subnet_a"     # 🔗 Links to var.networks.main.subnets
         private_ip                    = "10.0.0.10"    # Optional; static IP
         private_ip_allocation         = "Static"       # Optional; static or dynamic
         enable_accelerated_networking = true           # Optional; boost network performance
