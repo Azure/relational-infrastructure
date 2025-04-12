@@ -515,48 +515,47 @@ The `data_disks` section within [`virtual_machine_sets`](#virtual-machine-sets) 
 
 ```hcl
 virtual_machine_sets = {
-  database = {
-    # Other fields...
+  database = {                                      # 🔑 "database" VM set
+                                                    # Other fields...
     data_disks = {
-      copy_disk = {
-        lun                          = 0
-        caching                      = "ReadWrite"
-        enable_public_network_access = false
-        image = {
-          copy = {
+      copy_disk = {                                 # 🔑 "copy_disk" data disk
+        lun                          = 0            # Logical unit number (LUN) is 0
+        caching                      = "ReadWrite"  # ReadWrite caching enabled
+        enable_public_network_access = false        # Public network access is disabled
+        image = {  
+          copy = {                                  # Copy an existing managed disk
             resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
           }
         }
       }
-      import_disk = {
-        lun = 1
+      import_disk = {                               # 🔑 "import_disk" data disk
+        lun = 1                                     # Logical unit number (LUN) is 1
         image = {
-          import = {
+          import = {                                # Import a VHD
             uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
-            secure = true
+            secure = true                           # Perform a secure import (recommended)
           }
         }
       }
-      platform_disk = {
-        lun = 2
+      platform_disk = {                             # 🔑 "platform_disk" data disk
+        lun = 2                                     # Logical unit number (LUN) is 2
         image = {
-          platform = {
+          platform = {                              # Copy a platform image (i.e., from the Azure Marketplace)
             image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
           }
         }
       }
-      restore_disk = {
-        lun = 3
+      restore_disk = {                              # 🔑 "restore_disk" data disk
+        lun = 3                                     # Logical unit number (LUN) is 3
         image = {
-          restore = {
+          restore = {                               # Restore the disk from Azure Backup
             resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/snapshots/backup-snapshot"
           }
         }
       }
-      empty_disk = {
-        lun = 4
-        image = null  # Creates an empty disk
-      }
+      empty_disk = {                                # 🔑 "empty_disk" data disk
+        lun = 4                                     # Logical unit number (LUN) is 4
+      }                                             # By default, data disk is empty
     }
   }
 }
