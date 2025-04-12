@@ -642,20 +642,20 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disks`
 
-The `data_disks` subsection within `virtual_machine_set_specs` outlines data disk sizes and storage types for VM sets, matching keys with `virtual_machine_sets.data_disks`. Built for broad Azure use, it’s shaped by Epic’s need for detailed disk configurations, ensuring consistency across deployments. In the ERD, `data_disks` is a one-to-many child of `virtual_machine_set_specs`, tying storage specs to VM definitions.
+The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). Built for broad Azure use, it’s shaped by Epic’s need for detailed disk configurations, ensuring consistency across deployments. In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
 
 ```hcl
 virtual_machine_set_specs = {
-  database = {
-    # Other fields...
+  database = {                                # 🔑 "database" VM set
+                                              # Other fields...
     data_disks = {
-      data = {
-        disk_size_gb         = 128
-        storage_account_type = "Premium_LRS"
+      data = {                                # 🔑 "data" data disk
+        disk_size_gb         = 128            # "data" disk is 128 GiB
+        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
       }
-      logs = {
-        disk_size_gb         = 256
-        storage_account_type = "Premium_LRS"
+      logs = {                                # 🔑 "logs" data disk 
+        disk_size_gb         = 256            # "logs" disk is 256 GiB
+        storage_account_type = "Premium_LRS"   # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
       }
     }
   }
