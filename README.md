@@ -606,25 +606,25 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_set_specs`
 
-The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in `virtual_machine_sets`, linked one-to-one by a shared key. Crafted with flexibility for any Azure deployment, its design draws inspiration from Epic on Azure’s detailed VM and disk requirements, ensuring precision across use cases. It pairs with `virtual_machine_sets` and `virtual_machine_set_zone_distribution` (for custom zone adjustments) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with `virtual_machine_sets`, anchoring compute and storage details.
+The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in [`virtual_machine_sets`](#virtual-machine-sets), linked one-to-one by a shared key. Crafted with flexibility for any Azure deployment, its design draws inspiration from Epic on Azure’s detailed VM and disk requirements, ensuring precision across use cases. It pairs with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_zone_distribution` (for custom zone adjustments)](#virtual-machine-set-zone-distribution) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), anchoring compute and storage details.
 
 ```hcl
 virtual_machine_set_specs = {
-  database = {
-    vm_count = 3
-    sku_size = "Standard_D4ads_v5"
-    os_disk = {
-      disk_size_gb         = 128
-      storage_account_type = "Premium_LRS"
+  database = {                                # 🔑 "database" VM set
+    vm_count = 3                              # There are 3 VMs in this set
+    sku_size = "Standard_D4ads_v5"            # All VMs are size Standard_D4ads_v5
+    os_disk = {                                
+      disk_size_gb         = 128              # OS disk is 128 GiB
+      storage_account_type = "Premium_LRS"    # Can be Standard_LRS, Premium_LRS, StandardSSD_ZRS, or Premium_ZRS
     }
-    data_disks = {
-      data = {
-        disk_size_gb         = 128
-        storage_account_type = "Premium_LRS"
+    data_disks = {                            
+      data = {                                # 🔑 "data" data disk
+        disk_size_gb         = 128            # "data" disk is 128 GiB
+        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
       }
-      logs = {
-        disk_size_gb         = 256
-        storage_account_type = "Premium_LRS"
+      logs = {                                # 🔑 "logs" data disk
+        disk_size_gb         = 256            # "logs" disk is 256 GiB
+        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
       }
     }
   }
