@@ -575,7 +575,7 @@ virtual_machine_sets = {
 The `network_interfaces` section within [`virtual_machine_sets`](#virtual-machine-sets) configures the network connectivity for VMs, linking them to specific VNets and subnets. Each interface specifies a network, subnet, and IP settings, with options for accelerated networking. In the ERD, `network_interfaces` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), with one-to-one links to [`networks`](#networks) and `subnets` via `network_name` and `subnet_name`, ensuring each VM set connects to the right network topology.
 
 > [!IMPORTANT]
-> Only one network interface per VM can have accelerated networking enabled (`enable_accelerated_networking = true`). By default, this feature is enabled. If the VM has multiple network interfaces, you must explicitly indicate which network interfaces should not have accelerated networking enabled (`enable_accelerated_networking = false`). 
+> Only one network interface per VM can have [accelerated networking](https://learn.microsoft.com/azure/virtual-network/accelerated-networking-overview?tabs=redhat) enabled (`enable_accelerated_networking = true`). By default, this feature is enabled. If the VM has multiple network interfaces, you must explicitly indicate which network interfaces should not have accelerated networking enabled (`enable_accelerated_networking = false`). 
 
 ```hcl
 virtual_machine_sets = {
