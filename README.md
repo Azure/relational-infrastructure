@@ -43,6 +43,8 @@ To bring these connections to life, we’ve included an [**entity-relationship d
 ```mermaid
 ---
 title: Infrastructure Map Model
+config:
+        layout: elk
 ---
 erDiagram
   Locations ||--o{ "Resource Groups" : ""
