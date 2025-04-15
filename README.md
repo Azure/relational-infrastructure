@@ -160,6 +160,34 @@ subscriptions = {
 | `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
 | `subscription_slot` | References a named [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (e.g., `az_subscription_1` to `az_subscription_10`), tying to a specific Azure subscription. |
 
+### Lock Groups
+
+> Terraform variable: `var.lock_groups`
+
+The `lock_groups` table groups Azure resources—like VMs, networks, or disks—into logical sets for coordinated lock management during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. If a resource belongs to multiple groups with `locked = true`, the most restrictive lock applies: ReadOnly (no changes) overrides CanNotDelete (allows updates). In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
+
+```hcl
+lock_groups = {
+  production_lock = {      # 🔑 Primary key: "production_lock"
+    locked    = true       # Locks enabled
+    read_only = true       # ReadOnly lock
+  }
+  non_production_lock = {  # 🔑 Primary key: "maintenance_lock"
+    locked    = false      # Locks disabled
+    read_only = false      # CanNotDelete
+ lock
+  }
+}
+```
+
+> [!IMPORTANT]  
+> When a resource belongs to multiple locked groups (via its `lock_groups` property), the most restrictive lock wins: a ReadOnly lock (`read_only = true`) takes precedence over a CanNotDelete lock (`read_only = false`).
+
+| Field | Description |
+|-------|-------------|
+| `locked` | Required; if `true`, applies locks to group resources; if `false`, removes them for maintenance. |
+| `read_only` | Optional; if `true`, applies ReadOnly locks (no changes); if `false`, applies CanNotDelete locks (allows updates). Defaults to `false`. ReadOnly wins if multiple locked groups apply. |
+
 ### Resource Groups
 
 > Terraform variable: `var.resource_groups`
