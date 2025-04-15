@@ -731,14 +731,15 @@ The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs f
 ```hcl
 virtual_machine_set_zone_distribution = {
   primary_bca_web = {
-    custom = {
+    custom = {                
       "1" = 2  # 2 VMs in zone 1
       "2" = 8  # 8 VMs in zone 2
     }
   }
+
   database = {
-    even = [
-      "1",   # Distribute VMs evenly across zones 1 and 3
+    even = [   
+      "1",     # Distribute VMs evenly across zones 1 and 3
       "3"
     ]
   }
