@@ -78,4 +78,37 @@ locals {
       }
     } if network != null
   }
+
+  maintenance_configurations = {
+    for config_name, config in var.maintenance_configurations :
+    config_name => {
+      recur_every = (
+        config.every.day
+        ? "1Day"
+        : (
+          config.every.week
+          ? "1Week"
+          : (
+            config.every.month
+            ? "1Month"
+            : (
+              try(config.every.days, 0) > 0
+              ? "${config.every.days}Day"
+              : (
+                try(config.every.weeks, 0) > 0
+                ? "${config.every.weeks}Week"
+                : (
+                  try(config.every.months, 0) > 0
+                  ? "${config.every.months}Month"
+                  : null
+                )
+              )
+            )
+          )
+        )
+      )
+
+      
+    }
+  }
 }

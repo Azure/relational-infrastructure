@@ -4,9 +4,9 @@ variable "deployment_prefix" {
   description = "This prefix uniquely identifies the deployment. It is used to prefix all resource names."
 
   validation {
-    condition     = (
-      length(var.deployment_prefix) > 0 && 
-      length(var.deployment_prefix) <= 10 && 
+    condition = (
+      length(var.deployment_prefix) > 0 &&
+      length(var.deployment_prefix) <= 10 &&
       length(regexall("^[a-zA-Z0-9]+$", var.deployment_prefix)) > 0
     )
 
@@ -98,6 +98,27 @@ Defines this model's lock groups.
 These groups group Azure resources into logical sets for coordinated lock management during
 maintenance, such as updating a region's infrastructure or a compute tier.
 DESCRIPTION
+}
+
+variable "maintenance_configurations" {
+  type = map(object({
+    every = {
+      days   = optional(number, null)
+      weeks  = optional(number, null)
+      months = optional(number, null)
+
+      day   = optional(bool, false)
+      week  = optional(bool, false)
+      month = optional(bool, false)
+    }
+
+    start_date          = optional(string, null)
+    start_time_utc      = string
+    window_duration     = optional(string, "1:30")
+    resource_group_name = optional(string, null)
+    location_name       = optional(string, null)
+    lock_groups         = optional(list(string), [])
+  }))
 }
 
 variable "resource_groups" {

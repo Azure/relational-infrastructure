@@ -31,11 +31,7 @@ module "resource_groups" {
     : null
   )
 
-  tags = merge(
-    var.tags,
-    each.value.tags,
-    (var.include_label_tags ? { resource_group_label = each.key } : {})
-  )
+  tags = local.resource_group_tags[each.key]
 }
 
 module "ddos_protection_plan" {
@@ -129,8 +125,7 @@ module "key_vaults" {
   #Private Endpoints
   #Diagnostic Settings
 
-  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
-
+  tags = local.key_vault_tags[each.key]
 }
 
 
@@ -182,7 +177,7 @@ module "private_endpoints" {
 
   # Tags
   #tags = each.value.tags
-  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
+  tags = local.private_endpoint_tags[each.key]
 
 }
 
