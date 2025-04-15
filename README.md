@@ -463,7 +463,7 @@ networks = {
 
 > Terraform variable: `var.external_networks`
 
-The `external_networks` defines networks that exist outside of this model, distinct from this model's networks covered in `var.networks`. These are external networks -- on-premises, in Azure, or even in an other cloud -- that this model's networks and other resources interact with. You can easily refer to these external networks when configuring routing and security rules for `var.networks`. If you have sufficient permissions to peer to the external network, external networks with  `resource_id` defined can easily peered to from networks defined in `var.networks`.
+The `external_networks` table captures networks outside this model, unlike those defined in [`var.networks`](#networks). These can be on-premises, in Azure, or in another cloud, allowing your infrastructure to interact with them via [routing](#routes), [security rules](#security-rules), or [peering](#peerings). By specifying their address spaces and subnets, you can reference them in [`var.networks`](#networks) configurations. For Azure-based external networks, including a `resource_id` enables one-way [peering](#peerings) from [`var.networks`](#networks), provided you have sufficient permissions. In the ERD, `external_networks` links many-to-many with [`networks`](#networks) through [`peered_to`](#peerings), [`route_traffic`](#routes), and [`security_rules`](#security-rules), with `subnets` as a one-to-many child.
 
 ```hcl
 external_networks = {                                  
@@ -492,6 +492,12 @@ external_networks = {
   }
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| `address_space` | Required; defines the external network’s IP range, e.g., `10.10.0.0/16`, used in routes and security rules. |
+| `resource_id` | Optional; Azure resource ID for peering from [`var.networks`](#networks), e.g., `/subscriptions/12345678...`. Requires permissions. Defaults to `null`. |
+| `subnets` | Optional; maps subnets with `name` (e.g., `DatabaseSubnet`) and `address_space` (e.g., `10.10.0.0/24`) for detailed routing and security configs. Defaults to `{}`. |
 
 ### Virtual Machine Sets
 
