@@ -172,11 +172,19 @@ resource_groups = {
     subscription_name = "production"     # 🔗 Links to var.subscriptions
     location_name     = "primary"        # 🔗 Optional; links to var.locations
     name              = "production"     # Resource group name in Azure
+
+    lock_groups = [
+      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+    ]
   }
   non_production = {                     # 🔑 "non_production" resource group
     subscription_name = "non_production" # 🔗 Links to var.subscriptions
     location_name     = "alt"            # 🔗 Optional; links to var.locations
     name              = "non-production" # Resource group name in Azure
+
+    lock_groups = [
+      "non_production_lock"              # 🔗 Optional; links to var.lock_groups
+    ]
   }
 }
 ```
@@ -185,6 +193,7 @@ resource_groups = {
 |-------|-------------|
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions). Defines the subscription this resource group belongs to. |
 | `location_name` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this resource group belongs to. |
 | `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
 ### Virtual Machine Extensions
@@ -231,11 +240,17 @@ networks = {
     resource_group_name = "production"   # 🔗 Links to var.resource_groups
     name                = "main-vnet"    # Optional; defaults to key 🔑 "main" if unset
     address_space       = "10.0.0.0/16"  # Defines network address space in CIDR format
+
+    lock_groups = [
+      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+    ]
+
     subnets = {
       subnet_a = {                       # 🔑 "subnet_a" subnet
         name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
         address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
       }
+
       subnet_b = {                       # 🔑 "subnet_b" subnet
         name            = "subnet-b"     # Optional, defaults to key 🔑 "subnet_b" if unset
         address_space   = "10.0.1.0/24"  # Defines "subnet_a" address space in CIDR format
@@ -250,6 +265,7 @@ networks = {
 | `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the VNet. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VNet to a subscription. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VNet. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
 | `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
@@ -458,12 +474,19 @@ virtual_machine_sets = {
     subscription_name                 = "production"   # 🔗 Links to var.subscriptions
     name                              = "db"           # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true           # Apply var.deployment_prefix? Default: false
+
     tags = {
       role = "database"                                # Optional; tags all VMs
     }
+
     extensions = [                                     # Optional
       "azure_monitor"                                  # 🔗 Links to var.virtual_machine_extensions
     ]
+
+    lock_groups = [                                    # Optional
+      "production_lock"                                # 🔗 Links to var.lock_groups
+    ]
+
     os_type                 = "Windows"                # Windows or Linux
     disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
     enable_boot_diagnostics = true                     # Enable boot diagnostics? Default: false
@@ -477,6 +500,7 @@ virtual_machine_sets = {
 | `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock_groups. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
@@ -484,6 +508,9 @@ virtual_machine_sets = {
 | `os_type` | Specifies the OS: `Windows` or `Linux`. |
 | `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
+
+> [!TIP]
+> Lock groups can be overridden on VM set child resources. See [data disks](#virtual-machine-data-disks) and [network interfaces](#virtual-machine-network-interfaces) for more information.
 
 #### Virtual Machine Image
 
