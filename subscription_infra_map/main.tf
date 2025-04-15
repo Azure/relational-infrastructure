@@ -9,7 +9,33 @@ module "resource_groups" {
   )
 
   name = local.resource_group_names[each.key]
-  tags = local.resource_group_tags[each.key]
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
+
+  tags = merge(
+    var.tags,
+    each.value.tags,
+    (var.include_label_tags ? { resource_group_label = each.key } : {})
+  )
 }
 
 module "ddos_protection_plan" {
@@ -19,7 +45,6 @@ module "ddos_protection_plan" {
   location            = values(var.locations)[0]
   name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddosplan")
   resource_group_name = module.resource_groups[var.default_resource_group_name].name
-  tags                = var.tags
 }
 
 data "azurerm_client_config" "current" {}
@@ -34,9 +59,32 @@ module "key_vaults" {
   # version = "0.10.0"
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
-  location                        = var.locations[each.value.location_name]
-  resource_group_name             = module.resource_groups[each.value.resource_group_name].name
-  name                            = local.key_vault_names[each.key]
+  location            = var.locations[each.value.location_name]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+
+  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-kv")
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
+
   tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
   sku_name                        = each.value.sku_name
   enabled_for_deployment          = each.value.enabled_for_deployment
@@ -50,7 +98,6 @@ module "key_vaults" {
   wait_for_rbac_before_key_operations     = each.value.wait_for_rbac_before_key_operations
   wait_for_rbac_before_secret_operations  = each.value.wait_for_rbac_before_secret_operations
   wait_for_rbac_before_contact_operations = each.value.wait_for_rbac_before_contact_operations
-
 
   #Role Assignments
   role_assignments = merge(
@@ -82,7 +129,7 @@ module "key_vaults" {
   #Private Endpoints
   #Diagnostic Settings
 
-  tags = local.key_vault_tags[each.key]
+  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { keyvault_label = each.key } : {}))
 
 }
 
@@ -101,8 +148,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   name                  = local.key_vault_private_link_names[each.key]
   resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
-  virtual_network_id    = module.networks.virtual_networks[each.key].id
+  virtual_network_id    = module.networks[each.key].resource_id
   registration_enabled  = false
+  tags                  = merge(var.tags, { network_name = each.value.name })
+
 }
 
 # Private Endpoints for Azure services
@@ -116,6 +165,7 @@ module "private_endpoints" {
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
   network_interface_name         = each.value.network_interface_name
+  lock                           = each.value.lock
 
   # IP configurations if specified
   ip_configurations = each.value.ip_configurations
@@ -132,45 +182,52 @@ module "private_endpoints" {
 
   # Tags
   #tags = each.value.tags
-  tags = local.private_endpoint_tags[each.key]
+  tags = merge(var.tags, each.value.tags, (var.include_label_tags ? { private_endpoint_label = each.key } : {}))
 
 }
 
-
-
 module "networks" {
-  source = "Azure/avm-ptn-hubnetworking/azurerm"
+  source   = "Azure/avm-res-network-virtualnetwork/azurerm"
+  for_each = local.networks
 
-  hub_virtual_networks = {
-    for network_name, network in local.networks : network_name => {
-      name                            = network.name
-      location                        = var.locations[network.location_ref]
-      address_space                   = [network.address_space]
-      resource_group_name             = module.resource_groups[network.resource_group_name].name
-      ddos_protection_plan_id         = (network.enable_ddos_protection ? module.ddos_protection_plan[0].resource_id : null)
-      dns_servers                     = (network.dns_ips == null ? null : network.dns_ips)
-      tags                            = local.network_tags[network_name]
-      mesh_peering_enabled            = var.enable_full_network_mesh # We are explicit about the peerings that should be created
-      resource_group_creation_enabled = false                        # The resource group already exists
+  name                = each.value.name
+  location            = var.locations[each.value.location_name]
+  address_space       = [each.value.address_space]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  tags                = merge(var.tags, each.value.tags, (var.include_label_tags ? { network_label = each.key } : {}))
 
-      subnets = {
-        for subnet_name, subnet in network.subnets : subnet_name => {
-          name             = coalesce(subnet.name, subnet_name)
-          address_prefixes = [subnet.address_space]
+  ddos_protection_plan = (
+    each.value.enable_ddos_protection
+    ? {
+      id     = module.ddos_protection_plan[0].resource_id
+      enable = true
+    }
+    : null
+  )
 
-          network_security_group = (
-            contains(keys(local.network_security_groups), "${network_name}_${subnet_name}")
-            ? { id = module.network_security_groups["${network_name}_${subnet_name}"].resource_id }
-            : null
-          )
+  lock        = each.value.lock
 
-          route_table = (
-            contains(keys(local.route_tables), "${network_name}_${subnet_name}")
-            ? { id = module.route_tables["${network_name}_${subnet_name}"].resource_id }
-            : null
-          )
-        }
-      }
+  dns_servers = { # What?
+    dns_servers = (each.value.dns_ips == null ? null : each.value.dns_ips)
+  }
+
+  subnets = {
+    for subnet_name, subnet in each.value.subnets :
+    subnet_name => {
+      name             = coalesce(subnet.name, subnet_name)
+      address_prefixes = [subnet.address_space]
+
+      network_security_group = (
+        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
+        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
+        : null
+      )
+
+      route_table = (
+        contains(keys(local.route_tables), "${each.key}_${subnet_name}")
+        ? { id = module.route_tables["${each.key}_${subnet_name}"].resource_id }
+        : null
+      )
     }
   }
 }
@@ -182,7 +239,12 @@ module "route_tables" {
   location            = var.locations[each.value.location_ref]
   name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  tags                = local.route_table_tags[each.key]
+  lock                = each.value.lock
+
+  tags = merge(var.tags,
+    (var.include_label_tags ?
+      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
+  {}))
 
   routes = {
     for route_ref, route in each.value.routes : route_ref => {
@@ -201,7 +263,12 @@ module "network_security_groups" {
   location            = var.locations[each.value.location_ref]
   name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  tags                = local.security_group_tags[each.key]
+  lock                = each.value.lock
+
+  tags = merge(var.tags,
+    (var.include_label_tags ?
+      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
+  {}))
 
   security_rules = {
     for rule_ref, rule in merge(
@@ -248,8 +315,8 @@ module "virtual_machine_sets" {
 
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
-  resource_prefix                               = local.virtual_machine_set_prefixes[each.key]
-  resource_tags                                 = local.virtual_machine_set_tags[each.key]
+  resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
+  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
@@ -261,6 +328,27 @@ module "virtual_machine_sets" {
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
+
+  lock_mode = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? "read_only"
+      : "no_delete"
+    )
+    : null
+  )
 
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
@@ -285,6 +373,27 @@ module "virtual_machine_sets" {
       disk_size_gb                 = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
       storage_account_type         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
       enable_public_network_access = disk.enable_public_network_access
+
+      lock_mode = (
+        length([
+          for group in disk.lock_groups :
+          # Apply a lock only if lock_groups specifies a locked group
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in disk.lock_groups :
+            # Apply a lock only if the group is locked
+            # Read-only is the most restrictive lock. If any group is read-only, apply it.
+            # Otherwise, apply a no-delete lock.
+            contains(keys(local.locked_groups), group)
+            && try(local.locked_groups[group].read_only, false)
+          ])
+          ? "read_only"
+          : "no_delete"
+        )
+        : null
+      )
     }
   }
 
@@ -292,7 +401,28 @@ module "virtual_machine_sets" {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = module.networks.virtual_networks[nic.network_name].subnets["${nic.network_name}-${nic.subnet_name}"].resource_id
+      subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
+
+      lock_mode = (
+        length([
+          for group in nic.lock_groups :
+          # Apply a lock only if lock_groups specifies a locked group
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in nic.lock_groups :
+            # Apply a lock only if the group is locked
+            # Read-only is the most restrictive lock. If any group is read-only, apply it.
+            # Otherwise, apply a no-delete lock.
+            contains(keys(local.locked_groups), group)
+            && try(local.locked_groups[group].read_only, false)
+          ])
+          ? "read_only"
+          : "no_delete"
+        )
+        : null
+      )
     }
   }
 

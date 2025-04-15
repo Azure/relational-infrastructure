@@ -139,6 +139,13 @@ variable "virtual_machine_capacity_reservation_group_id" {
   nullable    = true
 }
 
+variable "enable_os_disk_public_network_access" {
+  type        = bool
+  default     = false
+  description = "Enable public network access for the OS disk."
+  nullable    = false
+}
+
 variable "virtual_machine_disk_controller_type" {
   type        = string
   description = "The disk controller type for the virtual machines."
@@ -188,6 +195,7 @@ variable "virtual_machine_data_disks" {
     caching                      = optional(string, "ReadWrite")
     enable_public_network_access = optional(bool, false)
     storage_account_type         = optional(string, "PremiumV2_LRS")
+    lock_mode                    = optional(string, null)
     disk_size_gb                 = number
     lun                          = number
   }))
@@ -275,6 +283,7 @@ variable "virtual_machine_network_interfaces" {
   type = map(object({
     private_ip                    = optional(string)
     enable_accelerated_networking = optional(bool, true)
+    lock_mode                     = optional(string, null)
     subnet_id                     = string
   }))
 
@@ -287,6 +296,7 @@ variable "virtual_machine_os_disk" {
     caching              = optional(string, "ReadWrite")
     storage_account_type = optional(string, "PremiumV2_LRS")
     disk_size_gb         = optional(number, 128)
+    lock_mode            = optional(string, null)
   })
 
   description = "The OS disk configuration for the virtual machines to deploy."

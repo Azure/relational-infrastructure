@@ -2,7 +2,7 @@ resource "azurerm_virtual_network_peering" "az_subscription_1_peerings" {
   for_each = {
     for peering_name, peering in local.peerings :
     peering_name => peering
-    if peering.from_subscription_name == local.subscription_names_by_slot[local._s1]
+    if peering.from_subscription_name == lookup(local.subscription_names_by_slot, local._s1, null)
   }
 
   depends_on = [
@@ -21,7 +21,7 @@ resource "azurerm_virtual_network_peering" "az_subscription_2_peerings" {
   for_each = {
     for peering_name, peering in local.peerings :
     peering_name => peering
-    if peering.from_subscription_name == local.subscription_names_by_slot[local._s2]
+    if peering.from_subscription_name == lookup(local.subscription_names_by_slot, local._s2, null)
   }
 
   depends_on = [
