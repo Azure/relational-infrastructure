@@ -481,13 +481,13 @@ external_networks = {
   external_azure_network = {                          # 🔑 "external_azure_network" external network
     address_space = "10.20.0.0/16"                    # External network address space can be used for
                                                       # configuring routes and security rules
-    resource_id   = "/subscriptions/12345678...       # External Azure network resource ID enables seamless
+    resource_id   = "/subscriptions/12345678..."      # External Azure network resource ID enables seamless
                                                       # var.networks to var.external_networks peering                                               
     subnets = {
-      external_service = {                
+      external_service = {                            # 🔑 "external_service" subnet                
         name          = "ServiceSubnet"
-        address_space = "10.20.0.0/24"
-      }
+        address_space = "10.20.0.0/24"                # External subnet address space can be used for
+      }                                               # configuring routes and security rules
     }
   }
 }
