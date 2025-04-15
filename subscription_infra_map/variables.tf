@@ -1,48 +1,82 @@
 variable "deployment_prefix" {
-  type     = string
-  nullable = false
-}
+  type        = string
+  nullable    = false
+  description = "This prefix uniquely identifies the deployment. It is used to prefix all resource names."
 
-variable "ddos_protection_plan_name" {
-  type     = string
-  nullable = true
-  default  = null
+  validation {
+    condition     = length(var.deployment_prefix) > 0 && length(var.deployment_prefix) <= 10 && regex("^[a-zA-Z0-9]+$", var.deployment_prefix)
+    error_message = "The deployment_prefix must contain only letters and digits, and be between 1-10 characters in length."
+  }
 }
 
 variable "enable_automatic_updates" {
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
+  description = "Toggles on/off automatic updates for Windows virtual machines."
 }
 
 variable "include_label_tags" {
-  type        = bool
-  default     = false
-  description = "Whether to include label tags."
+  type    = bool
+  default = false
+
+  description = <<DESCRIPTION
+Toggles on/off model resource tags.
+These tags can be used to map physical resources deployed in Azure to logical resources defined in this model.
+DESCRIPTION
 }
 
 variable "default_resource_group_name" {
   type        = string
   nullable    = false
-  description = "The name (resource_group_name) of this subscription's default resource group (defined in var.resource_groups)."
+  description = "The name of this subscription's default resource group as defined in var.resource_groups."
+
+  validation {
+    condition     = contains(keys(var.resource_groups), var.default_resource_group_name)
+    error_message = "The default_resource_group_name must exist as a key in var.resource_groups."
+  }
 }
 
 variable "private_link_resource_group_name" {
-  type        = string
-  default     = null
-  nullable    = true
-  description = "The name (resource_group_name) of the resource group (defined in var.resource_groups) where private link resources will be deployed."
+  type     = string
+  default  = null
+  nullable = true
+
+  description = <<DESCRIPTION
+The name of this subscription's shared private link resource group as defined in var.resource_groups.
+If not provided, var.default_resource_group_name will be used.
+DESCRIPTION
+
+  validation {
+    condition = (
+      var.private_link_resource_group_name == null ||
+      contains(keys(var.resource_groups), var.private_link_resource_group_name)
+    )
+
+    error_message = "If provided, the private_link_resource_group_name must exist as a key in var.resource_groups."
+  }
 }
 
 variable "tags" {
   type        = map(string)
   default     = {}
-  description = "A map of universal tags to apply to all resources."
+  description = "A map of universal tags to apply to all resources defined by this model."
 }
 
 variable "extensions" {
   type        = list(string)
   default     = []
-  description = "A set of extension names to apply to all virtual machines."
+  description = <<DESCRIPTION
+A list of extension names (as defined in var.virtual_machine_extensions) to apply to all 
+virtual machines deployed by this model.
+DESCRIPTION
+
+  validation {
+    condition = alltrue([
+      for ext in var.extensions : contains(keys(var.virtual_machine_extensions), ext)
+    ])
+
+    error_message = "All extensions must exist as keys in var.virtual_machine_extensions."
+  }
 }
 
 variable "lock_groups" {
@@ -51,9 +85,14 @@ variable "lock_groups" {
     read_only = optional(bool, false)
   }))
 
-  default     = {}
-  nullable    = false
-  description = "A map of lock groups."
+  default  = {}
+  nullable = false
+
+  description = <<DESCRIPTION
+Defines this model's lock groups. 
+These groups group Azure resources into logical sets for coordinated lock management during
+maintenance, such as updating a region's infrastructure or a compute tier.
+DESCRIPTION
 }
 
 variable "resource_groups" {
@@ -67,7 +106,25 @@ variable "resource_groups" {
 
   default     = {}
   nullable    = false
-  description = "A map of resource groups."
+  description = "Defines this model's resource groups."
+
+  validation {
+    condition = alltrue([
+      for group in values(var.resource_groups) : contains(keys(var.locations), group.location_name)
+    ])
+
+    error_message = "All resource groups must have a location_name that exists as a key in var.locations."
+  }
+
+  validation {
+    condition = alltrue([
+      for group in values(var.resource_groups) : alltrue([
+        for lock_group in group.lock_groups : contains(keys(var.lock_groups), lock_group)
+      ])
+    ])
+
+    error_message = "All resource groups must have lock_groups where every lock_group exists as a key in var.lock_groups."
+  }
 }
 
 variable "virtual_machine_extensions" {
@@ -90,14 +147,15 @@ variable "virtual_machine_extensions" {
     }))
   }))
 
-  default  = {}
-  nullable = false
+  default     = {}
+  nullable    = false
+  description = "Defines this model's virtual machine extensions."
 }
 
 variable "locations" {
   type        = map(string)
   default     = {}
-  description = "A map of Azure locations in which resources will be deployed."
+  description = "Defines this model's Azure locations."
 
   validation {
     condition     = length(var.locations) > 0
@@ -164,7 +222,17 @@ variable "external_networks" {
 
   default     = {}
   nullable    = false
-  description = "A map of external networks."
+  description = "Defines this model's external networks."
+
+  validation {
+    condition = alltrue([
+      for network_name, network in var.networks : alltrue([
+        for subnet_name, subnet in network.subnets : cidrcontains(network.address_space, subnet.address_space)
+      ])
+    ])
+
+    error_message = "All subnet address_space(s) must be within their parent network's address_space."
+  }
 }
 
 variable "networks" {
@@ -319,6 +387,75 @@ variable "networks" {
 
   default  = {}
   nullable = false
+
+  validation {
+    condition = alltrue([
+      for network in values(var.networks) : contains(keys(var.locations), network.location_name)
+    ])
+
+    error_message = "All networks must have a location_name that exists as a key in var.locations."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in values(var.networks) : contains(keys(var.resource_groups), network.resource_group_name)
+    ])
+
+    error_message = "All networks must have a resource_group_name that exists as a key in var.resource_groups."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in values(var.networks) : alltrue([
+        for lock_group in group.lock_groups : contains(keys(var.lock_groups), lock_group)
+      ])
+    ])
+
+    error_message = "All networks must have lock_groups where every lock_group exists as a key in var.lock_groups."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in value(var.networks) : alltrue([
+        for peer_to_network_name in network.peered_to : (
+          contains(keys(var.networks), peer_to_network_name) ||
+          contains(keys(var.external_networks), peer_to_network_name)
+        )
+      ])
+    ])
+
+    error_message = "All networks must have peered_to networks that exist as keys in var.networks or var.external_networks."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in local.nsg_network_refs : (
+        contains(keys(var.networks), network.network_name) ||
+        contains(keys(var.external_networks), network.network_name)
+      )
+    ])
+
+    error_message = <<ERROR_MESSAGE
+One or more networks referenced in security rules are invalid:
+- Ensure that the network_name exists as a key in either var.networks or var.external_networks.
+- Check that all referenced network names are correctly defined in the appropriate variable.
+ERROR_MESSAGE
+  }
+
+  validation {
+    condition = alltrue([
+      for subnet in local.nsg_subnet_refs : (
+        try(var.networks[subnet.network_name].subnets[subnet.subnet_name], null) != null ||
+        try(var.external_networks[subnet.network_name].subnets[subnet.subnet_name], null) != null
+      )
+    ])
+
+    error_message = <<ERROR_MESSAGE
+One or more subnets referenced in security rules are invalid:
+- Ensure that the network_name exists as a key in either var.networks or var.external_networks.
+- Ensure that the subnet_name exists as a key in the corresponding subnets map for the specified network_name.
+ERROR_MESSAGE
+  }
 }
 
 variable "virtual_machine_sets" {

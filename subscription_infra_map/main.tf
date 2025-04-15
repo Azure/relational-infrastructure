@@ -43,7 +43,7 @@ module "ddos_protection_plan" {
   count  = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
 
   location            = values(var.locations)[0]
-  name                = coalesce(var.ddos_protection_plan_name, "${var.deployment_prefix}-ddosplan")
+  name                = "${var.deployment_prefix}-ddosplan"
   resource_group_name = module.resource_groups[var.default_resource_group_name].name
 }
 
