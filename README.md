@@ -636,7 +636,12 @@ virtual_machine_sets = {
         subnet_name                   = "subnet_a"     # 🔗 Links to var.networks.main.subnets
         private_ip                    = "10.0.0.10"    # Optional; static IP
         private_ip_allocation         = "Static"       # Optional; static or dynamic
-        enable_accelerated_networking = true           # Optional; boost network performance
+        enable_accelerated_networking = true           # Optional; boost network performance.
+                                                       # See __Important__ accelerated networking note above.
+
+        lock_groups = [                                # Optional; overrides lock groups defined on parent VM set
+          "nic_lock"                                   # 🔗 Links to var.lock_groups
+        ]
       }
     }
   }
@@ -647,6 +652,7 @@ virtual_machine_sets = {
 |-------|-------------|
 | `network_name` | Required; links to a key in [`var.networks`](#networks), specifying the VNet for the interface. |
 | `subnet_name` | Required; links to a subnet key within the specified `network_name` in [`var.networks`](#networks). |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this network interface belongs to. These lock groups override lock groups defined at the [parent VM set](#virtual-machine-set) level. |
 | `private_ip` | Optional; sets a static private IP address, e.g., `10.0.0.10`. Defaults to `null` for dynamic allocation. |
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
