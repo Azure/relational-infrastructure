@@ -160,6 +160,33 @@ subscriptions = {
 | `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
 | `subscription_slot` | References a named [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (e.g., `az_subscription_1` to `az_subscription_10`), tying to a specific Azure subscription. |
 
+### Lock Groups
+
+> Terraform variable: `var.lock_groups`
+
+The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. If a resource belongs to multiple groups with `locked = true`, the most restrictive lock applies: ReadOnly (no changes) overrides CanNotDelete (allows updates). In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
+
+```hcl
+lock_groups = {
+  production_lock = {      # 🔑 Primary key: "production_lock"
+    locked    = true       # Locks enabled
+    read_only = true       # ReadOnly lock
+  }
+  non_production_lock = {  # 🔑 Primary key: "maintenance_lock"
+    locked    = false      # Locks disabled
+    read_only = false      # CanNotDelete lock
+  }
+}
+```
+
+> [!IMPORTANT]  
+> When a resource belongs to multiple locked groups (via its `lock_groups` property), the most restrictive lock wins: a ReadOnly lock (`read_only = true`) takes precedence over a CanNotDelete lock (`read_only = false`).
+
+| Field | Description |
+|-------|-------------|
+| `locked` | Required; if `true`, applies locks to group resources; if `false`, removes them for maintenance. |
+| `read_only` | Optional; if `true`, applies ReadOnly locks (no changes); if `false`, applies CanNotDelete locks (allows updates). Defaults to `false`. ReadOnly wins if multiple locked groups apply. |
+
 ### Resource Groups
 
 > Terraform variable: `var.resource_groups`
@@ -172,11 +199,19 @@ resource_groups = {
     subscription_name = "production"     # 🔗 Links to var.subscriptions
     location_name     = "primary"        # 🔗 Optional; links to var.locations
     name              = "production"     # Resource group name in Azure
+
+    lock_groups = [
+      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+    ]
   }
   non_production = {                     # 🔑 "non_production" resource group
     subscription_name = "non_production" # 🔗 Links to var.subscriptions
     location_name     = "alt"            # 🔗 Optional; links to var.locations
     name              = "non-production" # Resource group name in Azure
+
+    lock_groups = [
+      "non_production_lock"              # 🔗 Optional; links to var.lock_groups
+    ]
   }
 }
 ```
@@ -185,6 +220,7 @@ resource_groups = {
 |-------|-------------|
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions). Defines the subscription this resource group belongs to. |
 | `location_name` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this resource group belongs to. |
 | `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
 ### Virtual Machine Extensions
@@ -231,11 +267,17 @@ networks = {
     resource_group_name = "production"   # 🔗 Links to var.resource_groups
     name                = "main-vnet"    # Optional; defaults to key 🔑 "main" if unset
     address_space       = "10.0.0.0/16"  # Defines network address space in CIDR format
+
+    lock_groups = [
+      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+    ]
+
     subnets = {
       subnet_a = {                       # 🔑 "subnet_a" subnet
         name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
         address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
       }
+
       subnet_b = {                       # 🔑 "subnet_b" subnet
         name            = "subnet-b"     # Optional, defaults to key 🔑 "subnet_b" if unset
         address_space   = "10.0.1.0/24"  # Defines "subnet_a" address space in CIDR format
@@ -250,6 +292,7 @@ networks = {
 | `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the VNet. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VNet to a subscription. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VNet. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
 | `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
@@ -443,6 +486,46 @@ networks = {
 | `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
 | `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
 
+### External Networks
+
+> Terraform variable: `var.external_networks`
+
+The `external_networks` table captures networks outside this model, unlike those defined in [`var.networks`](#networks). These can be on-premises, in Azure, or in another cloud, allowing your infrastructure to interact with them via [routing](#routes), [security rules](#security-rules), or [peering](#peerings). By specifying their address spaces and subnets, you can reference them in [`var.networks`](#networks) configurations. For Azure-based external networks, including a `resource_id` enables one-way [peering](#peerings) from [`var.networks`](#networks), provided you have sufficient permissions. In the ERD, `external_networks` links many-to-many with [`networks`](#networks) through [`peered_to`](#peerings), [`route_traffic`](#routes), and [`security_rules`](#security-rules), with `subnets` as a one-to-many child.
+
+```hcl
+external_networks = {                                  
+  on_prem_network = {                                 # 🔑 "on_prem_network" external network
+    address_space = "10.10.0.0/16"                    # External network address space can be used for
+                                                      # configuring routes and security rules
+    subnets = {
+      on_prem_database = {                            # 🔑 "on_prem_database" external subnet
+        name          = "DatabaseSubnet"              
+        address_space = "10.10.0.0/24"                # External subnet address space can be used for
+      }                                               # configuring routes and security rules
+    }
+  }
+
+  external_azure_network = {                          # 🔑 "external_azure_network" external network
+    address_space = "10.20.0.0/16"                    # External network address space can be used for
+                                                      # configuring routes and security rules
+    resource_id   = "/subscriptions/12345678..."      # External Azure network resource ID enables seamless
+                                                      # var.networks to var.external_networks peering                                               
+    subnets = {
+      external_service = {                            # 🔑 "external_service" subnet                
+        name          = "ServiceSubnet"
+        address_space = "10.20.0.0/24"                # External subnet address space can be used for
+      }                                               # configuring routes and security rules
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `address_space` | Required; defines the external network’s IP range, e.g., `10.10.0.0/16`, used in routes and security rules. |
+| `resource_id` | Optional; Azure resource ID for peering from [`var.networks`](#networks), e.g., `/subscriptions/12345678...`. Requires permissions. Defaults to `null`. |
+| `subnets` | Optional; maps subnets with `name` (e.g., `DatabaseSubnet`) and `address_space` (e.g., `10.10.0.0/24`) for detailed routing and security configs. Defaults to `{}`. |
+
 ### Virtual Machine Sets
 
 > Terraform variable: `var.virtual_machine_sets`
@@ -458,12 +541,19 @@ virtual_machine_sets = {
     subscription_name                 = "production"   # 🔗 Links to var.subscriptions
     name                              = "db"           # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true           # Apply var.deployment_prefix? Default: false
+
     tags = {
       role = "database"                                # Optional; tags all VMs
     }
+
     extensions = [                                     # Optional
       "azure_monitor"                                  # 🔗 Links to var.virtual_machine_extensions
     ]
+
+    lock_groups = [                                    # Optional
+      "production_lock"                                # 🔗 Links to var.lock_groups
+    ]
+
     os_type                 = "Windows"                # Windows or Linux
     disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
     enable_boot_diagnostics = true                     # Enable boot diagnostics? Default: false
@@ -477,6 +567,7 @@ virtual_machine_sets = {
 | `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
@@ -484,6 +575,9 @@ virtual_machine_sets = {
 | `os_type` | Specifies the OS: `Windows` or `Linux`. |
 | `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
+
+> [!TIP]
+> Lock groups can be overridden on VM set child resources. See [data disks](#virtual-machine-data-disks) and [network interfaces](#virtual-machine-network-interfaces) for more information.
 
 #### Virtual Machine Image
 
@@ -532,14 +626,21 @@ virtual_machine_sets = {
         lun                          = 0            # Logical unit number (LUN) is 0
         caching                      = "ReadWrite"  # ReadWrite caching enabled
         enable_public_network_access = false        # Public network access is disabled
+
         image = {  
           copy = {                                  # Copy an existing managed disk
             resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
           }
         }
+
+        lock_groups = [                             # Optional; overrides lock groups defined on parent VM set
+          "data_disk_lock"                          # 🔗 Links to var.lock_groups
+        ]
       }
+
       import_disk = {                               # 🔑 "import_disk" data disk
         lun = 1                                     # Logical unit number (LUN) is 1
+
         image = {
           import = {                                # Import a VHD
             uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
@@ -547,14 +648,17 @@ virtual_machine_sets = {
           }
         }
       }
+
       platform_disk = {                             # 🔑 "platform_disk" data disk
-        lun = 2                                     # Logical unit number (LUN) is 2
+        lun = 2
+                                     # Logical unit number (LUN) is 2
         image = {
           platform = {                              # Copy a platform image (i.e., from the Azure Marketplace)
             image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
           }
         }
       }
+
       restore_disk = {                              # 🔑 "restore_disk" data disk
         lun = 3                                     # Logical unit number (LUN) is 3
         image = {
@@ -563,6 +667,7 @@ virtual_machine_sets = {
           }
         }
       }
+
       empty_disk = {                                # 🔑 "empty_disk" data disk
         lun = 4                                     # Logical unit number (LUN) is 4
       }                                             # By default, data disk is empty
@@ -577,6 +682,7 @@ virtual_machine_sets = {
 | `caching` | Optional; configures caching: `None`, `ReadOnly`, or `ReadWrite`. Defaults to `ReadWrite`. |
 | `enable_public_network_access` | Optional; if `true`, allows public access to the disk for specific use cases. Defaults to `false`. |
 | `image` | Optional; specifies the disk’s source: `copy` (from a disk/snapshot), `import` (from a VHD file), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disk). |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this data disk belongs to. These lock groups override lock groups defined at the [parent VM set](#virtual-machine-set) level. |
 
 #### Virtual Machine Network Interfaces
 
@@ -597,7 +703,12 @@ virtual_machine_sets = {
         subnet_name                   = "subnet_a"     # 🔗 Links to var.networks.main.subnets
         private_ip                    = "10.0.0.10"    # Optional; static IP
         private_ip_allocation         = "Static"       # Optional; static or dynamic
-        enable_accelerated_networking = true           # Optional; boost network performance
+        enable_accelerated_networking = true           # Optional; boost network performance.
+                                                       # See __Important__ accelerated networking note above.
+
+        lock_groups = [                                # Optional; overrides lock groups defined on parent VM set
+          "nic_lock"                                   # 🔗 Links to var.lock_groups
+        ]
       }
     }
   }
@@ -608,6 +719,7 @@ virtual_machine_sets = {
 |-------|-------------|
 | `network_name` | Required; links to a key in [`var.networks`](#networks), specifying the VNet for the interface. |
 | `subnet_name` | Required; links to a subnet key within the specified `network_name` in [`var.networks`](#networks). |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this network interface belongs to. These lock groups override lock groups defined at the [parent VM set](#virtual-machine-set) level. |
 | `private_ip` | Optional; sets a static private IP address, e.g., `10.0.0.10`. Defaults to `null` for dynamic allocation. |
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
@@ -686,14 +798,15 @@ The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs f
 ```hcl
 virtual_machine_set_zone_distribution = {
   primary_bca_web = {
-    custom = {
+    custom = {                
       "1" = 2  # 2 VMs in zone 1
       "2" = 8  # 8 VMs in zone 2
     }
   }
+
   database = {
-    even = [
-      "1",   # Distribute VMs evenly across zones 1 and 3
+    even = [   
+      "1",     # Distribute VMs evenly across zones 1 and 3
       "3"
     ]
   }
@@ -713,30 +826,42 @@ The `key_vaults` table configures Azure Key Vaults for secure storage of secrets
 
 ```hcl
 key_vaults = {
-  primary = {
-    location_name       = "primary"          # Links to var.locations
-    subscription_name   = "main"             # Links to var.subscriptions
-    resource_group_name = "main_key_vaults"  # Links to var.resource_groups
+  primary = {                                # 🔑 "primary" key vault
+    location_name       = "primary"          # 🔗 Links to var.locations
+    subscription_name   = "main"             # 🔗 Links to var.subscriptions
+    resource_group_name = "main_key_vaults"  # 🔗 Links to var.resource_groups
     sku_name            = "standard"         # Optional; standard or premium
+
+    lock_groups = [                          # Optional
+      "production_lock"                      # 🔗 Links to var.lock_groups
+    ]
+
     tags = {
       epic-env = "production"                # Optional; custom tags
     }
+
     network_acls = {
       bypass         = "AzureServices"       # Optional; allow Azure services
       default_action = "Allow"               # Optional; default access rule
     }
   }
-  alt = {
-    location_name       = "alt"
-    subscription_name   = "main"
-    resource_group_name = "main_key_vaults"
-    sku_name            = "standard"
+  alt = {                                    # 🔑 "alt" key vault
+    location_name       = "alt"              # 🔗 Links to var.locations
+    subscription_name   = "main"             # 🔗 Links to var.subscriptions
+    resource_group_name = "main_key_vaults"  # 🔗 Links to var.resource_groups
+    sku_name            = "standard"         # Optional; standard or premium
+
+    lock_groups = [                          # Optional
+      "non_production_lock"                  # 🔗 Links to var.lock_groups
+    ]
+
     tags = {
-      epic-env = "production"
+      epic-env = "production"                # Optional; custom tags 
     }
+
     network_acls = {
-      bypass         = "AzureServices"
-      default_action = "Allow"
+      bypass         = "AzureServices"       # Optional; allow Azure services
+      default_action = "Allow"               # Optional; default access rule
     }
   }
 }
@@ -747,6 +872,7 @@ key_vaults = {
 | `location_name` | Required; links to a key in [`var.locations`](#locations), setting the vault’s Azure region. |
 | `subscription_name` | Required; links to a key in [`var.subscriptions`](#subscriptions), tying the vault to a subscription. |
 | `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the vault’s resource group. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that the vault belongs to. |
 | `sku_name` | Optional; sets the vault SKU: `standard` or `premium`. Defaults to `standard`. |
 | `tags` | Optional; applies key-value tags, e.g., `epic-env: production`. Defaults to `{}`. |
 | `network_acls` | Optional; configures network access with `bypass` (e.g., `AzureServices`) and `default_action` (e.g., `Allow`). Defaults to `{}`. |
