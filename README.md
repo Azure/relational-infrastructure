@@ -459,6 +459,40 @@ networks = {
 | `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
 | `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
 
+### External Networks
+
+> Terraform variable: `var.external_networks`
+
+The `external_networks` defines networks that exist outside of this model, distinct from this model's networks covered in `var.networks`. These are external networks -- on-premises, in Azure, or even in an other cloud -- that this model's networks and other resources interact with. You can easily refer to these external networks when configuring routing and security rules for `var.networks`. If you have sufficient permissions to peer to the external network, external networks with  `resource_id` defined can easily peered to from networks defined in `var.networks`.
+
+```hcl
+external_networks = {                                  
+  on_prem_network = {                                 # 🔑 "on_prem_network" external network
+    address_space = "10.10.0.0/16"                    # External network address space can be used for
+                                                      # configuring routes and security rules
+    subnets = {
+      on_prem_database = {                            # 🔑 "on_prem_database" external subnet
+        name          = "DatabaseSubnet"              
+        address_space = "10.10.0.0/24"                # External subnet address space can be used for
+      }                                               # configuring routes and security rules
+    }
+  }
+
+  external_azure_network = {                          # 🔑 "external_azure_network" external network
+    address_space = "10.20.0.0/16"                    # External network address space can be used for
+                                                      # configuring routes and security rules
+    resource_id   = "/subscriptions/12345678...       # External Azure network resource ID enables seamless
+                                                      # var.networks to var.external_networks peering                                               
+    subnets = {
+      external_service = {                
+        name          = "ServiceSubnet"
+        address_space = "10.20.0.0/24"
+      }
+    }
+  }
+}
+```
+
 ### Virtual Machine Sets
 
 > Terraform variable: `var.virtual_machine_sets`
@@ -759,30 +793,42 @@ The `key_vaults` table configures Azure Key Vaults for secure storage of secrets
 
 ```hcl
 key_vaults = {
-  primary = {
-    location_name       = "primary"          # Links to var.locations
-    subscription_name   = "main"             # Links to var.subscriptions
-    resource_group_name = "main_key_vaults"  # Links to var.resource_groups
+  primary = {                                # 🔑 "primary" key vault
+    location_name       = "primary"          # 🔗 Links to var.locations
+    subscription_name   = "main"             # 🔗 Links to var.subscriptions
+    resource_group_name = "main_key_vaults"  # 🔗 Links to var.resource_groups
     sku_name            = "standard"         # Optional; standard or premium
+
+    lock_groups = [                          # Optional
+      "production_lock"                      # 🔗 Links to var.lock_groups
+    ]
+
     tags = {
       epic-env = "production"                # Optional; custom tags
     }
+
     network_acls = {
       bypass         = "AzureServices"       # Optional; allow Azure services
       default_action = "Allow"               # Optional; default access rule
     }
   }
-  alt = {
-    location_name       = "alt"
-    subscription_name   = "main"
-    resource_group_name = "main_key_vaults"
-    sku_name            = "standard"
+  alt = {                                    # 🔑 "alt" key vault
+    location_name       = "alt"              # 🔗 Links to var.locations
+    subscription_name   = "main"             # 🔗 Links to var.subscriptions
+    resource_group_name = "main_key_vaults"  # 🔗 Links to var.resource_groups
+    sku_name            = "standard"         # Optional; standard or premium
+
+    lock_groups = [                          # Optional
+      "non_production_lock"                  # 🔗 Links to var.lock_groups
+    ]
+
     tags = {
-      epic-env = "production"
+      epic-env = "production"                # Optional; custom tags 
     }
+
     network_acls = {
-      bypass         = "AzureServices"
-      default_action = "Allow"
+      bypass         = "AzureServices"       # Optional; allow Azure services
+      default_action = "Allow"               # Optional; default access rule
     }
   }
 }
@@ -793,6 +839,7 @@ key_vaults = {
 | `location_name` | Required; links to a key in [`var.locations`](#locations), setting the vault’s Azure region. |
 | `subscription_name` | Required; links to a key in [`var.subscriptions`](#subscriptions), tying the vault to a subscription. |
 | `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the vault’s resource group. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that the vault belongs to. |
 | `sku_name` | Optional; sets the vault SKU: `standard` or `premium`. Defaults to `standard`. |
 | `tags` | Optional; applies key-value tags, e.g., `epic-env: production`. Defaults to `{}`. |
 | `network_acls` | Optional; configures network access with `bypass` (e.g., `AzureServices`) and `default_action` (e.g., `Allow`). Defaults to `{}`. |
