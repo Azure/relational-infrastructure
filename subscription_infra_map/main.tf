@@ -205,7 +205,7 @@ module "networks" {
     : null
   )
 
-  lock        = each.value.lock
+  lock = each.value.lock
 
   dns_servers = { # What?
     dns_servers = (each.value.dns_ips == null ? null : each.value.dns_ips)
@@ -315,6 +315,7 @@ module "virtual_machine_sets" {
 
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
+  resource_group_id                             = module.resource_groups[each.value.resource_group_name].resource_id
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
   resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count

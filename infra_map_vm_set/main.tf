@@ -1,7 +1,3 @@
-data "azurerm_resource_group" "resource_group" {
-  name = var.resource_group_name
-}
-
 module "virtual_machine_scale_set" {
   source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
 
@@ -47,7 +43,7 @@ resource "azapi_update_resource" "disable_os_disk_public_network_access" {
   count     = var.enable_os_disk_public_network_access ? 0 : var.virtual_machine_count
   type      = "Microsoft.Compute/disks@2023-01-02"
   name      = local.virtual_machine_os_disks[count.index].name
-  parent_id = data.azurerm_resource_group.resource_group.id
+  parent_id = var.resource_group_id
 
   body = {
     properties = {

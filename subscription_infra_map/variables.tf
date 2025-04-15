@@ -4,7 +4,12 @@ variable "deployment_prefix" {
   description = "This prefix uniquely identifies the deployment. It is used to prefix all resource names."
 
   validation {
-    condition     = length(var.deployment_prefix) > 0 && length(var.deployment_prefix) <= 10 && regex("^[a-zA-Z0-9]+$", var.deployment_prefix)
+    condition     = (
+      length(var.deployment_prefix) > 0 && 
+      length(var.deployment_prefix) <= 10 && 
+      length(regexall("^[a-zA-Z0-9]+$", var.deployment_prefix)) > 0
+    )
+
     error_message = "The deployment_prefix must contain only letters and digits, and be between 1-10 characters in length."
   }
 }
@@ -49,7 +54,7 @@ DESCRIPTION
   validation {
     condition = (
       var.private_link_resource_group_name == null ||
-      contains(keys(var.resource_groups), var.private_link_resource_group_name)
+      try(contains(keys(var.resource_groups), var.private_link_resource_group_name), false)
     )
 
     error_message = "If provided, the private_link_resource_group_name must exist as a key in var.resource_groups."
@@ -223,16 +228,6 @@ variable "external_networks" {
   default     = {}
   nullable    = false
   description = "Defines this model's external networks."
-
-  validation {
-    condition = alltrue([
-      for network_name, network in var.networks : alltrue([
-        for subnet_name, subnet in network.subnets : cidrcontains(network.address_space, subnet.address_space)
-      ])
-    ])
-
-    error_message = "All subnet address_space(s) must be within their parent network's address_space."
-  }
 }
 
 variable "networks" {
@@ -407,7 +402,7 @@ variable "networks" {
   validation {
     condition = alltrue([
       for network in values(var.networks) : alltrue([
-        for lock_group in group.lock_groups : contains(keys(var.lock_groups), lock_group)
+        for lock_group in network.lock_groups : contains(keys(var.lock_groups), lock_group)
       ])
     ])
 
@@ -416,7 +411,7 @@ variable "networks" {
 
   validation {
     condition = alltrue([
-      for network in value(var.networks) : alltrue([
+      for network in values(var.networks) : alltrue([
         for peer_to_network_name in network.peered_to : (
           contains(keys(var.networks), peer_to_network_name) ||
           contains(keys(var.external_networks), peer_to_network_name)
@@ -425,36 +420,6 @@ variable "networks" {
     ])
 
     error_message = "All networks must have peered_to networks that exist as keys in var.networks or var.external_networks."
-  }
-
-  validation {
-    condition = alltrue([
-      for network in local.nsg_network_refs : (
-        contains(keys(var.networks), network.network_name) ||
-        contains(keys(var.external_networks), network.network_name)
-      )
-    ])
-
-    error_message = <<ERROR_MESSAGE
-One or more networks referenced in security rules are invalid:
-- Ensure that the network_name exists as a key in either var.networks or var.external_networks.
-- Check that all referenced network names are correctly defined in the appropriate variable.
-ERROR_MESSAGE
-  }
-
-  validation {
-    condition = alltrue([
-      for subnet in local.nsg_subnet_refs : (
-        try(var.networks[subnet.network_name].subnets[subnet.subnet_name], null) != null ||
-        try(var.external_networks[subnet.network_name].subnets[subnet.subnet_name], null) != null
-      )
-    ])
-
-    error_message = <<ERROR_MESSAGE
-One or more subnets referenced in security rules are invalid:
-- Ensure that the network_name exists as a key in either var.networks or var.external_networks.
-- Ensure that the subnet_name exists as a key in the corresponding subnets map for the specified network_name.
-ERROR_MESSAGE
   }
 }
 

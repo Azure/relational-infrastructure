@@ -107,6 +107,12 @@ variable "resource_group_name" {
   nullable    = false
 }
 
+variable "resource_group_id" {
+  type        = string
+  description = "The ID of the resource group in which resources will be deployed."
+  nullable    = false
+}
+
 variable "resource_tags" {
   type        = map(string)
   description = "A map of tags to apply to all resources."

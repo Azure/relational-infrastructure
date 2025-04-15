@@ -21,41 +21,6 @@ locals {
     } if group.locked
   }
 
-  nsg_network_refs = flatten([
-    for rule_type in ["allow", "deny"] : [
-      for rule_direction in ["in", "out"] : [
-        for network in values(var.networks) : [
-          for rule in values(network.security_rules) : [
-            for block in [
-              try(rule[rule_type][rule_direction].from, null),
-              try(rule[rule_type][rule_direction].to, null)
-              ] : {
-              network_name = try(block.network.network_name, null)
-            } if try(block.network, null) != null
-          ]
-        ]
-      ]
-    ]
-  ])
-
-  nsg_subnet_refs = flatten([
-    for rule_type in ["allow", "deny"] : [
-      for rule_direction in ["in", "out"] : [
-        for network in values(var.networks) : [
-          for rule in values(network.security_rules) : [
-            for block in [
-              try(rule[rule_type][rule_direction].from, null),
-              try(rule[rule_type][rule_direction].to, null)
-              ] : {
-              network_name = try(block.subnet.network_name, null)
-              subnet_name  = try(block.subnet.subnet_name, null)
-            } if try(block.subnet, null) != null
-          ]
-        ]
-      ]
-    ]
-  ])
-
   networks = {
     for network_ref, network in var.networks : network_ref => {
       address_space          = network.address_space

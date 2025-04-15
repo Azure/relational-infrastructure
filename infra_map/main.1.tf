@@ -11,7 +11,6 @@ module "az_subscription_1_infra_map" {
   }
 
   deployment_prefix          = var.deployment_prefix
-  ddos_protection_plan_name  = var.ddos_protection_plan_name
   enable_automatic_updates   = var.enable_automatic_updates
   include_label_tags         = var.include_label_tags
   extensions                 = var.extensions
