@@ -18,11 +18,32 @@ locals {
       name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_name}-kv-pe")
       resource_group_name             = var.networks[pe.network_name].resource_group_name
       location                        = var.locations[local.networks[pe.network_name].location_ref]
-      subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
+      subnet_resource_id              = module.networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
       private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id
       private_service_connection_name = "${var.deployment_prefix}-${pe.key_vault_name}-kv-psc"
       subresource_names               = ["vault"]
       network_interface_name          = "${var.deployment_prefix}-${pe.key_vault_name}-kv-nic"
+
+      lock = (
+        length([
+          for group in pe.lock_groups :
+          # Apply a lock only if lock_groups specifies a locked group
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in pe.lock_groups :
+            # Apply a lock only if the group is locked
+            # Read-only is the most restrictive lock. If any group is read-only, apply it.
+            # Otherwise, apply a no-delete lock.
+            contains(keys(local.locked_groups), group)
+            && try(local.locked_groups[group].read_only, false)
+          ])
+          ? { kind = local.lock_modes.read_only }
+          : { kind = local.lock_modes.no_delete }
+        )
+        : null
+      )
 
       # IP configurations if a specific IP is required
       ip_configurations = pe.private_ip != null ? {

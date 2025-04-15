@@ -1,0 +1,1180 @@
+{
+  "subscriptions": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "hyperspace": [
+          "object",
+          {
+            "resources": [
+              "object",
+              {
+                "ddos_protection_plan": [
+                  "object",
+                  {
+                    "labels": [
+                      "object",
+                      {
+                        "location": "string",
+                        "resource_group": "string"
+                      }
+                    ],
+                    "resource_id": "string",
+                    "resource_name": "string"
+                  }
+                ],
+                "key_vaults": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string",
+                      "secrets": [
+                        "object",
+                        {}
+                      ]
+                    }
+                  ]
+                ],
+                "labels": [
+                  "object",
+                  {
+                    "subscription": "string"
+                  }
+                ],
+                "networks": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "address_space": "string",
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "network": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string",
+                      "subnets": [
+                        "map",
+                        [
+                          "object",
+                          {
+                            "address_space": "string",
+                            "network_security_group": [
+                              "object",
+                              {
+                                "resource_id": "string",
+                                "resource_name": "string"
+                              }
+                            ],
+                            "route_table": [
+                              "object",
+                              {
+                                "resource_id": "string",
+                                "resource_name": "string"
+                              }
+                            ],
+                            "subnet_id": "string"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "private_endpoints": [
+                  "object",
+                  {}
+                ],
+                "resource_groups": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string"
+                    }
+                  ]
+                ],
+                "virtual_machine_sets": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "key_vault": "string",
+                          "location": "string",
+                          "resource_group": "string",
+                          "vm_set": "string"
+                        }
+                      ],
+                      "resources": [
+                        "object",
+                        {
+                          "resources": [
+                            "object",
+                            {
+                              "scale_set_resource_id": "string",
+                              "scale_set_resource_name": "string",
+                              "virtual_machines": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "resource_id": "string",
+                                    "resource_name": "string"
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "main": [
+          "object",
+          {
+            "resources": [
+              "object",
+              {
+                "ddos_protection_plan": [
+                  "object",
+                  {
+                    "labels": [
+                      "object",
+                      {
+                        "location": "string",
+                        "resource_group": "string"
+                      }
+                    ],
+                    "resource_id": "string",
+                    "resource_name": "string"
+                  }
+                ],
+                "key_vaults": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string",
+                      "secrets": [
+                        "object",
+                        {}
+                      ]
+                    }
+                  ]
+                ],
+                "labels": [
+                  "object",
+                  {
+                    "subscription": "string"
+                  }
+                ],
+                "networks": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "address_space": "string",
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "network": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string",
+                      "subnets": [
+                        "map",
+                        [
+                          "object",
+                          {
+                            "address_space": "string",
+                            "network_security_group": [
+                              "object",
+                              {
+                                "resource_id": "string",
+                                "resource_name": "string"
+                              }
+                            ],
+                            "route_table": [
+                              "object",
+                              {
+                                "resource_id": "string",
+                                "resource_name": "string"
+                              }
+                            ],
+                            "subnet_id": "string"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "private_endpoints": [
+                  "object",
+                  {}
+                ],
+                "resource_groups": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "location": "string",
+                          "resource_group": "string"
+                        }
+                      ],
+                      "resource_id": "string",
+                      "resource_name": "string"
+                    }
+                  ]
+                ],
+                "virtual_machine_sets": [
+                  "map",
+                  [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "key_vault": "string",
+                          "location": "string",
+                          "resource_group": "string",
+                          "vm_set": "string"
+                        }
+                      ],
+                      "resources": [
+                        "object",
+                        {
+                          "resources": [
+                            "object",
+                            {
+                              "scale_set_resource_id": "string",
+                              "scale_set_resource_name": "string",
+                              "virtual_machines": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "resource_id": "string",
+                                    "resource_name": "string"
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "value": {
+      "hyperspace": {
+        "resources": {
+          "ddos_protection_plan": {
+            "labels": {
+              "location": "alt",
+              "resource_group": "hyperspace_default"
+            },
+            "resource_id": null,
+            "resource_name": null
+          },
+          "key_vaults": {
+            "alt_hyperspace": {
+              "labels": {
+                "location": "alt",
+                "resource_group": "hyperspace_key_vaults"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-key-vaults/providers/Microsoft.KeyVault/vaults/ep20-alt-hyperspace-kv",
+              "resource_name": "ep20-alt-hyperspace-kv",
+              "secrets": {}
+            },
+            "primary_hyperspace": {
+              "labels": {
+                "location": "primary",
+                "resource_group": "hyperspace_key_vaults"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-key-vaults/providers/Microsoft.KeyVault/vaults/ep20-primary-hyperspace",
+              "resource_name": "ep20-primary-hyperspace",
+              "secrets": {}
+            }
+          },
+          "labels": {
+            "subscription": "hyperspace"
+          },
+          "networks": {
+            "alt_hyperspace": {
+              "address_space": "10.13.0.0/16",
+              "labels": {
+                "location": "alt",
+                "network": "alt_hyperspace",
+                "resource_group": "hyperspace_network"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-hyperspace-net",
+              "resource_name": "ep20-alt-hyperspace-net",
+              "subnets": {
+                "hyperspace": {
+                  "address_space": "10.13.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-hyperspace-hyperspace-nsg",
+                    "resource_name": "ep20-alt-hyperspace-hyperspace-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/routeTables/ep20-alt-hyperspace-hyperspace-rt",
+                    "resource_name": "ep20-alt-hyperspace-hyperspace-rt"
+                  },
+                  "subnet_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-hyperspace-net/subnets/hyperspace"
+                },
+                "private_endpoints": {
+                  "address_space": "10.13.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-hyperspace-private-endpoints-nsg",
+                    "resource_name": "ep20-alt-hyperspace-private-endpoints-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/routeTables/ep20-alt-hyperspace-private-endpoints-rt",
+                    "resource_name": "ep20-alt-hyperspace-private-endpoints-rt"
+                  },
+                  "subnet_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-hyperspace-net/subnets/private-endpoints"
+                }
+              }
+            },
+            "primary_hyperspace": {
+              "address_space": "10.3.0.0/16",
+              "labels": {
+                "location": "primary",
+                "network": "primary_hyperspace",
+                "resource_group": "hyperspace_network"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-hyperspace-net",
+              "resource_name": "ep20-primary-hyperspace-net",
+              "subnets": {
+                "hyperspace": {
+                  "address_space": "10.3.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-hyperspace-hyperspace-nsg",
+                    "resource_name": "ep20-primary-hyperspace-hyperspace-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/routeTables/ep20-primary-hyperspace-hyperspace-rt",
+                    "resource_name": "ep20-primary-hyperspace-hyperspace-rt"
+                  },
+                  "subnet_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-hyperspace-net/subnets/hyperspace"
+                },
+                "private_endpoints": {
+                  "address_space": "10.3.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-hyperspace-private-endpoints-nsg",
+                    "resource_name": "ep20-primary-hyperspace-private-endpoints-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/routeTables/ep20-primary-hyperspace-private-endpoints-rt",
+                    "resource_name": "ep20-primary-hyperspace-private-endpoints-rt"
+                  },
+                  "subnet_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-hyperspace-net/subnets/private-endpoints"
+                }
+              }
+            }
+          },
+          "private_endpoints": {},
+          "resource_groups": {
+            "hyperspace": {
+              "labels": {
+                "location": null,
+                "resource_group": "hyperspace"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace",
+              "resource_name": "ep20-hyperspace"
+            },
+            "hyperspace_default": {
+              "labels": {
+                "location": null,
+                "resource_group": "hyperspace_default"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-default",
+              "resource_name": "ep20-hyperspace-default"
+            },
+            "hyperspace_key_vaults": {
+              "labels": {
+                "location": null,
+                "resource_group": "hyperspace_key_vaults"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-key-vaults",
+              "resource_name": "ep20-hyperspace-key-vaults"
+            },
+            "hyperspace_network": {
+              "labels": {
+                "location": null,
+                "resource_group": "hyperspace_network"
+              },
+              "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace-network",
+              "resource_name": "ep20-hyperspace-network"
+            }
+          },
+          "virtual_machine_sets": {
+            "alt_hyperspace": {
+              "labels": {
+                "key_vault": "alt_hyperspace",
+                "location": "alt",
+                "resource_group": "hyperspace",
+                "vm_set": "alt_hyperspace"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachineScaleSets/ep20althsp-vmss",
+                  "scale_set_resource_name": "ep20althsp-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20althsp101",
+                      "resource_name": "ep20althsp101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20althsp201",
+                      "resource_name": "ep20althsp201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20althsp301",
+                      "resource_name": "ep20althsp301"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20althsp102",
+                      "resource_name": "ep20althsp102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20althsp202",
+                      "resource_name": "ep20althsp202"
+                    }
+                  ]
+                }
+              }
+            },
+            "primary_hyperspace": {
+              "labels": {
+                "key_vault": "primary_hyperspace",
+                "location": "primary",
+                "resource_group": "hyperspace",
+                "vm_set": "primary_hyperspace"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachineScaleSets/ep20prmhsp-vmss",
+                  "scale_set_resource_name": "ep20prmhsp-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20prmhsp101",
+                      "resource_name": "ep20prmhsp101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20prmhsp201",
+                      "resource_name": "ep20prmhsp201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20prmhsp301",
+                      "resource_name": "ep20prmhsp301"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20prmhsp102",
+                      "resource_name": "ep20prmhsp102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/34d69c09-3db4-44b0-8101-64fa34527c96/resourceGroups/ep20-hyperspace/providers/Microsoft.Compute/virtualMachines/ep20prmhsp202",
+                      "resource_name": "ep20prmhsp202"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "main": {
+        "resources": {
+          "ddos_protection_plan": {
+            "labels": {
+              "location": "alt",
+              "resource_group": "main_default"
+            },
+            "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-default/providers/Microsoft.Network/ddosProtectionPlans/ep20-ddosplan",
+            "resource_name": "ep20-ddosplan"
+          },
+          "key_vaults": {
+            "alt": {
+              "labels": {
+                "location": "alt",
+                "resource_group": "main_key_vaults"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-key-vaults/providers/Microsoft.KeyVault/vaults/ep20-alt-kv",
+              "resource_name": "ep20-alt-kv",
+              "secrets": {}
+            },
+            "primary": {
+              "labels": {
+                "location": "primary",
+                "resource_group": "main_key_vaults"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-key-vaults/providers/Microsoft.KeyVault/vaults/ep20-primary-kv",
+              "resource_name": "ep20-primary-kv",
+              "secrets": {}
+            }
+          },
+          "labels": {
+            "subscription": "main"
+          },
+          "networks": {
+            "alt_dmz": {
+              "address_space": "10.10.0.0/16",
+              "labels": {
+                "location": "alt",
+                "network": "alt_dmz",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-dmz-net",
+              "resource_name": "ep20-alt-dmz-net",
+              "subnets": {
+                "firewall": {
+                  "address_space": "10.10.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-dmz-firewall-nsg",
+                    "resource_name": "ep20-alt-dmz-firewall-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-dmz-firewall-rt",
+                    "resource_name": "ep20-alt-dmz-firewall-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-dmz-net/subnets/firewallsubnet"
+                },
+                "non_production": {
+                  "address_space": "10.10.2.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-dmz-non-production-nsg",
+                    "resource_name": "ep20-alt-dmz-non-production-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-dmz-non-production-rt",
+                    "resource_name": "ep20-alt-dmz-non-production-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-dmz-net/subnets/non_production"
+                },
+                "production": {
+                  "address_space": "10.10.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-dmz-production-nsg",
+                    "resource_name": "ep20-alt-dmz-production-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-dmz-production-rt",
+                    "resource_name": "ep20-alt-dmz-production-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-dmz-net/subnets/production"
+                }
+              }
+            },
+            "alt_hyperspace_web": {
+              "address_space": "10.14.0.0/16",
+              "labels": {
+                "location": "alt",
+                "network": "alt_hyperspace_web",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-hyperspace-web-net",
+              "resource_name": "ep20-alt-hyperspace-web-net",
+              "subnets": {
+                "hyperspace_web": {
+                  "address_space": "10.14.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-hyperspace-web-hyperspace-web-nsg",
+                    "resource_name": "ep20-alt-hyperspace-web-hyperspace-web-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-hyperspace-web-hyperspace-web-rt",
+                    "resource_name": "ep20-alt-hyperspace-web-hyperspace-web-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-hyperspace-web-net/subnets/hyperspace_web"
+                }
+              }
+            },
+            "alt_main": {
+              "address_space": "10.12.0.0/16",
+              "labels": {
+                "location": "alt",
+                "network": "alt_main",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-main-net",
+              "resource_name": "ep20-alt-main-net",
+              "subnets": {
+                "cogito": {
+                  "address_space": "10.12.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-main-cogito-nsg",
+                    "resource_name": "ep20-alt-main-cogito-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-main-cogito-rt",
+                    "resource_name": "ep20-alt-main-cogito-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-main-net/subnets/cogito"
+                },
+                "odb": {
+                  "address_space": "10.12.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-main-odb-nsg",
+                    "resource_name": "ep20-alt-main-odb-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-main-odb-rt",
+                    "resource_name": "ep20-alt-main-odb-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-main-net/subnets/odb"
+                },
+                "private_endpoints": {
+                  "address_space": "10.12.3.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-main-private-endpoints-nsg",
+                    "resource_name": "ep20-alt-main-private-endpoints-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-main-private-endpoints-rt",
+                    "resource_name": "ep20-alt-main-private-endpoints-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-main-net/subnets/private-endpoints"
+                },
+                "wss": {
+                  "address_space": "10.12.2.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-main-wss-nsg",
+                    "resource_name": "ep20-alt-main-wss-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-main-wss-rt",
+                    "resource_name": "ep20-alt-main-wss-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-main-net/subnets/wss"
+                }
+              }
+            },
+            "alt_shared_infra": {
+              "address_space": "10.11.0.0/16",
+              "labels": {
+                "location": "alt",
+                "network": "alt_shared_infra",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-shared-infra-net",
+              "resource_name": "ep20-alt-shared-infra-net",
+              "subnets": {
+                "gateway": {
+                  "address_space": "10.11.0.0/24",
+                  "network_security_group": {
+                    "resource_id": null,
+                    "resource_name": null
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-shared-infra-gateway-rt",
+                    "resource_name": "ep20-alt-shared-infra-gateway-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-shared-infra-net/subnets/gatewaysubnet"
+                },
+                "management": {
+                  "address_space": "10.11.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-alt-shared-infra-management-nsg",
+                    "resource_name": "ep20-alt-shared-infra-management-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-alt-shared-infra-management-rt",
+                    "resource_name": "ep20-alt-shared-infra-management-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-alt-shared-infra-net/subnets/management"
+                }
+              }
+            },
+            "primary_dmz": {
+              "address_space": "10.0.0.0/16",
+              "labels": {
+                "location": "primary",
+                "network": "primary_dmz",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-dmz-net",
+              "resource_name": "ep20-primary-dmz-net",
+              "subnets": {
+                "firewall": {
+                  "address_space": "10.0.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-dmz-firewall-nsg",
+                    "resource_name": "ep20-primary-dmz-firewall-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-dmz-firewall-rt",
+                    "resource_name": "ep20-primary-dmz-firewall-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-dmz-net/subnets/firewallsubnet"
+                },
+                "non_production": {
+                  "address_space": "10.0.2.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-dmz-non-production-nsg",
+                    "resource_name": "ep20-primary-dmz-non-production-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-dmz-non-production-rt",
+                    "resource_name": "ep20-primary-dmz-non-production-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-dmz-net/subnets/non_production"
+                },
+                "production": {
+                  "address_space": "10.0.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-dmz-production-nsg",
+                    "resource_name": "ep20-primary-dmz-production-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-dmz-production-rt",
+                    "resource_name": "ep20-primary-dmz-production-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-dmz-net/subnets/production"
+                }
+              }
+            },
+            "primary_hyperspace_web": {
+              "address_space": "10.4.0.0/16",
+              "labels": {
+                "location": "primary",
+                "network": "primary_hyperspace_web",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-hyperspace-web-net",
+              "resource_name": "ep20-primary-hyperspace-web-net",
+              "subnets": {
+                "hyperspace_web": {
+                  "address_space": "10.4.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-hyperspace-web-hyperspace-web-nsg",
+                    "resource_name": "ep20-primary-hyperspace-web-hyperspace-web-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-hyperspace-web-hyperspace-web-rt",
+                    "resource_name": "ep20-primary-hyperspace-web-hyperspace-web-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-hyperspace-web-net/subnets/hyperspace_web"
+                }
+              }
+            },
+            "primary_main": {
+              "address_space": "10.2.0.0/16",
+              "labels": {
+                "location": "primary",
+                "network": "primary_main",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-main-net",
+              "resource_name": "ep20-primary-main-net",
+              "subnets": {
+                "cogito": {
+                  "address_space": "10.2.0.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-main-cogito-nsg",
+                    "resource_name": "ep20-primary-main-cogito-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-main-cogito-rt",
+                    "resource_name": "ep20-primary-main-cogito-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-main-net/subnets/cogito"
+                },
+                "odb": {
+                  "address_space": "10.2.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-main-odb-nsg",
+                    "resource_name": "ep20-primary-main-odb-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-main-odb-rt",
+                    "resource_name": "ep20-primary-main-odb-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-main-net/subnets/odb"
+                },
+                "private_endpoints": {
+                  "address_space": "10.2.3.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-main-private-endpoints-nsg",
+                    "resource_name": "ep20-primary-main-private-endpoints-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-main-private-endpoints-rt",
+                    "resource_name": "ep20-primary-main-private-endpoints-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-main-net/subnets/private_endpoints"
+                },
+                "wss": {
+                  "address_space": "10.2.2.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-main-wss-nsg",
+                    "resource_name": "ep20-primary-main-wss-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-main-wss-rt",
+                    "resource_name": "ep20-primary-main-wss-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-main-net/subnets/wss"
+                }
+              }
+            },
+            "primary_shared_infra": {
+              "address_space": "10.1.0.0/16",
+              "labels": {
+                "location": "primary",
+                "network": "primary_shared_infra",
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-shared-infra-net",
+              "resource_name": "ep20-primary-shared-infra-net",
+              "subnets": {
+                "gateway": {
+                  "address_space": "10.1.0.0/24",
+                  "network_security_group": {
+                    "resource_id": null,
+                    "resource_name": null
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-shared-infra-gateway-rt",
+                    "resource_name": "ep20-primary-shared-infra-gateway-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-shared-infra-net/subnets/gatewaysubnet"
+                },
+                "management": {
+                  "address_space": "10.1.1.0/24",
+                  "network_security_group": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/networkSecurityGroups/ep20-primary-shared-infra-management-nsg",
+                    "resource_name": "ep20-primary-shared-infra-management-nsg"
+                  },
+                  "route_table": {
+                    "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/routeTables/ep20-primary-shared-infra-management-rt",
+                    "resource_name": "ep20-primary-shared-infra-management-rt"
+                  },
+                  "subnet_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network/providers/Microsoft.Network/virtualNetworks/ep20-primary-shared-infra-net/subnets/management"
+                }
+              }
+            }
+          },
+          "private_endpoints": {},
+          "resource_groups": {
+            "bca_web": {
+              "labels": {
+                "location": null,
+                "resource_group": "bca_web"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web",
+              "resource_name": "ep20-bca-web"
+            },
+            "hyperspace_web": {
+              "labels": {
+                "location": null,
+                "resource_group": "hyperspace_web"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web",
+              "resource_name": "ep20-hyperspace-web"
+            },
+            "main_default": {
+              "labels": {
+                "location": null,
+                "resource_group": "main_default"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-default",
+              "resource_name": "ep20-main-default"
+            },
+            "main_key_vaults": {
+              "labels": {
+                "location": null,
+                "resource_group": "main_key_vaults"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-key-vaults",
+              "resource_name": "ep20-main-key-vaults"
+            },
+            "main_network": {
+              "labels": {
+                "location": null,
+                "resource_group": "main_network"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-main-network",
+              "resource_name": "ep20-main-network"
+            },
+            "mpsql": {
+              "labels": {
+                "location": null,
+                "resource_group": "mpsql"
+              },
+              "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql",
+              "resource_name": "ep20-mpsql"
+            }
+          },
+          "virtual_machine_sets": {
+            "alt_bca_web": {
+              "labels": {
+                "key_vault": "alt",
+                "location": "alt",
+                "resource_group": "bca_web",
+                "vm_set": "alt_bca_web"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachineScaleSets/ep20altbcw-vmss",
+                  "scale_set_resource_name": "ep20altbcw-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20altbcw101",
+                      "resource_name": "ep20altbcw101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20altbcw201",
+                      "resource_name": "ep20altbcw201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20altbcw301",
+                      "resource_name": "ep20altbcw301"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20altbcw102",
+                      "resource_name": "ep20altbcw102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20altbcw202",
+                      "resource_name": "ep20altbcw202"
+                    }
+                  ]
+                }
+              }
+            },
+            "alt_hyperspace_web": {
+              "labels": {
+                "key_vault": "alt",
+                "location": "alt",
+                "resource_group": "hyperspace_web",
+                "vm_set": "alt_hyperspace_web"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachineScaleSets/ep20althsw-vmss",
+                  "scale_set_resource_name": "ep20althsw-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20althsw101",
+                      "resource_name": "ep20althsw101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20althsw201",
+                      "resource_name": "ep20althsw201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20althsw301",
+                      "resource_name": "ep20althsw301"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20althsw102",
+                      "resource_name": "ep20althsw102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20althsw202",
+                      "resource_name": "ep20althsw202"
+                    }
+                  ]
+                }
+              }
+            },
+            "alt_mpsql": {
+              "labels": {
+                "key_vault": "alt",
+                "location": "alt",
+                "resource_group": "mpsql",
+                "vm_set": "alt_mpsql"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachineScaleSets/ep20altsql-vmss",
+                  "scale_set_resource_name": "ep20altsql-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachines/ep20altsql101",
+                      "resource_name": "ep20altsql101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachines/ep20altsql201",
+                      "resource_name": "ep20altsql201"
+                    }
+                  ]
+                }
+              }
+            },
+            "primary_bca_web": {
+              "labels": {
+                "key_vault": "primary",
+                "location": "primary",
+                "resource_group": "bca_web",
+                "vm_set": "primary_bca_web"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachineScaleSets/ep20prmbcw-vmss",
+                  "scale_set_resource_name": "ep20prmbcw-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw101",
+                      "resource_name": "ep20prmbcw101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw102",
+                      "resource_name": "ep20prmbcw102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw201",
+                      "resource_name": "ep20prmbcw201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw202",
+                      "resource_name": "ep20prmbcw202"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw203",
+                      "resource_name": "ep20prmbcw203"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw204",
+                      "resource_name": "ep20prmbcw204"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw205",
+                      "resource_name": "ep20prmbcw205"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw206",
+                      "resource_name": "ep20prmbcw206"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw207",
+                      "resource_name": "ep20prmbcw207"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-bca-web/providers/Microsoft.Compute/virtualMachines/ep20prmbcw208",
+                      "resource_name": "ep20prmbcw208"
+                    }
+                  ]
+                }
+              }
+            },
+            "primary_hyperspace_web": {
+              "labels": {
+                "key_vault": "primary",
+                "location": "primary",
+                "resource_group": "hyperspace_web",
+                "vm_set": "primary_hyperspace_web"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachineScaleSets/ep20prmhsw-vmss",
+                  "scale_set_resource_name": "ep20prmhsw-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20prmhsw101",
+                      "resource_name": "ep20prmhsw101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20prmhsw201",
+                      "resource_name": "ep20prmhsw201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20prmhsw301",
+                      "resource_name": "ep20prmhsw301"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20prmhsw102",
+                      "resource_name": "ep20prmhsw102"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-hyperspace-web/providers/Microsoft.Compute/virtualMachines/ep20prmhsw202",
+                      "resource_name": "ep20prmhsw202"
+                    }
+                  ]
+                }
+              }
+            },
+            "primary_mpsql": {
+              "labels": {
+                "key_vault": "primary",
+                "location": "primary",
+                "resource_group": "mpsql",
+                "vm_set": "primary_mpsql"
+              },
+              "resources": {
+                "resources": {
+                  "scale_set_resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachineScaleSets/ep20prmsql-vmss",
+                  "scale_set_resource_name": "ep20prmsql-vmss",
+                  "virtual_machines": [
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachines/ep20prmsql101",
+                      "resource_name": "ep20prmsql101"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachines/ep20prmsql201",
+                      "resource_name": "ep20prmsql201"
+                    },
+                    {
+                      "resource_id": "/subscriptions/00363a64-55c1-4807-92a4-7dfe011d5222/resourceGroups/ep20-mpsql/providers/Microsoft.Compute/virtualMachines/ep20prmsql301",
+                      "resource_name": "ep20prmsql301"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

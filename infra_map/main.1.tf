@@ -13,11 +13,11 @@ module "az_subscription_1_infra_map" {
   deployment_prefix          = var.deployment_prefix
   ddos_protection_plan_name  = var.ddos_protection_plan_name
   enable_automatic_updates   = var.enable_automatic_updates
-  enable_full_network_mesh   = var.enable_full_network_mesh
   include_label_tags         = var.include_label_tags
   extensions                 = var.extensions
   virtual_machine_extensions = var.virtual_machine_extensions
   locations                  = var.locations
+  lock_groups                = var.lock_groups
 
   tags = merge(
     var.tags,
@@ -41,7 +41,6 @@ module "az_subscription_1_infra_map" {
         }
       }
     }
-    if var.subscriptions[network.subscription_name].subscription_slot != local._s1
   }
 
   networks = {
@@ -54,6 +53,7 @@ module "az_subscription_1_infra_map" {
       dns_ip_addresses       = network.dns_ip_addresses
       enable_ddos_protection = network.enable_ddos_protection
       subnets                = network.subnets
+      lock_groups            = network.lock_groups
     }
     if var.subscriptions[network.subscription_name].subscription_slot == local._s1
   }

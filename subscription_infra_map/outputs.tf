@@ -17,9 +17,9 @@ output "networks" {
   value = {
     for network_name, network in var.networks :
     network_name => {
-      resource_id   = module.networks.virtual_networks[network_name].id
-      resource_name = module.networks.virtual_networks[network_name].name
-      address_space = module.networks.virtual_networks[network_name].address_spaces[0]
+      resource_id   = module.networks[network_name].resource_id
+      resource_name = module.networks[network_name].name
+      address_space = network.address_space
 
       labels = {
         location       = network.location_name
@@ -30,7 +30,7 @@ output "networks" {
       subnets = {
         for subnet_name, subnet in network.subnets :
         subnet_name => {
-          subnet_id     = module.networks.virtual_networks[network_name].subnet_ids["${network_name}-${subnet_name}"]
+          subnet_id     = module.networks[network_name].subnets[subnet_name].resource_id
           address_space = var.networks[network_name].subnets[subnet_name].address_space
 
           network_security_group = {

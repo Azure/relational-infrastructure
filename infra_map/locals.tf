@@ -45,12 +45,16 @@ locals {
     for peering in flatten([
       for from_network_name, from_network in var.networks : [
         for to_network_name in from_network.peered_to : {
-          peer_from_network_name       = from_network_name
-          peer_to_network_name         = to_network_name
-          from_subscription_name       = from_network.subscription_name
-          from_resource_group_name     = local.resource_group_outputs[from_network.resource_group_name].resource_name
-          from_virtual_network_name    = local.virtual_network_outputs[from_network_name].resource_name
-          to_remote_virtual_network_id = local.virtual_network_outputs[to_network_name].resource_id
+          peer_from_network_name    = from_network_name
+          peer_to_network_name      = to_network_name
+          from_subscription_name    = from_network.subscription_name
+          from_resource_group_name  = local.resource_group_outputs[from_network.resource_group_name].resource_name
+          from_virtual_network_name = local.virtual_network_outputs[from_network_name].resource_name
+
+          to_remote_virtual_network_id = coalesce(
+            try(var.external_networks[to_network_name].resource_id, null),        # Peer to an external network
+            try(local.virtual_network_outputs[to_network_name].resource_id, null) # Peer to an internal network
+          )
         }
       ]
     ]) : "peer-${peering.peer_from_network_name}-to-${peering.peer_to_network_name}" => peering

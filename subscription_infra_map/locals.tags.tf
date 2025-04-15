@@ -6,7 +6,7 @@ locals {
       network.tags,
       var.include_label_tags ? {
         "network_label"        = network_name,
-        "location_label"       = network.location_ref,
+        "location_label"       = network.location_name,
         "resource_group_label" = network.resource_group_name
       } : {}
     )

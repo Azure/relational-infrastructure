@@ -3,13 +3,15 @@ locals {
     for group in flatten([
       for network_ref, network in local.networks : [
         for subnet_ref, subnet in network.subnets : {
-          location_ref        = network.location_ref
+          location_ref        = network.location_name
           network_ref         = network_ref
           subnet_ref          = subnet_ref
           subnet_name         = subnet.name
           name                = local.security_group_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
           tags                = network.tags
+          lock                = network.lock
+
         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
       ] if network != null
     ]) : "${group.network_ref}_${group.subnet_ref}" => group

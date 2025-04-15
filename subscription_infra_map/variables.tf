@@ -14,12 +14,6 @@ variable "enable_automatic_updates" {
   default = false
 }
 
-variable "enable_full_network_mesh" {
-  type        = bool
-  default     = false
-  description = "Whether to enable full network mesh for all virtual machines."
-}
-
 variable "include_label_tags" {
   type        = bool
   default     = false
@@ -51,10 +45,22 @@ variable "extensions" {
   description = "A set of extension names to apply to all virtual machines."
 }
 
+variable "lock_groups" {
+  type = map(object({
+    locked    = bool
+    read_only = optional(bool, false)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "A map of lock groups."
+}
+
 variable "resource_groups" {
   type = map(object({
     name                              = optional(string, null)
     location_name                     = optional(string, null)
+    lock_groups                       = optional(list(string), [])
     tags                              = optional(map(string), {})
     include_deployment_prefix_in_name = optional(bool, true)
   }))
@@ -148,6 +154,7 @@ ERROR_MESSAGE
 variable "external_networks" {
   type = map(object({
     address_space = string
+    resource_id   = optional(string, null)
 
     subnets = map(object({
       address_space = string
@@ -165,6 +172,7 @@ variable "networks" {
     location_name                     = string
     resource_group_name               = string
     address_space                     = string
+    lock_groups                       = optional(list(string), [])
     name                              = optional(string, null)
     tags                              = optional(map(string), {})
     peered_to                         = optional(list(string), [])
@@ -308,6 +316,9 @@ variable "networks" {
       })), null)
     }))
   }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "virtual_machine_sets" {
@@ -316,6 +327,7 @@ variable "virtual_machine_sets" {
     location_name                     = string
     resource_group_name               = string
     name                              = string
+    lock_groups                       = optional(list(string), [])
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
     os_type                           = optional(string, "Windows")
@@ -339,6 +351,7 @@ variable "virtual_machine_sets" {
       lun                          = number
       caching                      = optional(string, "ReadWrite")
       enable_public_network_access = optional(bool, false)
+      lock_groups                  = optional(list(string), [])
       image = optional(object({
         copy = optional(object({
           resource_id = string
@@ -359,11 +372,15 @@ variable "virtual_machine_sets" {
     network_interfaces = map(object({
       network_name                  = string
       subnet_name                   = string
+      lock_groups                   = optional(list(string), [])
       private_ip                    = optional(string, null)
       private_ip_allocation         = optional(string, "Dynamic")
       enable_accelerated_networking = optional(bool, true)
     }))
   }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "virtual_machine_set_zone_distribution" {
@@ -390,14 +407,17 @@ variable "virtual_machine_set_specs" {
       storage_account_type = optional(string, "PremiumV2_LRS")
     })
   }))
-}
 
+  default  = {}
+  nullable = false
+}
 
 variable "key_vaults" {
   type = map(object({
     location_name                     = string
     name                              = optional(string, null)
     resource_group_name               = string
+    lock_groups                       = optional(list(string), [])
     include_deployment_prefix_in_name = optional(bool, true)
     sku_name                          = optional(string, "standard")
     tags                              = optional(map(string), {})
@@ -558,6 +578,7 @@ variable "key_vaults" {
       destroy = optional(string, "0s")
     }), {})
   }))
+
   default     = {}
   description = "A map of Azure Key Vaults to be deployed."
   nullable    = false
@@ -572,6 +593,7 @@ variable "private_endpoints" {
       subnet_name                       = string
       key_vault_name                    = string
       resource_group_name               = string
+      lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)
       include_deployment_prefix_in_name = optional(bool, true)
@@ -586,6 +608,7 @@ variable "private_endpoints" {
       subnet_name                       = string
       storage_account_name              = string
       resource_group_name               = string
+      lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)
       subresource_name                  = optional(string, "blob") # blob, file, queue, table, etc.
@@ -601,4 +624,5 @@ variable "private_endpoints" {
   })
   default     = { key_vaults = {}, storage_accounts = {} }
   description = "Configuration for private endpoints to various Azure services"
+  nullable    = false
 }
