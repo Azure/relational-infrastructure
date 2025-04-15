@@ -500,7 +500,7 @@ virtual_machine_sets = {
 | `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
-| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock_groups. |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
@@ -559,14 +559,21 @@ virtual_machine_sets = {
         lun                          = 0            # Logical unit number (LUN) is 0
         caching                      = "ReadWrite"  # ReadWrite caching enabled
         enable_public_network_access = false        # Public network access is disabled
+
         image = {  
           copy = {                                  # Copy an existing managed disk
             resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
           }
         }
+
+        lock_groups = [                             # Optional; overrides lock groups defined on parent VM set
+          "data_disk_lock"                          # 🔗 Links to var.lock_groups
+        ]
       }
+
       import_disk = {                               # 🔑 "import_disk" data disk
         lun = 1                                     # Logical unit number (LUN) is 1
+
         image = {
           import = {                                # Import a VHD
             uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
@@ -574,14 +581,17 @@ virtual_machine_sets = {
           }
         }
       }
+
       platform_disk = {                             # 🔑 "platform_disk" data disk
-        lun = 2                                     # Logical unit number (LUN) is 2
+        lun = 2
+                                     # Logical unit number (LUN) is 2
         image = {
           platform = {                              # Copy a platform image (i.e., from the Azure Marketplace)
             image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
           }
         }
       }
+
       restore_disk = {                              # 🔑 "restore_disk" data disk
         lun = 3                                     # Logical unit number (LUN) is 3
         image = {
@@ -590,6 +600,7 @@ virtual_machine_sets = {
           }
         }
       }
+
       empty_disk = {                                # 🔑 "empty_disk" data disk
         lun = 4                                     # Logical unit number (LUN) is 4
       }                                             # By default, data disk is empty
@@ -604,6 +615,7 @@ virtual_machine_sets = {
 | `caching` | Optional; configures caching: `None`, `ReadOnly`, or `ReadWrite`. Defaults to `ReadWrite`. |
 | `enable_public_network_access` | Optional; if `true`, allows public access to the disk for specific use cases. Defaults to `false`. |
 | `image` | Optional; specifies the disk’s source: `copy` (from a disk/snapshot), `import` (from a VHD file), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disk). |
+| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this data disk belongs to. These lock groups override lock groups defined at the [parent VM set](#virtual-machine-set) level. |
 
 #### Virtual Machine Network Interfaces
 
