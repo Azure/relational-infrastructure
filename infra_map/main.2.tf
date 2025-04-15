@@ -18,7 +18,13 @@ module "az_subscription_2_infra_map" {
   extensions                 = var.extensions
   virtual_machine_extensions = var.virtual_machine_extensions
   locations                  = var.locations
-  tags                       = var.tags
+
+  tags = merge(
+    var.tags,
+    var.include_label_tags ? {
+      "subscription_label" = local.subscription_names_by_slot[local._s2]
+    } : {}
+  )
 
   default_resource_group_name      = local.subscriptions_by_slot[local._s2].default_resource_group_name
   private_link_resource_group_name = local.subscriptions_by_slot[local._s2].private_link_resource_group_name

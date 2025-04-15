@@ -9,6 +9,7 @@ locals {
           subnet_name         = subnet.name
           name                = local.security_group_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
+          tags                = network.tags
         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
       ] if network != null
     ]) : "${group.network_ref}_${group.subnet_ref}" => group

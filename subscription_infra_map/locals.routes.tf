@@ -8,6 +8,7 @@ locals {
           subnet_ref          = subnet_ref
           name                = local.route_table_names[network_ref][subnet_ref]
           resource_group_name = network.resource_group_name
+          tags                = network.tags
 
           routes = {
             for route_ref, route in coalesce(subnet.routes, {}) : route_ref => {

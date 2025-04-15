@@ -166,6 +166,7 @@ variable "networks" {
     resource_group_name               = string
     address_space                     = string
     name                              = optional(string, null)
+    tags                              = optional(map(string), {})
     peered_to                         = optional(list(string), [])
     dns_ip_addresses                  = optional(set(string), null)
     enable_ddos_protection            = optional(bool, false)

@@ -17,7 +17,7 @@ locals {
       location_ref           = network.location_name
       resource_group_name    = network.resource_group_name
       name                   = local.network_names[network_ref]
-
+      tags                   = network.tags
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {
