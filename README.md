@@ -91,6 +91,14 @@ erDiagram
   "Networks" ||..o{ "Peerings" : "have"
   "Peerings" ||--|| "Networks" : "peered to"
   "Peerings" ||--|| "External Networks" : "peered to"
+  "Lock Groups" ||--o{ "Resource Groups" : "lock"
+  "Lock Groups" ||--o{ "Networks" : "lock"
+  "Lock Groups" ||--o{ "Key Vaults" : "lock"
+  "Lock Groups" ||--o{ "Role-Based VM Sets" : "lock"
+  "Lock Groups" ||--o{ "Data Disks" : "lock"
+  "Lock Groups" ||--o{ "Network Interfaces" : "lock"
+  "Lock Groups" ||--o{ "Private Endpoints" : "lock"
+  "Lock Groups" ||--o{ "Storage Accounts" : "lock"
 ```
 
 > [!NOTE]
