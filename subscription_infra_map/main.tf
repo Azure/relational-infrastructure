@@ -188,7 +188,7 @@ module "networks" {
   location            = var.locations[each.value.location_name]
   address_space       = [each.value.address_space]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  tags                = merge(var.tags, each.value.tags, (var.include_label_tags ? { network_label = each.key } : {}))
+  tags                = local.network_tags[each.key]
 
   ddos_protection_plan = (
     each.value.enable_ddos_protection
@@ -234,11 +234,7 @@ module "route_tables" {
   name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   lock                = each.value.lock
-
-  tags = merge(var.tags,
-    (var.include_label_tags ?
-      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
-  {}))
+  tags                = local.network_tags[each.value.network_ref]
 
   routes = {
     for route_ref, route in each.value.routes : route_ref => {
@@ -258,11 +254,7 @@ module "network_security_groups" {
   name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   lock                = each.value.lock
-
-  tags = merge(var.tags,
-    (var.include_label_tags ?
-      { network_label = each.value.network_ref, subnet_label = each.value.subnet_ref } :
-  {}))
+  tags                = local.security_group_tags[each.value.network_ref]
 
   security_rules = {
     for rule_ref, rule in merge(
@@ -311,7 +303,7 @@ module "virtual_machine_sets" {
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
   resource_group_id                             = module.resource_groups[each.value.resource_group_name].resource_id
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
-  resource_tags                                 = merge(var.tags, each.value.tags, (var.include_label_tags ? { vm_set_label = each.key } : {}))
+  resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
@@ -361,8 +353,8 @@ module "virtual_machine_sets" {
   }
 
   virtual_machine_extensions = {
-    for extension_name in concat(var.extensions, each.value.extensions) : 
-    extension_name => var.virtual_machine_extensions[extension_name] 
+    for extension_name in concat(var.extensions, each.value.extensions) :
+    extension_name => var.virtual_machine_extensions[extension_name]
   }
 
   virtual_machine_data_disks = {
