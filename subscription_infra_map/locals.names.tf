@@ -72,8 +72,8 @@ locals {
   key_vault_names = {
     for vault_name, vault in var.key_vaults
     : vault_name => (
-      trim( # Key vault name can't end in a -.
-        substr( # Key vault must be 24 characters or less.
+      trim(        # Key vault name can't end in a -.
+        substr(    # Key vault must be 24 characters or less.
           replace( # Replace _ with -. Standardize on - for Azure resource names.
             vault.name == null
             ? "${var.deployment_prefix}-${vault_name}-kv"
@@ -154,6 +154,11 @@ locals {
         "-", ""
       )
     )
+  }
+
+  maintenance_configuration_names = {
+    for vm_set_name, prefix in local.virtual_machine_set_prefixes
+    : vm_set_name => "${prefix}-mc"
   }
 
   all_private_endpoint_names = merge(

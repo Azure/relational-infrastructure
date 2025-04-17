@@ -145,6 +145,13 @@ variable "virtual_machine_capacity_reservation_group_id" {
   nullable    = true
 }
 
+variable "maintenance_configuration_id" {
+  type        = string
+  description = "The maintenance configuration ID for the virtual machines."
+  default     = null
+  nullable    = true
+}
+
 variable "enable_os_disk_public_network_access" {
   type        = bool
   default     = false

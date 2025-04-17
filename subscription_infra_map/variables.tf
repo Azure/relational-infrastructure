@@ -96,29 +96,30 @@ variable "lock_groups" {
   description = <<DESCRIPTION
 Defines this model's lock groups. 
 These groups group Azure resources into logical sets for coordinated lock management during
-maintenance, such as updating a region's infrastructure or a compute tier.
+planned customer maintenance, such as updating a region's infrastructure or a compute tier.
 DESCRIPTION
 }
 
-variable "maintenance_configurations" {
+variable "maintenance_schedules" {
   type = map(object({
-    every = {
-      days   = optional(number, null)
-      weeks  = optional(number, null)
-      months = optional(number, null)
-
-      day   = optional(bool, false)
-      week  = optional(bool, false)
-      month = optional(bool, false)
+    repeat_every = {
+      # One and only one of these properties may be set at the same time.
+      day    = optional(bool, false)  # once a day (days == 1)
+      week   = optional(bool, false)  # once a week (weeks == 1)
+      month  = optional(bool, false)  # once a month (months == 1)
+      days   = optional(number, null) # once every n days
+      weeks  = optional(number, null) # once every n weeks
+      months = optional(number, null) # once every n months
     }
 
-    start_date          = optional(string, null)
-    start_time_utc      = string
-    window_duration     = optional(string, "1:30")
-    resource_group_name = optional(string, null)
-    location_name       = optional(string, null)
-    lock_groups         = optional(list(string), [])
+    start_date_time_utc      = string
+    expiration_date_time_utc = optional(string, null)
+    duration                 = optional(string, "1:30")
   }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's VM set maintenance schedules."
 }
 
 variable "resource_groups" {
@@ -500,6 +501,10 @@ variable "virtual_machine_sets" {
       private_ip_allocation         = optional(string, "Dynamic")
       enable_accelerated_networking = optional(bool, true)
     }))
+
+    maintenance = optional(object({
+      schedule_name = optional(string, null)
+    }), {})
   }))
 
   default  = {}

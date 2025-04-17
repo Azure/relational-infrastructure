@@ -105,11 +105,27 @@ locals {
     vm_set_name => merge(
       var.tags,
       vm_set.tags,
+      var.include_label_tags && try(vm_set.maintenance.schedule_name, null) != null ? {
+        "maintenance_schedule_label" = vm_set.maintenance.schedule_name
+      } : {},
       var.include_label_tags ? {
         "key_vault_label"      = vm_set.key_vault_name
         "location_label"       = vm_set.location_name
         "resource_group_label" = vm_set.resource_group_name
         "vm_set_label"         = vm_set_name
+      } : {}
+    )
+  }
+
+  maintenance_configuration_tags = {
+    for config_name, config in local.vm_set_maintenance_configurations :
+    config_name => merge(
+      var.tags,
+      var.include_label_tags ? {
+        "location_label"       = config.location_name
+        "resource_group_label" = config.resource_group_name
+        "vm_set_label"         = config.vm_set_name
+        "schedule_label"       = config.schedule_name
       } : {}
     )
   }

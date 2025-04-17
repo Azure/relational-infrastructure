@@ -79,36 +79,56 @@ locals {
     } if network != null
   }
 
-  maintenance_configurations = {
-    for config_name, config in var.maintenance_configurations :
-    config_name => {
-      recur_every = (
-        config.every.day
-        ? "1Day"
+  maintenance_schedule_recurrence = {
+    for schedule_name, schedule in var.maintenance_schedules :
+    schedule_name => (
+      schedule.repeat_every.day
+      ? "Day"
+      : (
+        schedule.repeat_every.week
+        ? "Week"
         : (
-          config.every.week
-          ? "1Week"
+          schedule.repeat_every.month
+          ? "Month"
           : (
-            config.every.month
-            ? "1Month"
+            schedule.repeat_every.days != null
+            ? "${schedule.repeat_every.days}Days"
             : (
-              try(config.every.days, 0) > 0
-              ? "${config.every.days}Day"
-              : (
-                try(config.every.weeks, 0) > 0
-                ? "${config.every.weeks}Week"
-                : (
-                  try(config.every.months, 0) > 0
-                  ? "${config.every.months}Month"
-                  : null
-                )
-              )
+              schedule.repeat_every.weeks != null
+              ? "${schedule.repeat_every.weeks}Weeks"
+              : "${schedule.repeat_every.months}Months"
             )
           )
         )
       )
+    )
+  }
 
-      
+  maintenance_schedules = {
+    for schedule_name, schedule in var.maintenance_schedules :
+    schedule_name => {
+      duration        = schedule.duration
+      recur_every     = local.maintenance_schedule_recurrence[schedule_name]
+      start_date_time = schedule.start_date_time_utc
+      time_zone       = "(UTC) Coordinated Universal Time"
+
+      expiration_date_time = (
+        schedule.expiration_date_time_utc != null
+        ? schedule.expiration_date_time_utc
+        : null
+      )
     }
+  }
+
+  vm_set_maintenance_configurations = {
+    for vm_set_name, vm_set in var.virtual_machine_sets :
+    vm_set_name => {
+      schedule            = maintenance_schedules[vm_set.maintenance.schedule_name]
+      scope               = "InGuestPatch"
+      location_name       = vm_set.location_name
+      resource_group_name = vm_set.resource_group_name
+      schedule_name       = vm_set.maintenance.schedule_name
+      vm_set_name         = vm_set_name
+    } if try(vm_set.maintenance.schedule_name, null) != null
   }
 }
