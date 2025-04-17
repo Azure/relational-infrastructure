@@ -43,18 +43,6 @@ module "ddos_protection_plan" {
   resource_group_name = module.resource_groups[var.default_resource_group_name].name
 }
 
-module "virtual_machine_maintenance_configurations" {
-  source   = "Azure/avm-res-maintenance-maintenanceconfiguration/azurerm"
-  for_each = local.vm_set_maintenance_configurations
-
-  location            = var.locations[each.value.location_name]
-  name                = local.maintenance_configuration_names[each.key]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  tags                = local.maintenance_configuration_tags[each.key]
-  window              = local.maintenance_schedules[each.key]
-  scope               = "InGuestPatch"
-}
-
 data "azurerm_client_config" "current" {}
 
 module "naming" {
@@ -336,6 +324,11 @@ module "virtual_machine_sets" {
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
 
+  maintenance_configuration = (
+    try(each.value.maintenance.schedule_name, null) == null ? null
+    : local.vm_set_maintenance_configurations[each.key]
+  )
+
   lock_mode = (
     length([
       for group in each.value.lock_groups :
@@ -367,14 +360,9 @@ module "virtual_machine_sets" {
     tags                           = merge(var.tags, each.value.tags, { credential_type = "generated" })
   }
 
-  maintenance_configuration_id = (
-    try(each.value.maintenance.schedule_name, null) == null ? null
-    : module.virtual_machine_maintenance_configurations[each.key].resource_id
-  )
-
   virtual_machine_extensions = {
     for extension_name in concat(var.extensions, each.value.extensions) : 
-    extension_name => var.virtual_machine_extensions[extension_name]
+    extension_name => var.virtual_machine_extensions[extension_name] 
   }
 
   virtual_machine_data_disks = {

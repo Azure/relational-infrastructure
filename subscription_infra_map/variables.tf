@@ -102,7 +102,7 @@ DESCRIPTION
 
 variable "maintenance_schedules" {
   type = map(object({
-    repeat_every = {
+    repeat_every = object({
       # One and only one of these properties may be set at the same time.
       day    = optional(bool, false)  # once a day (days == 1)
       week   = optional(bool, false)  # once a week (weeks == 1)
@@ -110,7 +110,7 @@ variable "maintenance_schedules" {
       days   = optional(number, null) # once every n days
       weeks  = optional(number, null) # once every n weeks
       months = optional(number, null) # once every n months
-    }
+    })
 
     start_date_time_utc      = string
     expiration_date_time_utc = optional(string, null)

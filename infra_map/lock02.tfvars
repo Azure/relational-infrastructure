@@ -1,4 +1,4 @@
-deployment_prefix         = "lock01"
+deployment_prefix         = "lock03"
 include_label_tags        = true
 ddos_protection_plan_name = null
 
@@ -33,6 +33,16 @@ subscriptions = {
 
 locations = {
   primary = "canadacentral"
+}
+
+maintenance_schedules = {
+  every_night = {
+    repeat_every = {
+      day = true
+    }
+
+    start_date_time_utc = "2025-04-20 06:00"
+  }
 }
 
 resource_groups = {
@@ -161,6 +171,10 @@ virtual_machine_sets = {
     extensions = [
       "azure_monitor"
     ]
+
+    maintenance = {
+      schedule_name = "every_night"
+    }
 
     image = {
       reference = {

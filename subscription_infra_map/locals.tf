@@ -110,7 +110,7 @@ locals {
       duration        = schedule.duration
       recur_every     = local.maintenance_schedule_recurrence[schedule_name]
       start_date_time = schedule.start_date_time_utc
-      time_zone       = "(UTC) Coordinated Universal Time"
+      time_zone       = "UTC"
 
       expiration_date_time = (
         schedule.expiration_date_time_utc != null
@@ -123,7 +123,7 @@ locals {
   vm_set_maintenance_configurations = {
     for vm_set_name, vm_set in var.virtual_machine_sets :
     vm_set_name => {
-      schedule            = maintenance_schedules[vm_set.maintenance.schedule_name]
+      schedule            = local.maintenance_schedules[vm_set.maintenance.schedule_name]
       scope               = "InGuestPatch"
       location_name       = vm_set.location_name
       resource_group_name = vm_set.resource_group_name

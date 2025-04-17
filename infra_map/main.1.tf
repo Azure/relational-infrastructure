@@ -14,6 +14,7 @@ module "az_subscription_1_infra_map" {
   enable_automatic_updates   = var.enable_automatic_updates
   include_label_tags         = var.include_label_tags
   extensions                 = var.extensions
+  maintenance_schedules      = var.maintenance_schedules
   virtual_machine_extensions = var.virtual_machine_extensions
   locations                  = var.locations
   lock_groups                = var.lock_groups

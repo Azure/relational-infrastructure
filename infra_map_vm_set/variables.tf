@@ -145,13 +145,6 @@ variable "virtual_machine_capacity_reservation_group_id" {
   nullable    = true
 }
 
-variable "maintenance_configuration_id" {
-  type        = string
-  description = "The maintenance configuration ID for the virtual machines."
-  default     = null
-  nullable    = true
-}
-
 variable "enable_os_disk_public_network_access" {
   type        = bool
   default     = false
@@ -386,6 +379,24 @@ variable "virtual_machine_os_type" {
 - Windows
 ERROR_MESSAGE
   }
+}
+
+variable "maintenance_configuration" {
+  type = object({
+    schedule = object({
+      duration        = string
+      recur_every     = string
+      start_date_time = string
+      time_zone       = string
+    })
+
+    scope         = string
+    schedule_name = string
+  })
+
+  default     = null
+  nullable    = true
+  description = "The maintenance configuration for the virtual machines to deploy."
 }
 
 variable "virtual_machine_sku_size" {

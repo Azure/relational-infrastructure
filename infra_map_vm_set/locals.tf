@@ -14,6 +14,7 @@ locals {
     : { kind = lookup(local.lock_modes, var.lock_mode, null) }
   )
 
+  maintenance_configuration_name = "${var.resource_prefix}-mc"
   virtual_machine_scale_set_name = "${var.resource_prefix}-vmss"
 
   virtual_machines_by_zone = {
@@ -106,5 +107,4 @@ locals {
       tags                           = var.generated_secrets_key_vault_secret_config.tags
     }
   ]
-
 }

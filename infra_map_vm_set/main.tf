@@ -10,8 +10,9 @@ module "virtual_machine_scale_set" {
 }
 
 module "virtual_machines" {
-  source = "Azure/avm-res-compute-virtualmachine/azurerm"
-  count  = var.virtual_machine_count
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  count   = var.virtual_machine_count
+  version = "0.18.1" # For now; running into a problems with key vault + passwords
 
   name                                   = local.virtual_machine_names[count.index]
   lock                                   = local.vm_lock
@@ -43,9 +44,11 @@ module "virtual_machines" {
   )
 
   maintenance_configuration_resource_ids = (
-    var.maintenance_configuration_id == null ? {}
-    : { maintenance_config = var.maintenance_configuration_id }
+    var.maintenance_configuration == null ? {}
+    : { config = module.virtual_machine_maintenance_configuration[0].resource_id }
   )
+
+  bypass_platform_safety_checks_on_user_schedule_enabled = (var.maintenance_configuration != null)
 }
 
 resource "azapi_update_resource" "disable_os_disk_public_network_access" {
@@ -57,6 +60,38 @@ resource "azapi_update_resource" "disable_os_disk_public_network_access" {
   body = {
     properties = {
       networkAccessPolicy = "DenyAll"
+    }
+  }
+
+  depends_on = [
+    module.virtual_machines
+  ]
+}
+
+module "virtual_machine_maintenance_configuration" {
+  count  = var.maintenance_configuration == null ? 0 : 1
+  source = "Azure/avm-res-maintenance-maintenanceconfiguration/azurerm"
+
+  location            = var.location
+  name                = local.maintenance_configuration_name
+  resource_group_name = var.resource_group_name
+  scope               = var.maintenance_configuration.scope
+  tags                = var.resource_tags
+  window              = var.maintenance_configuration.schedule
+
+  extension_properties = {
+    InGuestPatchMode = "User"
+  }
+
+  install_patches = {
+    reboot_setting = "IfRequired"
+
+    linux = {
+      classifications_to_include = ["Critical", "Security"]
+    }
+
+    windows = {
+      classifications_to_include = ["Critical", "Security"]
     }
   }
 }

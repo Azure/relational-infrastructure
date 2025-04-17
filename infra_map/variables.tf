@@ -77,6 +77,28 @@ variable "subscriptions" {
   description = "A map of subscription."
 }
 
+variable "maintenance_schedules" {
+  type = map(object({
+    repeat_every = object({
+      # One and only one of these properties may be set at the same time.
+      day    = optional(bool, false)  # once a day (days == 1)
+      week   = optional(bool, false)  # once a week (weeks == 1)
+      month  = optional(bool, false)  # once a month (months == 1)
+      days   = optional(number, null) # once every n days
+      weeks  = optional(number, null) # once every n weeks
+      months = optional(number, null) # once every n months
+    })
+
+    start_date_time_utc      = string
+    expiration_date_time_utc = optional(string, null)
+    duration                 = optional(string, "1:30")
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's VM set maintenance schedules."
+}
+
 variable "resource_groups" {
   type = map(object({
     subscription_name                 = string
@@ -373,6 +395,10 @@ variable "virtual_machine_sets" {
       private_ip_allocation         = optional(string, "Dynamic")
       enable_accelerated_networking = optional(bool, true)
     }))
+
+    maintenance = optional(object({
+      schedule_name = optional(string, null)
+    }), {})
   }))
 
   default  = {}
