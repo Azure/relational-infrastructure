@@ -900,7 +900,7 @@ storage_accounts = {
 
 > Terraform variable: `var.blob_containers`
 
-The `blob_containers` table configures Azure Blob Storage containers within storage accounts to store unstructured data like files or backups. Each container specifies its storage account and name, with an option for public access. In the ERD, `blob_containers` links one-to-one with `storage_accounts` via `storage_account_name`.
+The `blob_containers` table configures [Azure Blob Storage](https://learn.microsoft.com/azure/storage/blobs/storage-blobs-overview) containers within [storage accounts](#storage-accounts) to store unstructured data like files or backups. Each container specifies its storage account and name, with an option for public access. In the ERD, `blob_containers` links one-to-one with [`storage_accounts`](#storage-accounts) via `storage_account_name`.
 
 ```hcl
 blob_containers = {
@@ -921,7 +921,7 @@ blob_containers = {
 
 > Terraform variable: `var.file_shares`
 
-The `file_shares` table configures Azure File Shares within storage accounts for shared file storage accessible via SMB or NFS protocols. Each share specifies its storage account, name, and storage quota, with options for access tier and protocol. In the ERD, `file_shares` links one-to-one with `storage_accounts` via `storage_account_name`.
+The `file_shares` table configures [Azure File Shares](https://learn.microsoft.com/azure/storage/files/storage-files-introduction) within [storage accounts](#storage-accounts) for shared file storage accessible via [SMB](https://learn.microsoft.com/azure/storage/files/files-smb-protocol?tabs=azure-portal) or [NFS](https://learn.microsoft.com/azure/storage/files/files-nfs-protocol) protocols. Each share specifies its storage account, name, and storage quota, with options for access tier and protocol. In the ERD, `file_shares` links one-to-one with [`storage_accounts`](#storage-accounts) via `storage_account_name`.
 
 ```hcl
 file_shares = {
