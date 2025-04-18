@@ -365,7 +365,7 @@ networks = {
 |-------|-------------|
 | `peered_to` | A list of network keys from [`var.networks`](#networks) or [`var.external_networks`](#external-networks) to peer with. For `external_networks`, a valid Azure `resource_id` is required. |
 
-### Routes
+#### Routes
 
 > Terraform variable: `var.networks.subnets.route_traffic`
 
@@ -836,20 +836,19 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_zone_distribution`
 
-The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from `virtual_machine_sets` across Azure availability zones, overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with `virtual_machine_sets` and `virtual_machine_set_specs` via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with `virtual_machine_sets`, tailoring zonal deployment for each set.
+The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from [`virtual_machine_sets`](#virtual-machine-sets) across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_specs`](#virtual-machine-set-specs) via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), tailoring zonal deployment for each set.
 
 ```hcl
 virtual_machine_set_zone_distribution = {
-  primary_bca_web = {
-    custom = {                
-      "1" = 2  # 2 VMs in zone 1
-      "2" = 8  # 8 VMs in zone 2
+  primary_bca_web = {  # 🔗 Links to var.virtual_machine_sets
+    custom = {         # Custom distribution    
+      "1" = 2          # 2 VMs in zone 1
+      "2" = 8          # 8 VMs in zone 2
     }
   }
-
-  database = {
-    even = [   
-      "1",     # Distribute VMs evenly across zones 1 and 3
+  database = {         # 🔗 Links to var.virtual_machine_sets
+    even = [           # Distribute VMs evenly across zones 1 and 3
+      "1",             
       "3"
     ]
   }
