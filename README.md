@@ -861,6 +861,84 @@ virtual_machine_set_zone_distribution = {
 | `custom` | Optional; maps zone numbers (e.g., `"1"`, `"2"`) to specific VM counts (e.g., `2`, `8`) for targeted distribution. Defaults to `null`. |
 | `even` | Optional; lists zones (e.g., `["1", "3"]`) for even VM distribution across those zones. Defaults to `null`. If both `custom` and `even` are `null`, VMs spread evenly across all zones. |
 
+### Storage Accounts
+
+> Terraform variable: `var.storage_accounts`
+
+The `storage_accounts` table configures Azure storage accounts to store data such as blobs, files, or queues. Each account specifies its location, resource group, and subscription, with options for access tiers and replication. In the ERD, `storage_accounts` links one-to-one with `subscriptions`, `locations`, and `resource_groups`, and one-to-many with `blob_containers` and `file_shares`.
+
+```hcl
+storage_accounts = {
+  files = {  # 🔑 Primary key: "files"
+    location_name       = "primary"      # 🔗 Links to var.locations
+    resource_group_name = "shared"       # 🔗 Links to var.resource_groups
+    subscription_name   = "primary"      # 🔗 Links to var.subscriptions
+    name                = "appfiles"
+    replication_type    = "RAGRS"
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Required; links to a key in [`var.locations`](#locations), setting the storage account’s Azure region. |
+| `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the storage account’s resource group. |
+| `subscription_name` | Required; links to a key in [`var.subscriptions`](#subscriptions), tying the storage account to a subscription. |
+| `name` | Optional; names the storage account, e.g., `appfiles`. Defaults to `null` (auto-generated if unset). |
+| `access_tier` | Optional; sets the access tier: `Hot` or `Cool`. Defaults to `Hot`. |
+| `account_tier` | Optional; sets the performance tier: `Standard` or `Premium`. Defaults to `Standard`. |
+| `account_type` | Optional; specifies the account kind: `StorageV2`, `Storage`, `BlobStorage`, or `FileStorage`. Defaults to `StorageV2`. |
+| `replication_type` | Optional; sets data replication: `ZRS`, `LRS`, `GRS`, or `RAGRS`. Defaults to `ZRS`. |
+| `allow_http_access` | Optional; if `true`, enables HTTP access. Defaults to `false` for security. |
+| `include_deployment_prefix_in_name` | Optional; if `true`, prepends a deployment prefix to the name. Defaults to `true`. |
+| `lock_groups` | Optional; lists lock groups for resource protection, e.g., `["main_lock"]`. Defaults to `[]`. |
+| `tags` | Optional; applies key-value tags, e.g., `{ environment = "production" }`. Defaults to `{}`. |
+
+### Blob Containers
+
+> Terraform variable: `var.blob_containers`
+
+The `blob_containers` table configures Azure Blob Storage containers within storage accounts to store unstructured data like files or backups. Each container specifies its storage account and name, with an option for public access. In the ERD, `blob_containers` links one-to-one with `storage_accounts` via `storage_account_name`.
+
+```hcl
+blob_containers = {
+  uploaded_files = {                # 🔑 Primary key: "uploaded_files"
+    storage_account_name = "files"  # 🔗 Links to var.storage_accounts
+    name                 = "uploaded-files"
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `storage_account_name` | Required; links to a key in [`var.storage_accounts`](#storage_accounts), specifying the storage account for the container. |
+| `name` | Required; names the blob container, e.g., `uploaded-files`. |
+| `enable_public_network_access` | Optional; if `true`, allows public access to the container. Defaults to `false` for security. |
+
+### File Shares
+
+> Terraform variable: `var.file_shares`
+
+The `file_shares` table configures Azure File Shares within storage accounts for shared file storage accessible via SMB or NFS protocols. Each share specifies its storage account, name, and storage quota, with options for access tier and protocol. In the ERD, `file_shares` links one-to-one with `storage_accounts` via `storage_account_name`.
+
+```hcl
+file_shares = {
+  uploaded_files = {                # 🔑 Primary key: "uploaded_files"
+    storage_account_name = "files"  # 🔗 Links to var.storage_accounts
+    name                 = "uploaded-files"
+    quota_gb             = 1
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `storage_account_name` | Required; links to a key in [`var.storage_accounts`](#storage_accounts), specifying the storage account for the file share. |
+| `name` | Required; names the file share, e.g., `uploaded-files`. |
+| `quota_gb` | Required; sets the storage limit in gigabytes, e.g., `1`. |
+| `access_tier` | Optional; sets the access tier: `Hot`, `Cool`, or `TransactionOptimized`. Defaults to `Hot`. |
+| `protocol` | Optional; specifies the access protocol: `SMB` or `NFS`. Defaults to `SMB`. |
+
 ### Key Vaults
 
 > Terraform variable: `var.key_vaults`
