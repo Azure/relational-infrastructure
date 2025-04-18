@@ -894,7 +894,7 @@ storage_accounts = {
 | `tags` | Optional; applies key-value tags, e.g., `{ environment = "production" }`. Defaults to `{}`. |
 
 > [!WARNING]
-> We strongly recommend that you allow storage account HTTPS access only (`allow_http_access = false`). It is configured this way by default.
+> We strongly recommend that you allow storage account HTTPS access only (`allow_http_access = false`). This is the default.
 
 ### Blob Containers
 
