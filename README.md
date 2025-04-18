@@ -225,6 +225,42 @@ resource_groups = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this resource group belongs to. |
 | `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
+### Maintenance Schedules
+
+> Terraform variable: `var.maintenance_schedules`
+
+[The `maintenance_schedules` table defines when Azure applies platform updates](https://learn.microsoft.com/azure/virtual-machines/maintenance-configurations), like patches or upgrades, to your [virtual machines](#virtual-machine-sets). Each schedule specifies a start time, update period, and how often updates repeat (daily, weekly, or monthly). In the ERD, `maintenance_schedules` links one-to-one with [`subscriptions`](#subscriptions) and one-to-many with [`virtual_machine_sets`](#virtual-machine-sets), aligning update plans with your infrastructure.
+
+```hcl
+maintenance_schedules = {
+  guest_updates = {                                # 🔑 Primary key: "guest_updates"
+    repeat_every = {                               # Updates every...
+      week = true                                  # week
+    }
+    start_date_time_utc = "2025-01-05 22:00"       # Window starts at 22:00
+    duration            = "2:00"                   # Updates take 2 hours
+  }
+  host_updates = {                                 # 🔑 Primary key: "host_updates"
+    repeat_every = {                               # Updates every...
+      days = 7                                     # 7 days
+    }
+    start_date_time_utc      = "2025-01-06 23:00"  # Window starts at 23:00
+    expiration_date_time_utc = "2026-01-06 23:00"  # Expires after 1 year
+    duration                 = "1:30"              # Updates take 90 minutes
+  }
+}
+```
+
+> [!IMPORTANT]  
+> [VMs](#virtual-machine-sets) must be running 15 minutes before the update start time. Schedule updates during low-traffic periods to avoid impact.
+
+| Field | Description |
+|-------|-------------|
+| `repeat_every` | Required; sets the update frequency: `day` (daily), `week` (weekly), `month` (monthly), `days` (every n days), `weeks` (every n weeks), or `months` (every n months). Only one option can be set. |
+| `start_date_time_utc` | Required; specifies the first update time in UTC, e.g., `2025-01-05 22:00`. |
+| `expiration_date_time_utc` | Optional; sets when the schedule ends, e.g., `2026-01-06 23:00`. Defaults to `null` (no expiration). |
+| `duration` | Optional; defines the update period in HH:MM format, e.g., `2:00` or `1:30`. Defaults to `1:30` (90 minutes). Minimum varies by scope (e.g., 1.5h for guest updates). |
+
 ### Virtual Machine Extensions
 
 > Terraform variable: `var.virtual_machine_extensions`
