@@ -592,6 +592,10 @@ virtual_machine_sets = {
       "production_lock"                                # 🔗 Links to var.lock_groups
     ]
 
+    maintenance = {                                    # Optional
+      schedule_name = "guest_updates"                  # 🔗 Optional; links to var.maintenance_schedules
+    }
+
     os_type                 = "Windows"                # Windows or Linux
     disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
     enable_boot_diagnostics = true                     # Enable boot diagnostics? Default: false
@@ -606,6 +610,7 @@ virtual_machine_sets = {
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
+| `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
