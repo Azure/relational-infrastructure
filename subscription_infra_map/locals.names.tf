@@ -15,6 +15,25 @@ locals {
     )
   }
 
+  storage_account_names = {
+    for account_name, account in var.storage_accounts
+    : account_name => (
+      substr(
+        replace(replace(
+          (
+            account.name == null
+            ? "${var.deployment_prefix}${account_name}"
+            : (
+              account.include_deployment_prefix_in_name
+              ? "${var.deployment_prefix}${account.name}"
+              : account.name
+            )
+          )
+        , "-", ""), "_", ""),
+      0, 24)
+    )
+  }
+
   security_group_names = {
     for network_name, network in var.networks
     : network_name => {

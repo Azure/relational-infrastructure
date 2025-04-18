@@ -167,6 +167,53 @@ ERROR_MESSAGE
   }
 }
 
+variable "storage_accounts" {
+  type = map(object({
+    location_name                     = string
+    resource_group_name               = string
+    subscription_name                 = string
+    name                              = optional(string, null)
+    access_tier                       = optional(string, "Hot")
+    account_tier                      = optional(string, "Standard")
+    account_type                      = optional(string, "StorageV2")
+    replication_type                  = optional(string, "ZRS")
+    allow_http_access                 = optional(bool, false)
+    include_deployment_prefix_in_name = optional(bool, true)
+    lock_groups                       = optional(list(string), [])
+    tags                              = optional(map(string), {})
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's storage accounts"
+}
+
+variable "blob_containers" {
+  type = map(object({
+    storage_account_name         = string
+    name                         = string
+    enable_public_network_access = optional(bool, false)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's storage blob containers"
+}
+
+variable "file_shares" {
+  type = map(object({
+    storage_account_name = string
+    name                 = string
+    quota_gb             = number
+    access_tier          = optional(string, "Hot")
+    protocol             = optional(string, "SMB")
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's storage file shares."
+}
+
 variable "external_networks" {
   type = map(object({
     address_space = string

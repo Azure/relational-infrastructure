@@ -35,6 +35,36 @@ locations = {
   primary = "canadacentral"
 }
 
+storage_accounts = {
+  files = {
+    location_name       = "primary"
+    resource_group_name = "shared"
+    subscription_name   = "primary"
+    name                = "appfiles"
+    replication_type    = "RAGRS"
+
+    lock_groups = [
+      "main_lock",
+      "shared_lock"
+    ]
+  }
+}
+
+blob_containers = {
+  uploaded_files = {
+    storage_account_name = "files"
+    name                 = "uploaded-files"
+  }
+}
+
+file_shares = {
+  uploaded_files = {
+    storage_account_name = "files"
+    name                 = "uploaded-files"
+    quota_gb             = 1
+  }
+}
+
 maintenance_schedules = {
   every_night = {
     repeat_every = {

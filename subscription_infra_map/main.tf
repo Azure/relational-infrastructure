@@ -49,6 +49,64 @@ module "naming" {
   source = "Azure/naming/azurerm"
 }
 
+module "storage_accounts" {
+  source   = "Azure/avm-res-storage-storageaccount/azurerm"
+  for_each = var.storage_accounts
+
+  location                   = var.locations[each.value.location_name]
+  name                       = local.storage_account_names[each.key]
+  resource_group_name        = module.resource_groups[each.value.resource_group_name].name
+  tags                       = local.storage_account_tags[each.key]
+  access_tier                = each.value.access_tier
+  account_tier               = each.value.account_tier
+  account_kind               = each.value.account_type
+  account_replication_type   = each.value.replication_type
+  https_traffic_only_enabled = !(each.value.allow_http_access)
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
+
+  containers = {
+    for container_name, container in var.blob_containers :
+    container_name => {
+      name = container.name
+
+      public_access = (
+        container.enable_public_network_access
+        ? "Blob" : "None"
+      )
+    } if container.storage_account_name == each.key
+  }
+
+  shares = {
+    for share_name, share in var.file_shares :
+    share_name => {
+      name             = share.name
+      quota            = share.quota_gb
+      access_tier      = share.access_tier
+      enabled_protocol = share.protocol
+    } if share.storage_account_name == each.key
+  }
+}
+
 #Create the Keyvaults
 module "key_vaults" {
   source = "Azure/avm-res-keyvault-vault/azurerm"
@@ -254,7 +312,7 @@ module "network_security_groups" {
   name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   lock                = each.value.lock
-  tags                = local.security_group_tags[each.value.network_ref]
+  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
 
   security_rules = {
     for rule_ref, rule in merge(

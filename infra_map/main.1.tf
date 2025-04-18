@@ -64,6 +64,24 @@ module "az_subscription_1_infra_map" {
     if var.subscriptions[group.subscription_name].subscription_slot == local._s1
   }
 
+  storage_accounts = {
+    for account_name, account in var.storage_accounts
+    : account_name => account
+    if var.subscriptions[account.subscription_name].subscription_slot == local._s1
+  }
+
+  blob_containers = {
+    for container_name, container in var.blob_containers
+    : container_name => container
+    if var.subscriptions[var.storage_accounts[container.storage_account_name].subscription_name].subscription_slot == local._s1
+  }
+
+  file_shares = {
+    for share_name, share in var.file_shares
+    : share_name => share
+    if var.subscriptions[var.storage_accounts[share.storage_account_name].subscription_name].subscription_slot == local._s1
+  }
+
   virtual_machine_sets = {
     for vm_set_name, vm_set in var.virtual_machine_sets
     : vm_set_name => vm_set

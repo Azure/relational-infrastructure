@@ -26,6 +26,19 @@ locals {
     )
   }
 
+  storage_account_tags = {
+    for account_name, account in var.storage_accounts :
+    account_name => merge(
+      var.tags,
+      account.tags,
+      var.include_label_tags ? {
+        "location_label"        = account.location_name,
+        "resource_group_label"  = account.resource_group_name,
+        "storage_account_label" = account_name
+      } : {}
+    )
+  }
+
   route_table_tags = {
     for table_name, table in local.route_tables :
     table_name => merge(
