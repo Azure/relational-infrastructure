@@ -864,7 +864,7 @@ virtual_machine_set_zone_distribution = {
 
 > Terraform variable: `var.storage_accounts`
 
-The `storage_accounts` table configures Azure storage accounts to store data such as blobs, files, or queues. Each account specifies its location, resource group, and subscription, with options for access tiers and replication. In the ERD, `storage_accounts` links one-to-one with `subscriptions`, `locations`, and `resource_groups`, and one-to-many with `blob_containers` and `file_shares`.
+The `storage_accounts` table configures [Azure storage accounts](https://learn.microsoft.com/azure/storage/common/storage-account-overview) to store data such as [blobs](https://learn.microsoft.com/azure/storage/blobs/storage-blobs-overview) and [files](https://learn.microsoft.com/azure/storage/files/storage-files-introduction). Each account specifies its [location](#locations), [resource group](#resource-groups), and [subscription](#subscriptions), with options for [access tiers](https://learn.microsoft.com/azure/storage/blobs/access-tiers-overview) and [replication](https://learn.microsoft.com/azure/storage/common/storage-redundancy). In the ERD, `storage_accounts` links one-to-one with [`subscriptions`](#subscriptions), [`locations`](#locations), and [`resource_groups`](#resource-groups), and one-to-many with [`blob_containers`](#blob-containers) and [`file_shares`](#file-shares).
 
 ```hcl
 storage_accounts = {
@@ -887,11 +887,14 @@ storage_accounts = {
 | `access_tier` | Optional; sets the access tier: `Hot` or `Cool`. Defaults to `Hot`. |
 | `account_tier` | Optional; sets the performance tier: `Standard` or `Premium`. Defaults to `Standard`. |
 | `account_type` | Optional; specifies the account kind: `StorageV2`, `Storage`, `BlobStorage`, or `FileStorage`. Defaults to `StorageV2`. |
-| `replication_type` | Optional; sets data replication: `ZRS`, `LRS`, `GRS`, or `RAGRS`. Defaults to `ZRS`. |
+| `replication_type` | Optional; sets data replication: `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS`, and `RAGZRS`. Defaults to `ZRS`. |
 | `allow_http_access` | Optional; if `true`, enables HTTP access. Defaults to `false` for security. |
 | `include_deployment_prefix_in_name` | Optional; if `true`, prepends a deployment prefix to the name. Defaults to `true`. |
 | `lock_groups` | Optional; lists lock groups for resource protection, e.g., `["main_lock"]`. Defaults to `[]`. |
 | `tags` | Optional; applies key-value tags, e.g., `{ environment = "production" }`. Defaults to `{}`. |
+
+> [!WARNING]
+> We strongly recommend that you allow storage account HTTPS access only (`allow_http_access = false`). It is configured this way by default.
 
 ### Blob Containers
 
