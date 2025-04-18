@@ -101,6 +101,8 @@ erDiagram
   "Lock Groups" ||--o{ "Network Interfaces" : "lock"
   "Lock Groups" ||--o{ "Private Endpoints" : "lock"
   "Lock Groups" ||--o{ "Storage Accounts" : "lock"
+  "Storage Accounts" ||--o{ "Blob Containers" : "have"
+  "Storage Accounts" ||--o{ "File Shares" : "have"
 ```
 
 > [!NOTE]
