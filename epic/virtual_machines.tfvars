@@ -406,6 +406,7 @@ virtual_machine_sets = {
     resource_group_name = "odb"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "odb"
@@ -427,6 +428,7 @@ virtual_machine_sets = {
     resource_group_name = "odb"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "odb-rpt"
@@ -448,6 +450,7 @@ virtual_machine_sets = {
     resource_group_name = "odb"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "odb-ecp-app"
@@ -469,6 +472,7 @@ virtual_machine_sets = {
     resource_group_name = "odb"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "odb-ecp-util"
@@ -490,6 +494,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_servers"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "caboodle-db"
@@ -511,6 +516,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_servers"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "clarity-db"
@@ -532,6 +538,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_servers"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "cubes"
@@ -553,6 +560,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_clients"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "caboodle-console"
@@ -574,6 +582,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_clients"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "birestful"
@@ -595,6 +604,7 @@ virtual_machine_sets = {
     resource_group_name = "cogito_clients"
     subscription_name   = "production"
     os_type             = "Windows"
+    deploy_scale_set    = false
 
     tags = {
       epic-app = "slicerdicer"

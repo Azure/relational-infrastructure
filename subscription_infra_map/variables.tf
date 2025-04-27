@@ -468,6 +468,7 @@ variable "virtual_machine_sets" {
     location_name                     = string
     resource_group_name               = string
     name                              = string
+    deploy_scale_set                  = optional(bool, true)
     lock_groups                       = optional(list(string), [])
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])

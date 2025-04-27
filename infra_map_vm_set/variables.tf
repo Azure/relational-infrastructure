@@ -399,6 +399,13 @@ variable "maintenance_configuration" {
   description = "The maintenance configuration for the virtual machines to deploy."
 }
 
+variable "deploy_scale_set" {
+  type        = bool
+  default     = true
+  description = "Whether to deploy the virtual machines in a scale set."
+  nullable    = false
+}
+
 variable "virtual_machine_sku_size" {
   type        = string
   description = "The SKU size of the virtual machines to deploy."

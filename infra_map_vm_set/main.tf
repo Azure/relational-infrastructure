@@ -1,5 +1,6 @@
 module "virtual_machine_scale_set" {
   source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
+  count  = var.deploy_scale_set ? 1 : 0
 
   name                        = local.virtual_machine_scale_set_name
   lock                        = local.vmss_lock
@@ -7,6 +8,7 @@ module "virtual_machine_scale_set" {
   resource_group_name         = var.resource_group_name
   extension_protected_setting = {}
   user_data_base64            = null
+  tags                        = var.resource_tags
 }
 
 module "virtual_machines" {
@@ -35,8 +37,13 @@ module "virtual_machines" {
   source_image_reference                 = var.virtual_machine_image.reference
   source_image_resource_id               = var.virtual_machine_image.id
   sku_size                               = var.virtual_machine_sku_size
-  virtual_machine_scale_set_resource_id  = module.virtual_machine_scale_set.resource_id
   zone                                   = local.virtual_machine_zones[count.index]
+
+  virtual_machine_scale_set_resource_id = (
+    var.deploy_scale_set
+    ? module.virtual_machine_scale_set[0].id
+    : null
+  )
 
   generated_secrets_key_vault_secret_config = (
     var.generated_secrets_key_vault_secret_config == null ? null

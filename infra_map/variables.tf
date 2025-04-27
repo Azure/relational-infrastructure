@@ -407,6 +407,7 @@ variable "virtual_machine_sets" {
     location_name                     = string
     resource_group_name               = string
     subscription_name                 = string
+    deploy_scale_set                  = optional(bool, true)
     lock_groups                       = optional(list(string), [])
     name                              = string
     include_deployment_prefix_in_name = optional(bool, true)
