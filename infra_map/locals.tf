@@ -4,11 +4,6 @@ locals {
     subscription_slots[subscription_name] => subscription
   }
 
-  subscription_names_by_slot = {
-    for subscription_name in var.subscriptions :
-    subscription.subscription_slot => subscription_name
-  }
-
   default_subscription_id = values(var.subscriptions)[0].subscription_id
 
   subscription_ids = [
@@ -16,11 +11,29 @@ locals {
     try(values(var.subscriptions)[i].subscription_id, local.default_subscription_id)
   ]
 
+  subscription_slot_names = [
+    for i in range(0, 10) :
+    "az_subscription_${i + 1}"
+  ]
+
+  subscription_names_by_slot = {
+    for i in range(0, count(var.subscriptions)) :
+    local.subscription_slot_names[i] =>
+    keys(var.subscriptions)[i]
+  }
+
   subscription_slots = {
     for i in range(0, count(var.subscriptions)) :
-    try(keys(var.subscriptions)[i], null) =>
-    "az_subscription_${i + 1}"
-    if each.key != null
+    keys(var.subscriptions)[i] =>
+    local.subscription_slot_names[i]
+  }
+
+  deploy_to_subscription = {
+    for i in range(0, 10) :
+    local.subscription_slot_names[i] =>
+    contains(values(var.subscriptions), local.subscription_slot_names[i]) 
+    ? 1 # Yes (module count == 1)
+    : 0 # No  (module count == 0)
   }
 
   virtual_network_outputs = {

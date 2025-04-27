@@ -4,7 +4,7 @@ locals {
 
 module "az_subscription_6_infra_map" {
   source = "../subscription_infra_map"
-  count  = try(local.subscriptions_by_slot[local._s6] != null ? 1 : 0, 0)
+  count  = local.deploy_to_subscription[local._s6]
 
   providers = {
     azurerm = azurerm.az_subscription_6
