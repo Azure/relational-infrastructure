@@ -194,6 +194,18 @@ resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
   tags                = merge(var.tags, { service = "dns" })
 }
 
+resource "azurerm_private_dns_zone" "blob_storage_dns_zone" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
+  tags                = merge(var.tags, { service = "dns" })
+}
+
+resource "azurerm_private_dns_zone" "file_share_dns_zone" {
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
+  tags                = merge(var.tags, { service = "dns" })
+}
+
 # Create Virtual Network Links for all networks that need to resolve the private endpoint
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   for_each = local.networks
@@ -204,7 +216,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
   virtual_network_id    = module.networks[each.key].resource_id
   registration_enabled  = false
   tags                  = merge(var.tags, { network_name = each.value.name })
-
 }
 
 # Private Endpoints for Azure services
@@ -367,7 +378,7 @@ module "virtual_machine_sets" {
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
-  virtual_machine_image                         = each.value.image
+  virtual_machine_image                         = var.virtual_machine_images[each.value.image_name]
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })

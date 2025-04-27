@@ -1,0 +1,3 @@
+locations = {
+  production = "canadacentral"
+}

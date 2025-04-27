@@ -108,6 +108,38 @@ locals {
     )
   }
 
+  blob_storage_private_link_names = {
+    for network_name, network in var.networks
+    : network_name => (
+      replace(
+        network.name == null
+        ? "${var.deployment_prefix}-${network_name}-st-blob-pl"
+        : (
+          network.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${network.name}-st-blob-pl"
+          : "${network.name}-st-blob-pl"
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  file_share_private_link_names = {
+    for network_name, network in var.networks
+    : network_name => (
+      replace(
+        network.name == null
+        ? "${var.deployment_prefix}-${network_name}-st-share-pl"
+        : (
+          network.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${network.name}-st-share-pl"
+          : "${network.name}-st-share-pl"
+        ),
+        "_", "-"
+      )
+    )
+  }
+
   key_vault_private_link_names = {
     for network_name, network in var.networks
     : network_name => (
@@ -134,6 +166,38 @@ locals {
           endpoint.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${endpoint.name}"
           : endpoint.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  blob_container_endpoint_names = {
+    for pe_name, pe in var.private_endpoints.blob_containers
+    : pe_name => (
+      replace(
+        pe.name == null
+        ? "${var.deployment_prefix}-${pe_name}-st-blob-pep"
+        : (
+          pe.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${pe.name}"
+          : pe.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  file_share_endpoint_names = {
+    for pe_name, pe in var.private_endpoints.file_shares
+    : pe_name => (
+      replace(
+        pe.name == null
+        ? "${var.deployment_prefix}-${pe_name}-st-share-pep"
+        : (
+          pe.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${pe.name}"
+          : pe.name
         ),
         "_", "-"
       )

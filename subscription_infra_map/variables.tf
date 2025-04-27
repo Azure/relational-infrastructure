@@ -445,8 +445,25 @@ variable "networks" {
   }
 }
 
+variable "virtual_machine_images" {
+  type = map(object({
+    id = optional(string, null)
+    reference = optional(object({
+      offer     = string
+      publisher = string
+      sku       = string
+      version   = string
+    }), null)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's virtual machine images"
+}
+
 variable "virtual_machine_sets" {
   type = map(object({
+    image_name                        = string
     key_vault_name                    = string
     location_name                     = string
     resource_group_name               = string
@@ -460,16 +477,6 @@ variable "virtual_machine_sets" {
     capacity_reservation_group_id     = optional(string, null)
     lock_mode                         = optional(string, null)
     include_deployment_prefix_in_name = optional(bool, true)
-
-    image = optional(object({
-      id = optional(string, null) # or...
-      reference = optional(object({
-        offer     = string
-        publisher = string
-        sku       = string
-        version   = string
-      }), null)
-    }), null)
 
     data_disks = optional(map(object({
       lun                          = number
@@ -762,7 +769,7 @@ variable "key_vaults" {
 # Define the private endpoints configuration
 variable "private_endpoints" {
   type = object({
-    key_vaults = optional(map(object({
+    key_vaulvts = optional(map(object({
       network_name                      = string
       subnet_name                       = string
       key_vault_name                    = string
@@ -777,26 +784,40 @@ variable "private_endpoints" {
       }), {})
     })), {})
 
-    storage_accounts = optional(map(object({
+    blob_containers = optional(map(object({
+      container_name                    = string
       network_name                      = string
       subnet_name                       = string
-      storage_account_name              = string
       resource_group_name               = string
       lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)
-      subresource_name                  = optional(string, "blob") # blob, file, queue, table, etc.
       include_deployment_prefix_in_name = optional(bool, true)
+
       dns_zone_group = optional(object({
         name                 = optional(string, "default")
         private_dns_zone_ids = optional(list(string), [])
       }), {})
     })), {})
 
-    # Extend this with other Azure services that support private endpoints 
-    # such as SQL Server, etc.
+    file_shares = optional(map(object({
+      share_name                        = string
+      network_name                      = string
+      subnet_name                       = string
+      resource_group_name               = string
+      lock_groups                       = optional(list(string), [])
+      private_ip                        = optional(string, null)
+      name                              = optional(string, null)
+      include_deployment_prefix_in_name = optional(bool, true)
+
+      dns_zone_group = optional(object({
+        name                 = optional(string, "default")
+        private_dns_zone_ids = optional(list(string), [])
+      }), {})
+    })), {})
   })
-  default     = { key_vaults = {}, storage_accounts = {} }
+
+  default     = { key_vaults = {}, blob_containers = {}, file_shares = {} }
   description = "Configuration for private endpoints to various Azure services"
   nullable    = false
 }
