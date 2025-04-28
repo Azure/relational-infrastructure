@@ -16,6 +16,7 @@ module "az_subscription_1_infra_map" {
   extensions                 = var.extensions
   maintenance_schedules      = var.maintenance_schedules
   virtual_machine_extensions = var.virtual_machine_extensions
+  virtual_machine_images     = var.virtual_machine_images
   locations                  = var.locations
   lock_groups                = var.lock_groups
 
@@ -116,7 +117,7 @@ module "az_subscription_1_infra_map" {
     blob_containers = {
       for container_name, container in var.private_endpoints.blob_containers
       : container_name => container
-      if vlocal.subscription_slots[var.storage_accounts[var.blob_containers[container_name].storage_account_name].subscription_name] == local._s1
+      if local.subscription_slots[var.storage_accounts[var.blob_containers[container_name].storage_account_name].subscription_name] == local._s1
     }
 
     file_shares = {
@@ -125,4 +126,53 @@ module "az_subscription_1_infra_map" {
       if local.subscription_slots[var.storage_accounts[var.file_shares[share_name].storage_account_name].subscription_name] == local._s1
     }
   }
+}
+
+resource "azurerm_virtual_network_peering" "az_subscription_1_peerings" {
+  for_each = {
+    for pair in flatten([
+      for from_name, from_network in var.networks : [
+        for to_name in from_network.peered_to : {
+          key                    = "peer-${from_name}-to-${to_name}"
+          from_name              = from_name
+          to_name                = to_name
+          from_subscription_name = from_network.subscription_name
+        }
+        if from_network.subscription_name == try(local.subscription_names_by_slot[local._s1], null)
+      ]
+    ]) : pair.key => pair
+  }
+
+  provider             = azurerm.az_subscription_1
+  name                 = each.key
+  resource_group_name  = try(module.az_subscription_1_infra_map[0].resource_groups[var.networks[each.value.from_name].resource_group_name].resource_name, null)
+  virtual_network_name = try(module.az_subscription_1_infra_map[0].networks[each.value.from_name].resource_name, null)
+  
+  remote_virtual_network_id = try(
+    var.external_networks[each.value.to_name].resource_id,
+    module.az_subscription_1_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_2_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_3_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_4_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_5_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_6_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_7_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_8_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_9_infra_map[0].networks[each.value.to_name].resource_id,
+    module.az_subscription_10_infra_map[0].networks[each.value.to_name].resource_id,
+    null
+  )
+
+  depends_on = [
+    module.az_subscription_1_infra_map,
+    module.az_subscription_2_infra_map,
+    module.az_subscription_3_infra_map,
+    module.az_subscription_4_infra_map,
+    module.az_subscription_5_infra_map,
+    module.az_subscription_6_infra_map,
+    module.az_subscription_7_infra_map,
+    module.az_subscription_8_infra_map,
+    module.az_subscription_9_infra_map,
+    module.az_subscription_10_infra_map
+  ]
 }

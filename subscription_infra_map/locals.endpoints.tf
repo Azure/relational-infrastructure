@@ -84,13 +84,13 @@ locals {
   blob_container_private_endpoints = {
     for pe_name, pe in try(var.private_endpoints.blob_containers, {})
     : pe_name => {
-      name                            = local.blob_container_endpoint_names[pe_name]
+      name                            = local.blob_container_private_endpoint_names[pe_name]
       resource_group_name             = module.resource_groups[pe.resource_group_name].name
       location                        = var.locations[local.networks[pe.network_name].location_ref]
       subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].resource_id
-      private_service_connection_name = "${local.blob_container_endpoint_names[pe_name]}-psc"
-      network_interface_name          = "${local.blob_container_endpoint_names[pe_name]}-nic"
+      private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
+      network_interface_name          = "${local.blob_container_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["blob"]
 
       # IP configurations if a specific IP is required
@@ -118,7 +118,7 @@ locals {
       {
         # Always include the Key Vault private DNS zone
         private_dns_zone_resource_ids = concat(
-          try(local.blob_container_private_endpoints_with_dns[pe_name].private_dns_zone_resource_ids, []),
+          try(local.blob_container_private_endpoints[pe_name].private_dns_zone_resource_ids, []),
           [local.private_dns_zones.blob.id]
         )
       }
@@ -128,13 +128,13 @@ locals {
   file_share_private_endpoints = {
     for pe_name, pe in try(var.private_endpoints.file_shares, {})
     : pe_name => {
-      name                            = local.file_share_endpoint_names[pe_name]
+      name                            = local.file_share_private_endpoint_names[pe_name]
       resource_group_name             = module.resource_groups[pe.resource_group_name].name
       location                        = var.locations[local.networks[pe.network_name].location_ref]
       subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.file_shares[pe.share_name].storage_account_name].resource_id
-      private_service_connection_name = "${local.file_share_endpoint_names[pe_name]}-psc"
-      network_interface_name          = "${local.file_share_endpoint_names[pe_name]}-nic"
+      private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"
+      network_interface_name          = "${local.file_share_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["file"]
 
       # IP configurations if a specific IP is required
@@ -162,7 +162,7 @@ locals {
       {
         # Always include the file share private DNS zone
         private_dns_zone_resource_ids = concat(
-          try(local.file_share_private_endpoints_with_dns[pe_name].private_dns_zone_resource_ids, []),
+          try(local.file_share_private_endpoints[pe_name].private_dns_zone_resource_ids, []),
           [local.private_dns_zones.file.id]
         )
       }

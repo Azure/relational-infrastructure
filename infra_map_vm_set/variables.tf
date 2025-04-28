@@ -442,8 +442,8 @@ variable "virtual_machine_zone_distribution" {
   }
 
   validation {
-    condition     = try(var.virtual_machine_zone_distribution.even, null) == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) >= 2) && (alltrue([for zone in var.virtual_machine_zone_distribution.even : contains(["1", "2", "3"], zone)])))
-    error_message = "If provided, [virtual_machine_zone_distribution.even] must be a list of at least two (2) of the following availability zones: '1', '2', '3'."
+    condition     = try(var.virtual_machine_zone_distribution.even, null) == null ? true : ((length(distinct(var.virtual_machine_zone_distribution.even)) >= 1) && (alltrue([for zone in var.virtual_machine_zone_distribution.even : contains(["1", "2", "3"], zone)])))
+    error_message = "If provided, [virtual_machine_zone_distribution.even] must be a list of at least one (1) of the following availability zones: '1', '2', '3'."
   }
 
   validation {

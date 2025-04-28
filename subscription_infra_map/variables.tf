@@ -770,7 +770,7 @@ variable "key_vaults" {
 # Define the private endpoints configuration
 variable "private_endpoints" {
   type = object({
-    key_vaulvts = optional(map(object({
+    key_vaults = optional(map(object({
       network_name                      = string
       subnet_name                       = string
       key_vault_name                    = string

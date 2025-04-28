@@ -35,7 +35,7 @@ locals {
   virtual_machine_data_disks = [
     for i in range(var.virtual_machine_count) : {
       for disk_name, disk_config in var.virtual_machine_data_disks : disk_name => {
-        name                      = lower("${local.virtual_machine_names[i]}${disk_name}disk")
+        name                      = lower("${local.virtual_machine_names[i]}-${disk_name}-disk")
         tags                      = var.resource_tags
         caching                   = lookup(disk_config, "caching", "ReadWrite")
         storage_account_type      = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
@@ -56,7 +56,7 @@ locals {
 
   virtual_machine_os_disks = [
     for i in range(var.virtual_machine_count) : {
-      name                 = lower("${local.virtual_machine_names[i]}osdisk")
+      name                 = lower("${local.virtual_machine_names[i]}-osdisk")
       tags                 = var.resource_tags
       caching              = lookup(var.virtual_machine_os_disk, "caching", "ReadWrite")
       storage_account_type = lookup(var.virtual_machine_os_disk, "storage_account_type", "PremiumV2_LRS")
@@ -67,14 +67,14 @@ locals {
   virtual_machine_network_interfaces = [
     for i in range(var.virtual_machine_count) : {
       for nic_name, nic_config in var.virtual_machine_network_interfaces : nic_name => {
-        name                           = "${local.virtual_machine_names[i]}${nic_name}nic"
+        name                           = "${local.virtual_machine_names[i]}-${nic_name}-nic"
         lock                           = var.lock_mode == null ? null : { kind = lookup(local.lock_modes, var.lock_mode, null) }
         tags                           = var.resource_tags
         accelerated_networking_enabled = nic_config.enable_accelerated_networking
 
         ip_configurations = {
           ip_configuration_1 = {
-            name                          = lower("${local.virtual_machine_names[i]}${nic_name}ipcfg01")
+            name                          = lower("${local.virtual_machine_names[i]}-${nic_name}-ipcfg01")
             private_ip_subnet_resource_id = nic_config.subnet_id
             private_ip_address_allocation = lookup(nic_config, "private_ip", null) == null ? "Dynamic" : "Static"
             private_ip_address            = lookup(nic_config, "private_ip", null)

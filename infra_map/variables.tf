@@ -6,6 +6,7 @@ variable "deployment_prefix" {
 variable "ddos_protection_plan_name" {
   type     = string
   nullable = true
+  default  = null
 }
 
 variable "enable_automatic_updates" {
@@ -665,7 +666,7 @@ variable "key_vaults" {
 
 variable "private_endpoints" {
   type = object({
-    key_vaulvts = optional(map(object({
+    key_vaults = optional(map(object({
       network_name                      = string
       subnet_name                       = string
       key_vault_name                    = string

@@ -41,7 +41,7 @@ module "virtual_machines" {
 
   virtual_machine_scale_set_resource_id = (
     var.deploy_scale_set
-    ? module.virtual_machine_scale_set[0].id
+    ? module.virtual_machine_scale_set[0].resource_id
     : null
   )
 

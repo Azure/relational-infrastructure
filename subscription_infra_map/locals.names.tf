@@ -172,7 +172,7 @@ locals {
     )
   }
 
-  blob_container_endpoint_names = {
+  blob_container_private_endpoint_names = {
     for pe_name, pe in var.private_endpoints.blob_containers
     : pe_name => (
       replace(
@@ -188,7 +188,7 @@ locals {
     )
   }
 
-  file_share_endpoint_names = {
+  file_share_private_endpoint_names = {
     for pe_name, pe in var.private_endpoints.file_shares
     : pe_name => (
       replace(
@@ -198,22 +198,6 @@ locals {
           pe.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${pe.name}"
           : pe.name
-        ),
-        "_", "-"
-      )
-    )
-  }
-
-  storage_account_private_endpoint_names = {
-    for endpoint_name, endpoint in var.private_endpoints.storage_accounts
-    : endpoint_name => (
-      replace(
-        endpoint.name == null
-        ? "${var.deployment_prefix}-${endpoint_name}-st-pep"
-        : (
-          endpoint.include_deployment_prefix_in_name
-          ? "${var.deployment_prefix}-${endpoint.name}"
-          : endpoint.name
         ),
         "_", "-"
       )
@@ -246,6 +230,7 @@ locals {
 
   all_private_endpoint_names = merge(
     local.key_vault_private_endpoint_names,
-    local.storage_account_private_endpoint_names
+    local.blob_container_private_endpoint_names,
+    local.file_share_private_endpoint_names
   )
 }
