@@ -1,3 +1,8 @@
+# These are the core Epic on Azure virtual networks and subnets as defined
+# by the Epic on Azure reference architecture.
+# Configure all address_spaces.
+# Add additional networks and subnets as needed.
+
 networks = {
   shared_dmz = {
     address_space          = "10.10.0.0/16"
@@ -91,22 +96,24 @@ networks = {
     }
   }
 
-  alt_production = {
-    address_space       = "10.100.0.0/16"
-    name                = "alt-production"
-    location_name       = "alt_production"
-    resource_group_name = "alt_shared"
-    subscription_name   = "alt_production"
+  # Add more networks as your needs dictate.
 
-    peered_to = [
-      "production"
-    ]
-
-    subnets = {
-      odb_cogito = {
-        address_space = "10.100.0.0/24"
-        name          = "ODBAndCogitoSubnet"
-      }
-    }
-  }
+  # alt_production = {
+  #  address_space       = "10.100.0.0/16"
+  #  name                = "alt-production"
+  #  location_name       = "alt_production"
+  #  resource_group_name = "alt_shared"
+  #  subscription_name   = "alt_production"
+  #
+  #  peered_to = [
+  #    "production"
+  #  ]
+  #
+  #  subnets = {
+  #    odb_cogito = {
+  #      address_space = "10.100.0.0/24"
+  #      name          = "ODBAndCogitoSubnet"
+  #    }
+  #  }
+  # }
 }
