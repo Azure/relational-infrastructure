@@ -1,5 +1,5 @@
 file_shares = {
-  web_blob = {
+  production_web_blob = {
     location_name        = "production"
     resource_group_name  = "web_blob"
     storage_account_name = "web_blob"

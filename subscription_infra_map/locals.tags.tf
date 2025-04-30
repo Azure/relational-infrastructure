@@ -82,10 +82,8 @@ locals {
     for endpoint_name, endpoint in var.private_endpoints.key_vaults :
     endpoint_name => merge(
       var.tags,
-      endpoint.tags,
       var.include_label_tags ? {
         "key_vault_label"      = endpoint.key_vault_name
-        "location_label"       = endpoint.location_name
         "network_label"        = endpoint.network_name
         "subnet_label"         = endpoint.subnet_name
         "resource_group_label" = endpoint.resource_group_name
@@ -97,7 +95,6 @@ locals {
     for pe_name, pe in var.private_endpoints.blob_containers :
     pe_name => merge(
       var.tags,
-      pe.tags,
       var.include_label_tags ? {
         "container_label"       = pe.container_name
         "storage_account_label" = var.blob_containers[pe.container_name].storage_account_name
@@ -113,7 +110,6 @@ locals {
     for pe_name, pe in var.private_endpoints.file_shares :
     pe_name => merge(
       var.tags,
-      pe.tags,
       var.include_label_tags ? {
         "share_label"           = pe.share_name
         "storage_account_label" = var.file_shares[pe.share_name].storage_account_name
@@ -127,7 +123,8 @@ locals {
 
   private_endpoint_tags = merge(
     local.key_vault_private_endpoint_tags,
-    local.blob_container_private_endpoint_tags
+    local.blob_container_private_endpoint_tags,
+    local.file_share_private_endpoint_tags
   )
 
   virtual_machine_set_tags = {

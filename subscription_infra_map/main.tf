@@ -116,7 +116,7 @@ module "key_vaults" {
   location            = var.locations[each.value.location_name]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
 
-  name = coalesce(each.value.name, "${var.deployment_prefix}-${each.key}-kv")
+  name = local.key_vault_names[each.key]
 
   lock = (
     length([
@@ -229,7 +229,6 @@ module "private_endpoints" {
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
   network_interface_name         = each.value.network_interface_name
-  lock                           = each.value.lock
 
   # IP configurations if specified
   ip_configurations = each.value.ip_configurations
@@ -237,8 +236,8 @@ module "private_endpoints" {
   # Subresource names
   subresource_names = each.value.subresource_names
 
-  # DNS configuration
   private_dns_zone_group_name   = each.value.private_dns_zone_group_name
+  # DNS configuration
   private_dns_zone_resource_ids = each.value.private_dns_zone_resource_ids
 
   # Service connection name
@@ -315,6 +314,23 @@ module "route_tables" {
   }
 }
 
+resource "azurerm_monitor_activity_log_alert" "route_table_activity_log_alerts" {
+  for_each = local.route_tables
+
+  name                = "${local.route_table_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  location            = "global"
+  scopes              = [module.route_tables[each.key].resource_id]
+  tags                = local.network_tags[each.value.network_ref]
+  description         = "This alert will monitor route table [${local.route_table_names[each.value.network_ref][each.value.subnet_ref]}] for any changes."
+
+  criteria {
+    category       = "Administrative"
+    operation_name = "Microsoft.Network/routeTables/write"
+    resource_id    = module.route_tables[each.key].resource_id
+  }
+}
+
 module "network_security_groups" {
   source   = "Azure/avm-res-network-networksecuritygroup/azurerm"
   for_each = local.network_security_groups
@@ -341,6 +357,23 @@ module "network_security_groups" {
       source_address_prefix      = rule.source.address_space
       source_port_range          = rule.source.port_range
     } if rule.security_group_ref == each.key
+  }
+}
+
+resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_log_alerts" {
+  for_each = local.network_security_groups
+
+  name                = "${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  location            = "global"
+  scopes              = [module.network_security_groups[each.key].resource_id]
+  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
+  description         = "This alert will monitor network security group [${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}] for any changes."
+
+  criteria {
+    category       = "Administrative"
+    operation_name = "Microsoft.Network/networkSecurityGroups/write"
+    resource_id    = module.network_security_groups[each.key].resource_id
   }
 }
 
@@ -374,6 +407,7 @@ module "virtual_machine_sets" {
   resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
   resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
+  deploy_scale_set                              = each.value.deploy_scale_set
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id

@@ -136,4 +136,10 @@ resource_groups = {
     subscription_name = "production"
     name              = "odb"
   }
+
+  alt_shared = {
+    location_name     = "alt_production"
+    subscription_name = "alt_production"
+    name              = "alt-shared"
+  }
 }

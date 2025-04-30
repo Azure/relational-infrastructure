@@ -1,6 +1,6 @@
 key_vaults = {
   production = {
-    name                          = "secrets"
+    name                          = "top-secrets"
     location_name                 = "production"
     subscription_name             = "production"
     resource_group_name           = "shared"

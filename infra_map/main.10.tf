@@ -92,13 +92,13 @@ module "az_subscription_10_infra_map" {
   virtual_machine_set_specs = {
     for vm_set_name, vm_set_specs in var.virtual_machine_set_specs
     : vm_set_name => vm_set_specs
-    if local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name] == local._s10
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s10
   }
 
   virtual_machine_set_zone_distribution = {
     for vm_set_name, vm_set_zones in var.virtual_machine_set_zone_distribution
     : vm_set_name => vm_set_zones
-    if local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name] == local._s10
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s10
   }
 
   key_vaults = {
@@ -109,21 +109,18 @@ module "az_subscription_10_infra_map" {
 
   private_endpoints = {
     key_vaults = {
-      for key_vault_name, key_vault in var.private_endpoints.key_vaults
-      : key_vault_name => key_vault
-      if local.subscription_slots[var.key_vaults[key_vault_name].subscription_name] == local._s10
+      for pe_name, pe in var.private_endpoints.key_vaults : pe_name => pe
+      if local.subscription_slots[var.key_vaults[pe.key_vault_name].subscription_name] == local._s10
     }
 
     blob_containers = {
-      for container_name, container in var.private_endpoints.blob_containers
-      : container_name => container
-      if local.subscription_slots[var.storage_accounts[var.blob_containers[container_name].storage_account_name].subscription_name] == local._s10
+      for pe_name, pe in var.private_endpoints.blob_containers : pe_name => pe
+      if local.subscription_slots[var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].subscription_name] == local._s10
     }
 
     file_shares = {
-      for share_name, share in var.private_endpoints.file_shares
-      : share_name => share
-      if local.subscription_slots[var.storage_accounts[var.file_shares[share_name].storage_account_name].subscription_name] == local._s10
+      for pe_name, pe in var.private_endpoints.file_shares : pe_name => pe
+      if local.subscription_slots[var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].subscription_name] == local._s10
     }
   }
 }
@@ -147,7 +144,7 @@ resource "azurerm_virtual_network_peering" "az_subscription_10_peerings" {
   name                 = each.key
   resource_group_name  = try(module.az_subscription_10_infra_map[0].resource_groups[var.networks[each.value.from_name].resource_group_name].resource_name, null)
   virtual_network_name = try(module.az_subscription_10_infra_map[0].networks[each.value.from_name].resource_name, null)
-  
+
   remote_virtual_network_id = try(
     var.external_networks[each.value.to_name].resource_id,
     module.az_subscription_1_infra_map[0].networks[each.value.to_name].resource_id,

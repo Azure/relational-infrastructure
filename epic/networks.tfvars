@@ -59,7 +59,8 @@ networks = {
 
     peered_to = [
       "shared_dmz",
-      "shared_infra"
+      "shared_infra",
+      "alt_production"
     ]
 
     subnets = {
@@ -81,6 +82,30 @@ networks = {
       hyperspace_web = {
         address_space = "10.30.3.0/24"
         name          = "HyperspaceWebSubnet"
+      }
+
+      private_endpoints = {
+        address_space = "10.30.4.0/24"
+        name          = "PrivateEndpointsSubnet"
+      }
+    }
+  }
+
+  alt_production = {
+    address_space       = "10.100.0.0/16"
+    name                = "alt-production"
+    location_name       = "alt_production"
+    resource_group_name = "alt_shared"
+    subscription_name   = "alt_production"
+
+    peered_to = [
+      "production"
+    ]
+
+    subnets = {
+      odb_cogito = {
+        address_space = "10.100.0.0/24"
+        name          = "ODBAndCogitoSubnet"
       }
     }
   }

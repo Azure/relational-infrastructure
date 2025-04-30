@@ -92,13 +92,13 @@ module "az_subscription_2_infra_map" {
   virtual_machine_set_specs = {
     for vm_set_name, vm_set_specs in var.virtual_machine_set_specs
     : vm_set_name => vm_set_specs
-    if local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name] == local._s2
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s2
   }
 
   virtual_machine_set_zone_distribution = {
     for vm_set_name, vm_set_zones in var.virtual_machine_set_zone_distribution
     : vm_set_name => vm_set_zones
-    if local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name] == local._s2
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s2
   }
 
   key_vaults = {
@@ -109,21 +109,18 @@ module "az_subscription_2_infra_map" {
 
   private_endpoints = {
     key_vaults = {
-      for key_vault_name, key_vault in var.private_endpoints.key_vaults
-      : key_vault_name => key_vault
-      if local.subscription_slots[var.key_vaults[key_vault_name].subscription_name] == local._s2
+      for pe_name, pe in var.private_endpoints.key_vaults : pe_name => pe
+      if local.subscription_slots[var.key_vaults[pe.key_vault_name].subscription_name] == local._s2
     }
 
     blob_containers = {
-      for container_name, container in var.private_endpoints.blob_containers
-      : container_name => container
-      if local.subscription_slots[var.storage_accounts[var.blob_containers[container_name].storage_account_name].subscription_name] == local._s2
+      for pe_name, pe in var.private_endpoints.blob_containers : pe_name => pe
+      if local.subscription_slots[var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].subscription_name] == local._s2
     }
 
     file_shares = {
-      for share_name, share in var.private_endpoints.file_shares
-      : share_name => share
-      if local.subscription_slots[var.storage_accounts[var.file_shares[share_name].storage_account_name].subscription_name] == local._s2
+      for pe_name, pe in var.private_endpoints.file_shares : pe_name => pe
+      if local.subscription_slots[var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].subscription_name] == local._s2
     }
   }
 }

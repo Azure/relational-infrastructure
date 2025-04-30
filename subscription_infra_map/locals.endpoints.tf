@@ -19,9 +19,9 @@ locals {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => {
 
       name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_name}-kv-pe")
-      resource_group_name             = var.networks[pe.network_name].resource_group_name
-      location                        = var.locations[local.networks[pe.network_name].location_ref]
-      subnet_resource_id              = module.networks[pe.network_name].subnets["${pe.network_name}-${pe.subnet_name}"].resource_id
+      resource_group_name             = pe.resource_group_name
+      location                        = var.locations[local.networks[pe.network_name].location_name]
+      subnet_resource_id              = module.networks[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id
       private_service_connection_name = "${var.deployment_prefix}-${pe.key_vault_name}-kv-psc"
       subresource_names               = ["vault"]
@@ -85,9 +85,9 @@ locals {
     for pe_name, pe in try(var.private_endpoints.blob_containers, {})
     : pe_name => {
       name                            = local.blob_container_private_endpoint_names[pe_name]
-      resource_group_name             = module.resource_groups[pe.resource_group_name].name
+      resource_group_name             = pe.resource_group_name
       location                        = var.locations[local.networks[pe.network_name].location_ref]
-      subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets[pe.subnet_name].resource_id
+      subnet_resource_id              = module.networks[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].resource_id
       private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.blob_container_private_endpoint_names[pe_name]}-nic"
@@ -129,9 +129,9 @@ locals {
     for pe_name, pe in try(var.private_endpoints.file_shares, {})
     : pe_name => {
       name                            = local.file_share_private_endpoint_names[pe_name]
-      resource_group_name             = module.resource_groups[pe.resource_group_name].name
-      location                        = var.locations[local.networks[pe.network_name].location_ref]
-      subnet_resource_id              = module.networks.virtual_networks[pe.network_name].subnets[pe.subnet_name].resource_id
+      resource_group_name             = pe.resource_group_name
+      location                        = var.locations[local.networks[pe.network_name].location_name]
+      subnet_resource_id              = module.networks[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.file_shares[pe.share_name].storage_account_name].resource_id
       private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.file_share_private_endpoint_names[pe_name]}-nic"
