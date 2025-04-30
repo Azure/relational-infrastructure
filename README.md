@@ -67,16 +67,16 @@ Epic configurations use private `.tfvars` files:
 | File Name                         | Purpose                              |
 |-----------------------------------|--------------------------------------|
 | [`basics.tfvars`](epic/basics.tfvars)                   | General settings                    |
-| [`networks.tfvars`](#epic/networks.tfvars)                 | Network/subnet configurations       |
-| `virtual_machines.tfvars`         | VMSS Flex VM settings               |
-| `virtual_machine_specs.tfvars`    | VM sizes, disk specs                |
-| `virtual_machine_zones.tfvars`    | Availability Zone distribution      |
-| `virtual_machine_images.tfvars`   | VM image references                 |
-| `resource_groups.tfvars`          | Resource Group definitions          |
-| `key_vaults.tfvars`               | Key Vault settings                  |
-| `private_endpoints.tfvars`        | Private endpoint configurations     |
-| `storage_accounts.tfvars`         | Storage account settings            |
-| `file_shares.tfvars`              | File share configurations           |
+| [`networks.tfvars`](epic/networks.tfvars)                 | Network/subnet configurations       |
+| [`virtual_machines.tfvars`](epic/virtual_machines.tfvars)         | VMSS Flex VM settings               |
+| [`virtual_machine_specs.tfvars`](epic/virtual_machine_specs.tfvars)    | VM sizes, disk specs. For Epic deployments, this information is provided through a customer-specific Cloud Specifications Guide (CSG).                |
+| [`virtual_machine_zones.tfvars`](epic/virtual_machine_zones.tfvars)    | Availability Zone distribution      |
+| [`virtual_machine_images.tfvars`](epic/virtual_machine_images.tfvars)   | VM image references                 |
+| [`resource_groups.tfvars`](epic/resource_groups.tfvars)          | Resource Group definitions          |
+| [`key_vaults.tfvars`](epic/key_vaults.tfvars)               | Key Vault settings                  |
+| [`private_endpoints.tfvars`](epic/private_endpoints.tfvars)        | Private endpoint configurations     |
+| [`storage_accounts.tfvars`](epic/storage_accounts.tfvars)         | Storage account settings            |
+| [`file_shares.tfvars`](#epic/file_shares.tfvars)              | File share configurations           |
 
 Contact your Microsoft representative for Epic `.tfvars` access.
 
