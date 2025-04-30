@@ -1,3 +1,7 @@
+# Use this file to override VM set zone distribution.
+# Unless overridden here, zone distribution is even across zones 1-3.
+# Adjust as capacity constraints dictate.
+
 virtual_machine_set_zone_distribution = {
   odb      = { even = ["1"] } # Pin ODB to zone 1
   ecp_app  = { even = ["1"] } # Pin ECP servers to zone 1 (next to ODB)
