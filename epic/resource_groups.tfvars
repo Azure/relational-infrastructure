@@ -1,4 +1,9 @@
 resource_groups = {
+  # These are the default resource groups included in the deployment.
+  # Feel free to reconfigure resource groups to fit your needs. 
+  # When reconfiguring resource groups, be sure to update resource_group_name
+  # on related objects like var.virtual_machine_sets, var.networks, etc.
+
   shared = {
     location_name     = "production"
     subscription_name = "production"
@@ -135,11 +140,5 @@ resource_groups = {
     location_name     = "production"
     subscription_name = "production"
     name              = "odb"
-  }
-
-  alt_shared = {
-    location_name     = "alt_production"
-    subscription_name = "alt_production"
-    name              = "alt-shared"
   }
 }
