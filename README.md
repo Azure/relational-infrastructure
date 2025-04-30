@@ -257,12 +257,12 @@ subscriptions = {
   production = {                                                  # 🔑 "production" subscription
     default_resource_group_name      = "production"               # 🔗 Links to var.resource_groups
     private_link_resource_group_name = "production_networks"      # 🔗 Optional; links to var.resource_groups
-    subscription_slot                = "az_subscription_1"        # Links to an azurerm provider
+    subscription_id                  = "00000000-0000..."         # Azure subscription ID (must be a GUID)
   }
   non_production = {                                              # 🔑 "non_production" subscription
     default_resource_group_name      = "non_production"           # 🔗 Links to var.resource_groups    
     private_link_resource_group_name = "non_production_networks"  # 🔗 Optional; Links to var.resource_groups
-    subscription_slot                = "az_subscription_2"        # Links to an azurerm provider
+    subscription_id                  = "10000000-0000..."         # Azure subscription ID (must be a GUID)
   }
 }
 ```
@@ -271,7 +271,7 @@ subscriptions = {
 |-------|-------------|
 | `default_resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups). Defines the primary resource group for the subscription. |
 | `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
-| `subscription_slot` | References a named [`azurerm` provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) alias (e.g., `az_subscription_1` to `az_subscription_10`), tying to a specific Azure subscription. |
+| `subscription_id` | References a specific Azure subscription ID. Must be a GUID. |
 
 ### Lock Groups
 
