@@ -251,6 +251,9 @@ locations = {
 
 > Terraform variable: `var.subscriptions`
 
+> [!IMPORTANT]
+> Up to ten (10) subscriptions are supported.
+
 The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to [resource groups](#resource-groups) and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like [`resource_groups`](#resource-groups) and [`networks`](#networks), ensuring resources stay aligned.
 
 ```hcl
