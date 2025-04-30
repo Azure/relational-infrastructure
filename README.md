@@ -1,7 +1,7 @@
-# Azure Relational Terraform Infrastructure (ARTI)
+# Azure Relational Infrastructure (ARTI)
 
 > [!CAUTION]
-> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While ARTI is a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
+> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While ARI is a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
 
 ## Overview
 
