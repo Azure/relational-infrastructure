@@ -1,24 +1,29 @@
-deployment_prefix  = "gamma"
-include_label_tags = true
+deployment_prefix  = "ep" # Provide a unique deployment name. 3-10 alphanumeric characters.
+include_label_tags = true # Maps Azure resources to the underlying infrastructure model.
+                          # Recommended for debugging purposes.
 
 locations = {
-  production     = "canadacentral"
-  alt_production = "francecentral"
+  production = "eastus" # All Epic resources will be deployed to this region.
+
+  # But you can add more locations as needed.
+  # non_production = "westus"
 }
 
 subscriptions = {
-  production = {
-    subscription_id             = "00363a64-55c1-4807-92a4-7dfe011d5222"
-    default_resource_group_name = "shared"
+  production = { # By default, we deploy to a single subscription.
+    subscription_id             = "00000000-0000..." # Must be a valid Azure subscription ID
+    default_resource_group_name = "shared"           # Default resource group as defined in var.resource_groups
   }
 
-  alt_production = {
-    subscription_id             = "34d69c09-3db4-44b0-8101-64fa34527c96"
-    default_resource_group_name = "alt_shared"
-  }
+  # But you can add more subscriptions as needed.
+  # alt_production = { 
+  #  subscription_id             = "34d69c09-3db4-44b0-8101-64fa34527c96"
+  #  default_resource_group_name = "alt_shared"
+  # }
 }
 
 tags = {
-  epic-env = "production"
+  epic-env = "production" # Specify the Epic environment.
+                          # Environments included in the Epic tagging standard include:
+                          # production, build, support, training, read-only
 }
-
