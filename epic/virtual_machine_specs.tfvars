@@ -1,3 +1,8 @@
+# These are specs for VM sets defined in var.virtual_machine_sets.
+# There is a one-to-one mapping between these specs and var.virtual_machine_sets.
+# For Epic deployments, all spec information can be found in 
+# customer-specific Cloud Specifications Guide (CSG) provided by Epic.
+
 virtual_machine_set_specs = {
   arr = {
     vm_count = 2
