@@ -1,4 +1,7 @@
 private_endpoints = {
+  # Reconfigure to expose private endpoints in your deployment
+  # for key vaults, blob containers, and file shares.
+
   key_vaults = {
     production_key_vault = {
       network_name        = "production"
