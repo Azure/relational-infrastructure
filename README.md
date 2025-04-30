@@ -140,7 +140,7 @@ terraform plan -destroy -out ".\plan.destroy.tfplan" \
 # Add additional tfvars files as needed
 ```
 
-7. Destroy the deployment.
+2. Destroy the deployment.
 
 ```shell
   terraform apply ".\plan.destroy.tfplan"
