@@ -1,4 +1,8 @@
 key_vaults = {
+  # By default, we include a single production key vault.
+  # By default, local passwords for VMs defined in var.virtual_machine_sets are defined here.
+  # Add more key vaults as your needs dictate.
+
   production = {
     name                          = "top-secrets"
     location_name                 = "production"
