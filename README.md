@@ -78,8 +78,6 @@ Epic configurations use private `.tfvars` files:
 | [`storage_accounts.tfvars`](epic/storage_accounts.tfvars)         | Storage account settings            |
 | [`file_shares.tfvars`](#epic/file_shares.tfvars)              | File share configurations           |
 
-Contact your Microsoft representative for Epic `.tfvars` access.
-
 ## Usage
 
 ### Requirements
