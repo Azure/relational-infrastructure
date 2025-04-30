@@ -52,11 +52,11 @@ ARI uses Terraform maps to mirror a relational database, ensuring high availabil
 
 Uses AVM resource modules for [virtual machines](https://registry.terraform.io/modules/Azure/avm-res-compute-virtualmachine/azurerm/latest), [storage accounts](https://registry.terraform.io/modules/Azure/avm-res-storage-storageaccount/azurerm/latest), and [key vaults](https://registry.terraform.io/modules/Azure/avm-res-keyvault-vault/azurerm/latest), following the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/).
 
-### infra_map_vm_set: Role-Based VM Sets
+### `infra_map_vm_set`: Role-Based VM Sets
 
 The [`infra_map_vm_set`](./infra_map_vm_set) module deploys VMSS Flex-based Role-Based VM Sets, organized by role, across [Availability Zones](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-high-availability#distribute-vms-and-disks-across-availability-zones). `maintenance_schedules` ensure rolling upgrades for Epic workloads like Hyperspace, connecting to Network Interfaces, Data Disks, and Key Vaults.
 
-### infra_map and subscription_infra_map: Infrastructure Blueprints
+### `infra_map` and `subscription_infra_map`: Infrastructure Blueprints
 
 The [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map) modules manage Networks, Subscriptions, and Resource Groups as Terraform maps with unique keys (e.g., `network_name`), supporting multi-subscription environments.
 
