@@ -1,4 +1,4 @@
-# Azure Relational Infrastructure (ARTI)
+# Azure Relational Infrastructure (ARI)
 
 > [!CAUTION]
 > **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While ARI is a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
