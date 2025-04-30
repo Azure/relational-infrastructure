@@ -1,4 +1,10 @@
 virtual_machine_sets = {
+  # These are all of the core Epic on Azure VM workloads.
+  # Toggle workloads off by commenting them out below.
+  # Zone distribution strategy is defined one-to-one in var.virtual_machine_set_zone_distribution.
+  # VM set specs are defined one-to-one in var.virtual_machine_specs.
+  # Add additional VM sets as customer architecture dictates.
+  
   arr = {
     name                = "arr"
     image_name          = "default_windows"
