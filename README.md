@@ -1,7 +1,7 @@
-# Azure Relational Infrastructure (ARI)
+# Azure Relational Infrastructure (AzRI)
 
 > [!CAUTION]
-> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While ARI is a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
+> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While AzRI will be a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
 
 > [!IMPORTANT]
 > This solution is currently in preview.
@@ -14,13 +14,13 @@ Resources are modeled as [Terraform maps](https://developer.hashicorp.com/terraf
 
 ## Purpose and Strategy
 
-Epic’s stringent protections on intellectual property and documentation, restricted to customers and partners, conflict with the public, open-source nature of AVM modules. ARI addresses this by using generic, public Terraform modules to define reusable infrastructure patterns, while isolating Epic-specific configurations in private `.tfvars` files. This strategy ensures compliance with Epic’s security and privacy needs, meets AVM’s open-source mandate, and enables broad reusability across Azure workloads.
+Epic’s stringent protections on intellectual property and documentation, restricted to customers and partners, conflict with the public, open-source nature of AVM modules. AzRI addresses this by using generic, public Terraform modules to define reusable infrastructure patterns, while isolating Epic-specific configurations in private `.tfvars` files. This strategy ensures compliance with Epic’s security and privacy needs, meets AVM’s open-source mandate, and enables broad reusability across Azure workloads.
 
 The public modules form a flexible foundation, managing resources like [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), and [Key Vaults](#key-vaults), configured via Terraform maps for a relational, database-like structure. Private `.tfvars` files (e.g., [`virtual_machines.tfvars`](epic/virtual_machines.tfvars), [`networks.tfvars`](epic/networks.tfvars)) tailor these modules for Epic’s high-availability and performance requirements, such as VMSS Flex with rolling upgrades. This approach delivers a scalable, secure, and governable infrastructure that supports Epic deployments while remaining adaptable for other use cases.
 
 ## Infrastructure Model
 
-ARI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](./docs/model.md) outlines the design.
+AzRI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](./docs/model.md) outlines the design.
 
 ### Core Entities
 
@@ -148,7 +148,7 @@ terraform plan -destroy -out ".\plan.destroy.tfplan" \
 
 ## Model Reference
 
-This section defines the core of ARI: a normalized infrastructure map that organizes Azure resources like a relational database. Using Terraform map variables, it creates a structured model where resources—such as [Locations](#locations), [Subscriptions](#subscriptions), [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), [Key Vaults](#key-vaults), and [Storage Accounts](#storage-accounts)—are linked through primary keys (map keys) and foreign keys (e.g., `subscription_name`). This blueprint ensures flexibility and scalability, supporting Epic on Azure deployments or custom Azure projects with a reusable foundation. [Epic-specific configurations are applied via private `.tfvars` files](/epic/), maintaining security and compliance.
+This section defines the core of AzRI: a normalized infrastructure map that organizes Azure resources like a relational database. Using Terraform map variables, it creates a structured model where resources—such as [Locations](#locations), [Subscriptions](#subscriptions), [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), [Key Vaults](#key-vaults), and [Storage Accounts](#storage-accounts)—are linked through primary keys (map keys) and foreign keys (e.g., `subscription_name`). This blueprint ensures flexibility and scalability, supporting Epic on Azure deployments or custom Azure projects with a reusable foundation. [Epic-specific configurations are applied via private `.tfvars` files](/epic/), maintaining security and compliance.
 
 An entity-relationship diagram (ERD) in the infrastructure model documentation visualizes these connections, detailing cardinality (e.g., one [Subscription](#subscriptions) to many [Resource Groups](#resource-groups)) and dependencies. It shows how resources like [VMSS Flex-based Role-Based VM Sets](#virtual-machine-sets), configured with [`maintenance_schedules`](#maintenance-schedules) for high availability, integrate with [Networks](#networks) and [Key Vaults](#key-vaults), driving ARI’s ability to manage complex, [multi-subscription](#subscriptions) environments.
 
