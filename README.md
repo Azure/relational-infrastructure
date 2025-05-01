@@ -10,7 +10,7 @@
 
 This [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack deploys [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas), optimized for [Epic on Azure](https://www.microsoft.com/industry/health/epic-on-azure) but reusable for any infrastructure-based Azure workload. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and Epic on Azure Well-Architected Framework (WAF), it supports multi-subscription environments via modular, open-source architecture. Public modules are customized for Epic with private [`.tfvars` files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files), ensuring compliance and flexibility.
 
-Resources are modeled as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), acting as database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). The [infrastructure model diagram](#infrastructure-map-model) details relationships for scalable, high-availability deployments.
+Resources are modeled as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), acting as database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). The [infrastructure model diagram](#model-reference) details relationships for scalable, high-availability deployments.
 
 ## Purpose and Strategy
 
@@ -20,7 +20,7 @@ The public modules form a flexible foundation, managing resources like [Role-Bas
 
 ## Infrastructure Model
 
-AzRI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](./docs/model.md) outlines the design.
+AzRI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](#model-reference) outlines the design.
 
 ### Core Entities
 
