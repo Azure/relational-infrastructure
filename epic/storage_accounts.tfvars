@@ -15,5 +15,5 @@ storage_accounts = {
   #   resource_group_name = "web_blob"
   #   subscription_name   = "alt_production"
   #   name                = "alt-wbs"
-  }
+  # }
 }
