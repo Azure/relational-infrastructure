@@ -103,16 +103,7 @@ terraform init -upgrade
 4. Plan your deployment.
 
 ```shell
-terraform plan -out ".\plan.tfplan" \
-  --var-file="..\epic\basics.tfvars" \
-  --var-file="..\epic\networks.tfvars" \
-  --var-file="..\epic\virtual_machines.tfvars" \
-  --var-file="..\epic\virtual_machine_specs.tfvars" \
-  --var-file="..\epic\virtual_machine_images.tfvars" \
-  --var-file="..\epic\key_vaults.tfvars" \
-  --var-file="..\epic\private_endpoints.tfvars" \
-  --var-file="..\epic\storage_accounts.tfvars" \
-  --var-file="..\epic\file_shares.tfvars"
+terraform plan -out ".\plan.tfplan" --var-file="..\epic\basics.tfvars" --var-file="..\epic\resource_groups.tfvars" --var-file="..\epic\networks.tfvars" --var-file="..\epic\virtual_machines.tfvars" --var-file="..\epic\virtual_machine_specs.tfvars" --var-file="..\epic\virtual_machine_images.tfvars" --var-file="..\epic\key_vaults.tfvars" --var-file="..\epic\private_endpoints.tfvars" --var-file="..\epic\storage_accounts.tfvars" --var-file="..\epic\file_shares.tfvars"
 # Add additional tfvars files as needed
 ```
 
