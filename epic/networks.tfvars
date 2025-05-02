@@ -64,8 +64,7 @@ networks = {
 
     peered_to = [
       "shared_dmz",
-      "shared_infra",
-      "alt_production"
+      "shared_infra"
     ]
 
     subnets = {
