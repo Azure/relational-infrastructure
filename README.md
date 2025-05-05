@@ -919,7 +919,7 @@ file_shares = {
 
 > Terraform variable: `var.key_vaults`
 
-The `key_vaults` table configures Azure Key Vaults for secure storage of secrets, keys, and certificates, requiring a location, subscription, and resource group as its foundation. Commonly used optional fields like SKU, tags, and network ACLs enhance its setup. While broadly applicable, its design reflects Epic’s security influence and is referenced by tables like `virtual_machine_sets`. In the ERD, `key_vaults` links one-to-one with `subscriptions`, `locations`, and `resource_groups`.
+The `key_vaults` table configures Azure Key Vaults for secure storage of secrets, keys, and certificates, requiring a location, subscription, and resource group as its foundation. Commonly used optional fields like SKU, tags, and network ACLs enhance its setup. 
 
 ```hcl
 key_vaults = {
@@ -934,7 +934,7 @@ key_vaults = {
     ]
 
     tags = {
-      epic-env = "production"                # Optional; custom tags
+      env = "production"                     # Optional; custom tags
     }
 
     network_acls = {
@@ -953,7 +953,7 @@ key_vaults = {
     ]
 
     tags = {
-      epic-env = "production"                # Optional; custom tags 
+      env = "production"                     # Optional; custom tags 
     }
 
     network_acls = {
@@ -971,7 +971,7 @@ key_vaults = {
 | `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the vault’s resource group. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that the vault belongs to. |
 | `sku_name` | Optional; sets the vault SKU: `standard` or `premium`. Defaults to `standard`. |
-| `tags` | Optional; applies key-value tags, e.g., `epic-env: production`. Defaults to `{}`. |
+| `tags` | Optional; applies key-value tags, e.g., `env: production`. Defaults to `{}`. |
 | `network_acls` | Optional; configures network access with `bypass` (e.g., `AzureServices`) and `default_action` (e.g., `Allow`). Defaults to `{}`. |
 
 ## Contributing
