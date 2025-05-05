@@ -5,21 +5,15 @@
 
 ## Overview
 
-This open-source [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack streamlines [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment for a wider range of Azure infrastructure workloads from single-subscription setups to complex, multi-subscription environments. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/), AzRI delivers a modular architecture tailored via [.tfvars files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files).
+This open-source [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack streamlines [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment for a wider range of Azure infrastructure workloads from single-subscription setups to complex, multi-subscription environments. Built on Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned closely with the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/), AzRI offers a modular architectural approach designed to simplify infrastructure as code for even the most complex Azure environments.
 
 AzRI's standout feature is a relational model, organizing resources—[Locations](#locations), [Subscriptions](#subscriptions), [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), [Key Vaults](#key-vaults)—as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). Visualized in the [infrastructure model documentation](#model-reference), this model drives clarity, cuts code complexity by up to 70% compared to traditional Terraform¹, and enables rapid, resilient deployments for a wide range Azure infrastructure-based projects.
 
 > ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
 
-## Purpose and Strategy
-
-Epic’s stringent protections on intellectual property and documentation, restricted to customers and partners, conflict with the public, open-source nature of AVM modules. AzRI addresses this by using generic, public Terraform modules to define reusable infrastructure patterns, while isolating Epic-specific configurations in private `.tfvars` files. This strategy ensures compliance with Epic’s security and privacy needs, meets AVM’s open-source mandate, and enables broad reusability across Azure workloads.
-
-The public modules form a flexible foundation, managing resources like [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), and [Key Vaults](#key-vaults), configured via Terraform maps for a relational, database-like structure. Private `.tfvars` files (e.g., [`virtual_machines.tfvars`](epic/virtual_machines.tfvars), [`networks.tfvars`](epic/networks.tfvars)) tailor these modules for Epic’s high-availability and performance requirements, such as VMSS Flex with rolling upgrades. This approach delivers a scalable, secure, and governable infrastructure that supports Epic deployments while remaining adaptable for other use cases.
-
 ## Infrastructure Model
 
-AzRI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](#model-reference) outlines the design.
+AzRI uses Terraform maps to mirror a relational database. The [infrastructure model diagram](#model-reference) outlines the design.
 
 ### Core Entities
 
@@ -47,20 +41,6 @@ AzRI uses Terraform maps to mirror a relational database, ensuring high availabi
 - **Staggered Updates**: VMSS Flex with [`maintenance_schedules`](#maintenance-schedules) ensures minimal downtime via rolling upgrades.
 - **Governance**: [`lock_groups`](#lock-groups) and tags enforce resource control.
 - **Security**: `private_endpoints` and [`key_vaults`](#key-vaults) enhance protection.
-
-## Module Architecture
-
-### Foundation: Azure Verified Modules (AVM)
-
-Uses AVM resource modules for [virtual machines](https://registry.terraform.io/modules/Azure/avm-res-compute-virtualmachine/azurerm/latest), [storage accounts](https://registry.terraform.io/modules/Azure/avm-res-storage-storageaccount/azurerm/latest), and [key vaults](https://registry.terraform.io/modules/Azure/avm-res-keyvault-vault/azurerm/latest), following the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/).
-
-### `infra_map_vm_set`: Role-Based VM Sets
-
-The [`infra_map_vm_set`](./infra_map_vm_set) module deploys VMSS Flex-based Role-Based VM Sets, organized by role, across [Availability Zones](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-high-availability#distribute-vms-and-disks-across-availability-zones). `maintenance_schedules` ensure rolling upgrades for Epic workloads like Hyperspace, connecting to Network Interfaces, Data Disks, and Key Vaults.
-
-### `infra_map` and `subscription_infra_map`: Infrastructure Blueprints
-
-The [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map) modules manage Networks, Subscriptions, and Resource Groups as Terraform maps with unique keys (e.g., `network_name`), supporting multi-subscription environments.
 
 ## Configuration with tfvars
 
@@ -867,7 +847,7 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_set_specs`
 
-The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in [`virtual_machine_sets`](#virtual-machine-sets), linked one-to-one by a shared key. Crafted with flexibility for any Azure deployment, its design draws inspiration from Epic on Azure’s detailed VM and disk requirements, ensuring precision across use cases. It pairs with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_zone_distribution` (for custom zone adjustments)](#virtual-machine-set-zone-distribution) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), anchoring compute and storage details.
+The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in [`virtual_machine_sets`](#virtual-machine-sets), linked one-to-one by a shared key. It pairs with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_zone_distribution` (for custom zone adjustments)](#virtual-machine-set-zone-distribution) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), anchoring compute and storage details.
 
 ```hcl
 virtual_machine_set_specs = {
@@ -903,7 +883,7 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disks`
 
-The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). Built for broad Azure use, it’s shaped by Epic’s need for detailed disk configurations, ensuring consistency across deployments. In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
+The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
 
 ```hcl
 virtual_machine_set_specs = {
