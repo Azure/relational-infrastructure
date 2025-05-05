@@ -1,11 +1,13 @@
-# Azure Relational Infrastructure
+# Azure Relational Infrastructure (AzRI)
 
 > [!IMPORTANT]
 > Azure Relational Infrastructure is currently in preview.
 
 ## Overview
 
-This open-source [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack streamlines [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment for any workload, from single-subscription setups to complex, multi-subscription environments. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/), ARI delivers a modular architecture tailored via [.tfvars files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files). Its standout feature is a relational model, organizing resources—Locations, Subscriptions, Role-Based VM Sets, Networks, Key Vaults—as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). Visualized in the [infrastructure model documentation](#model-reference), this model drives clarity, cuts code complexity by up to 70% compared to traditional Terraform¹, and enables rapid, resilient deployments for a wide range Azure infrastructure-based projects.
+This open-source [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack streamlines [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment for a wider range of Azure infrastructure workloads from single-subscription setups to complex, multi-subscription environments. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/), AzRI delivers a modular architecture tailored via [.tfvars files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files).
+
+AzRI's standout feature is a relational model, organizing resources—[Locations](#locations), [Subscriptions](#subscriptions), [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), [Key Vaults](#key-vaults)—as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). Visualized in the [infrastructure model documentation](#model-reference), this model drives clarity, cuts code complexity by up to 70% compared to traditional Terraform¹, and enables rapid, resilient deployments for a wide range Azure infrastructure-based projects.
 
 > ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
 
