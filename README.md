@@ -1,9 +1,5 @@
 # Azure Relational Infrastructure (AzRI)
 
-> AzRI is currently in preview.
-
-## Overview
-
 The AzRI [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack simplifies [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment through a powerful relational model that cuts infrastructure as code (IaC) complexity by up to 70%¹. Built almost entirely from Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned closely with [Azure's Well-Architected Framework (WAF)](https://learn.microsoft.com/azure/well-architected/), AzRI's growing and highly extensible model, visualized as an entity relationship diagram (ERD) below, arranges resources as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary and foreign keys, using a familiar approach to enable faster, simpler, and more resilient deployments by default at any scale. With innovative new features like [lock groups](#lock-groups), AzRI incorporates years of lessons learned from both Microsoft and the partner community deploying and managing complex Azure environments for organizations around the world.
 
 > ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
