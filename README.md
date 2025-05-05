@@ -1,16 +1,13 @@
-# Azure Relational Infrastructure (AzRI)
-
-> [!CAUTION]
-> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While AzRI will be a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
+# Azure Relational Infrastructure
 
 > [!IMPORTANT]
-> This solution is currently in preview.
+> Azure Relational Infrastructure is currently in preview.
 
 ## Overview
 
-This [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack deploys [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas), optimized for [Epic on Azure](https://www.microsoft.com/industry/health/epic-on-azure) but reusable for any infrastructure-based Azure workload. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and Epic on Azure Well-Architected Framework (WAF), it supports multi-subscription environments via modular, open-source architecture. Public modules are customized for Epic with private [`.tfvars` files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files), ensuring compliance and flexibility.
+This open-source [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack streamlines [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment for any workload, from single-subscription setups to complex, multi-subscription environments. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/), ARI delivers a modular architecture tailored via [.tfvars files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files). Its standout feature is a relational model, organizing resources—Locations, Subscriptions, Role-Based VM Sets, Networks, Key Vaults—as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). Visualized in the [infrastructure model documentation](#model-reference), this model drives clarity, cuts code complexity by up to 70% compared to traditional Terraform¹, and enables rapid, resilient deployments for a wide range Azure infrastructure-based projects.
 
-Resources are modeled as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), acting as database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). The [infrastructure model diagram](#model-reference) details relationships for scalable, high-availability deployments.
+> ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
 
 ## Purpose and Strategy
 
