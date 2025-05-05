@@ -1,138 +1,15 @@
 # Azure Relational Infrastructure (AzRI)
 
-> [!CAUTION]
-> **This content is confidential. It can be shared only internally at Microsoft and as needed with Microsoft customers and partners under NDA.** While AzRI will be a public project, this content discusses it within the context of Epic on Azure which has strict confidentiality requirements. For more information, see [purpose and strategy](#purpose-and-strategy).
-
 > [!IMPORTANT]
-> This solution is currently in preview.
+> AzRI is currently in preview.
 
 ## Overview
 
-This [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack deploys [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas), optimized for [Epic on Azure](https://www.microsoft.com/industry/health/epic-on-azure) but reusable for any infrastructure-based Azure workload. Aligned with Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and Epic on Azure Well-Architected Framework (WAF), it supports multi-subscription environments via modular, open-source architecture. Public modules are customized for Epic with private [`.tfvars` files](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files), ensuring compliance and flexibility.
+The AzRI [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack simplifies [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment through a powerful relational model that cuts infrastructure as code (IaC) complexity by up to 70%¹. Built almost entirely from Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned closely with [Azure's Well-Architected Framework (WAF)](https://learn.microsoft.com/azure/well-architected/), AzRI's growing and highly extensible model, visualized as an entity relationship diagram (ERD) below, arranges resources as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary and foreign keys, using a familiar approach to enable faster, simpler, and more resilient deployments by default at any scale. With innovative new features like [lock groups](#lock-groups), AzRI incorporates years of lessons learned from both Microsoft and the partner community deploying and managing complex Azure environments for organizations around the world.
 
-Resources are modeled as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), acting as database tables with primary keys (map keys) and foreign keys (e.g., `location_name`). The [infrastructure model diagram](#model-reference) details relationships for scalable, high-availability deployments.
-
-## Purpose and Strategy
-
-Epic’s stringent protections on intellectual property and documentation, restricted to customers and partners, conflict with the public, open-source nature of AVM modules. AzRI addresses this by using generic, public Terraform modules to define reusable infrastructure patterns, while isolating Epic-specific configurations in private `.tfvars` files. This strategy ensures compliance with Epic’s security and privacy needs, meets AVM’s open-source mandate, and enables broad reusability across Azure workloads.
-
-The public modules form a flexible foundation, managing resources like [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), and [Key Vaults](#key-vaults), configured via Terraform maps for a relational, database-like structure. Private `.tfvars` files (e.g., [`virtual_machines.tfvars`](epic/virtual_machines.tfvars), [`networks.tfvars`](epic/networks.tfvars)) tailor these modules for Epic’s high-availability and performance requirements, such as VMSS Flex with rolling upgrades. This approach delivers a scalable, secure, and governable infrastructure that supports Epic deployments while remaining adaptable for other use cases.
-
-## Infrastructure Model
-
-AzRI uses Terraform maps to mirror a relational database, ensuring high availability and governance. The [infrastructure model diagram](#model-reference) outlines the design.
-
-### Core Entities
-
-- [**Locations**](#locations): [Azure regions](https://learn.microsoft.com/azure/reliability/regions-list) (e.g., `eastus`) for resource placement.
-- [**Subscriptions**](#subscriptions): Organize resources across billing boundaries.
-- [**Resource Groups**](#resource-groups): Group resources for management.
-- [**Role-Based VM Sets**](#virtual-machine-sets): VMSS Flex-based VMs by role.
-- [**Networks**](#networks): Virtual networks with subnets and [peerings](#peerings).
-- [**Key Vaults**](#key-vaults): Secure secret storage with private endpoints.
-- [**Storage Accounts**](#storage-accounts): [Blob containers](#blob-containers) and [file shares](#file-shares).
-- [**Lock Groups**](#lock-groups): Resource locks for governance.
-
-### Key Relationships
-
-- [**Locations**](#locations): Host multiple [Resource Groups](#resource-groups), [Networks](#networks), [VM Sets](#virtual-machine-sets), [Key Vaults](#key-vaults), [Storage Accounts](#storage-accounts).
-- [**Subscriptions**](#subscriptions): Support multiple [Resource Groups](#resource-groups), [Networks](#networks), [VM Sets](#virtual-machine-sets); one-to-one with default [Resource Group](#resource-groups).
-- [**Resource Groups**](#resource-groups): Contain [VM Sets](#virtual-machine-sets), [Key Vaults](#key-vaults), [Storage Accounts](#storage-accounts), [Networks](#networks).
-- [**Role-Based VM Sets**](#virtual-machine-sets): Link to [Network Interfaces](#virtual-machine-network-interfaces), [Data Disks](#virtual-machine-data-disks) (one-to-many); one-to-one with [VM Set Specs](#virtual-machine-set-specs).
-- [**Networks**](#networks): Include Subnets, [Peerings](#peerings); connect to [External Networks](#external-networks).
-- **[Key Vaults](#key-vaults)/[Storage Accounts](#storage-accounts)**: Support [Private Endpoints](#private-endpoints); Key Vaults protect [VM Sets](#virtual-machine-sets).
-- [**Lock Groups**](#lock-groups): Apply to multiple resources for governance.
-
-### High Availability and Governance
-
-- **Staggered Updates**: VMSS Flex with [`maintenance_schedules`](#maintenance-schedules) ensures minimal downtime via rolling upgrades.
-- **Governance**: [`lock_groups`](#lock-groups) and tags enforce resource control.
-- **Security**: `private_endpoints` and [`key_vaults`](#key-vaults) enhance protection.
-
-## Module Architecture
-
-### Foundation: Azure Verified Modules (AVM)
-
-Uses AVM resource modules for [virtual machines](https://registry.terraform.io/modules/Azure/avm-res-compute-virtualmachine/azurerm/latest), [storage accounts](https://registry.terraform.io/modules/Azure/avm-res-storage-storageaccount/azurerm/latest), and [key vaults](https://registry.terraform.io/modules/Azure/avm-res-keyvault-vault/azurerm/latest), following the [Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/).
-
-### `infra_map_vm_set`: Role-Based VM Sets
-
-The [`infra_map_vm_set`](./infra_map_vm_set) module deploys VMSS Flex-based Role-Based VM Sets, organized by role, across [Availability Zones](https://learn.microsoft.com/en-us/azure/virtual-machines/disks-high-availability#distribute-vms-and-disks-across-availability-zones). `maintenance_schedules` ensure rolling upgrades for Epic workloads like Hyperspace, connecting to Network Interfaces, Data Disks, and Key Vaults.
-
-### `infra_map` and `subscription_infra_map`: Infrastructure Blueprints
-
-The [`infra_map`](./infra_map) and [`subscription_infra_map`](./subscription_infra_map) modules manage Networks, Subscriptions, and Resource Groups as Terraform maps with unique keys (e.g., `network_name`), supporting multi-subscription environments.
-
-## Configuration with tfvars
-
-Epic configurations use private `.tfvars` files:
-
-| File Name                         | Purpose                              |
-|-----------------------------------|--------------------------------------|
-| [`basics.tfvars`](epic/basics.tfvars)                   | General settings                    |
-| [`networks.tfvars`](epic/networks.tfvars)                 | Network/subnet configurations       |
-| [`virtual_machines.tfvars`](epic/virtual_machines.tfvars)         | VMSS Flex VM settings               |
-| [`virtual_machine_specs.tfvars`](epic/virtual_machine_specs.tfvars)    | VM sizes, disk specs. For Epic deployments, this information is provided through a customer-specific Cloud Specifications Guide (CSG).                |
-| [`virtual_machine_zones.tfvars`](epic/virtual_machine_zones.tfvars)    | Availability Zone distribution      |
-| [`virtual_machine_images.tfvars`](epic/virtual_machine_images.tfvars)   | VM image references                 |
-| [`resource_groups.tfvars`](epic/resource_groups.tfvars)          | Resource Group definitions          |
-| [`key_vaults.tfvars`](epic/key_vaults.tfvars)               | Key Vault settings                  |
-| [`private_endpoints.tfvars`](epic/private_endpoints.tfvars)        | Private endpoint configurations     |
-| [`storage_accounts.tfvars`](epic/storage_accounts.tfvars)         | Storage account settings            |
-| [`file_shares.tfvars`](#epic/file_shares.tfvars)              | File share configurations           |
-
-## Usage
-
-### Requirements
-
-* [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-* At least one (1) Azure subscription
-* Contributor access to all subscriptions
-
-### Instructions
-
-1. Clone this repository.
-2. [Configure Epic `.tfvars` files.](#configuration-with-tfvars) Be sure to configure a unique `deployment_prefix`.
-3. Initialize the `infra_map` Terraform module.
-
-```shell
-cd ".\infra_map"
-terraform init -upgrade
-```
-
-4. Plan your deployment.
-
-```shell
-terraform plan -out ".\plan.tfplan" --var-file="..\epic\basics.tfvars" --var-file="..\epic\resource_groups.tfvars" --var-file="..\epic\networks.tfvars" --var-file="..\epic\virtual_machines.tfvars" --var-file="..\epic\virtual_machine_specs.tfvars" --var-file="..\epic\virtual_machine_images.tfvars" --var-file="..\epic\key_vaults.tfvars" --var-file="..\epic\private_endpoints.tfvars" --var-file="..\epic\storage_accounts.tfvars" --var-file="..\epic\file_shares.tfvars"
-# Add additional tfvars files as needed
-```
-
-5. Apply the deployment.
-
-```shell
-  terraform apply ".\plan.tfplan"
-```
-
-#### Destroy the deployment (optional)
-
-1. Plan the deployment's destruction.
-
-```shell
-terraform plan -destroy -out ".\plan.destroy.tfplan" --var-file="..\epic\basics.tfvars" --var-file="..\epic\resource_groups.tfvars" --var-file="..\epic\networks.tfvars" --var-file="..\epic\virtual_machines.tfvars" --var-file="..\epic\virtual_machine_specs.tfvars" --var-file="..\epic\virtual_machine_images.tfvars" --var-file="..\epic\key_vaults.tfvars" --var-file="..\epic\private_endpoints.tfvars" --var-file="..\epic\storage_accounts.tfvars" --var-file="..\epic\file_shares.tfvars"
-# Add additional tfvars files as needed
-```
-
-2. Destroy the deployment.
-
-```shell
-  terraform apply ".\plan.destroy.tfplan"
-```
+> ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
 
 ## Model Reference
-
-This section defines the core of AzRI: a normalized infrastructure map that organizes Azure resources like a relational database. Using Terraform map variables, it creates a structured model where resources—such as [Locations](#locations), [Subscriptions](#subscriptions), [Role-Based VM Sets](#virtual-machine-sets), [Networks](#networks), [Key Vaults](#key-vaults), and [Storage Accounts](#storage-accounts)—are linked through primary keys (map keys) and foreign keys (e.g., `subscription_name`). This blueprint ensures flexibility and scalability, supporting Epic on Azure deployments or custom Azure projects with a reusable foundation. [Epic-specific configurations are applied via private `.tfvars` files](/epic/), maintaining security and compliance.
-
-An entity-relationship diagram (ERD) in the infrastructure model documentation visualizes these connections, detailing cardinality (e.g., one [Subscription](#subscriptions) to many [Resource Groups](#resource-groups)) and dependencies. It shows how resources like [VMSS Flex-based Role-Based VM Sets](#virtual-machine-sets), configured with [`maintenance_schedules`](#maintenance-schedules) for high availability, integrate with [Networks](#networks) and [Key Vaults](#key-vaults), driving ARI’s ability to manage complex, [multi-subscription](#subscriptions) environments.
 
 ```mermaid
 ---
@@ -868,7 +745,7 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_set_specs`
 
-The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in [`virtual_machine_sets`](#virtual-machine-sets), linked one-to-one by a shared key. Crafted with flexibility for any Azure deployment, its design draws inspiration from Epic on Azure’s detailed VM and disk requirements, ensuring precision across use cases. It pairs with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_zone_distribution` (for custom zone adjustments)](#virtual-machine-set-zone-distribution) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), anchoring compute and storage details.
+The `virtual_machine_set_specs` table defines the sizing and storage specs for each VM set in [`virtual_machine_sets`](#virtual-machine-sets), linked one-to-one by a shared key. It pairs with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_zone_distribution` (for custom zone adjustments)](#virtual-machine-set-zone-distribution) to complete the VM setup. In the ERD, `virtual_machine_set_specs` connects one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), anchoring compute and storage details.
 
 ```hcl
 virtual_machine_set_specs = {
@@ -904,7 +781,7 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disks`
 
-The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). Built for broad Azure use, it’s shaped by Epic’s need for detailed disk configurations, ensuring consistency across deployments. In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
+The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
 
 ```hcl
 virtual_machine_set_specs = {
@@ -1042,7 +919,7 @@ file_shares = {
 
 > Terraform variable: `var.key_vaults`
 
-The `key_vaults` table configures Azure Key Vaults for secure storage of secrets, keys, and certificates, requiring a location, subscription, and resource group as its foundation. Commonly used optional fields like SKU, tags, and network ACLs enhance its setup. While broadly applicable, its design reflects Epic’s security influence and is referenced by tables like `virtual_machine_sets`. In the ERD, `key_vaults` links one-to-one with `subscriptions`, `locations`, and `resource_groups`.
+The `key_vaults` table configures Azure Key Vaults for secure storage of secrets, keys, and certificates, requiring a location, subscription, and resource group as its foundation. Commonly used optional fields like SKU, tags, and network ACLs enhance its setup. 
 
 ```hcl
 key_vaults = {
@@ -1057,7 +934,7 @@ key_vaults = {
     ]
 
     tags = {
-      epic-env = "production"                # Optional; custom tags
+      env = "production"                     # Optional; custom tags
     }
 
     network_acls = {
@@ -1076,7 +953,7 @@ key_vaults = {
     ]
 
     tags = {
-      epic-env = "production"                # Optional; custom tags 
+      env = "production"                     # Optional; custom tags 
     }
 
     network_acls = {
@@ -1094,7 +971,7 @@ key_vaults = {
 | `resource_group_name` | Required; links to a key in [`var.resource_groups`](#resource-groups), defining the vault’s resource group. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that the vault belongs to. |
 | `sku_name` | Optional; sets the vault SKU: `standard` or `premium`. Defaults to `standard`. |
-| `tags` | Optional; applies key-value tags, e.g., `epic-env: production`. Defaults to `{}`. |
+| `tags` | Optional; applies key-value tags, e.g., `env: production`. Defaults to `{}`. |
 | `network_acls` | Optional; configures network access with `bypass` (e.g., `AzureServices`) and `default_action` (e.g., `Allow`). Defaults to `{}`. |
 
 ## Contributing
