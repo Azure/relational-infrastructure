@@ -1,6 +1,5 @@
 # Azure Relational Infrastructure (AzRI)
 
-> [!IMPORTANT]
 > AzRI is currently in preview.
 
 ## Overview
