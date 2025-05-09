@@ -9,28 +9,7 @@ module "resource_groups" {
   )
 
   name = local.resource_group_names[each.key]
-
-  lock = (
-    length([
-      for group in each.value.lock_groups :
-      # Apply a lock only if lock_groups specifies a locked group
-      group if contains(keys(local.locked_groups), group)
-    ]) > 0
-    ? (
-      anytrue([
-        for group in each.value.lock_groups :
-        # Apply a lock only if the group is locked
-        # Read-only is the most restrictive lock. If any group is read-only, apply it.
-        # Otherwise, apply a no-delete lock.
-        contains(keys(local.locked_groups), group)
-        && try(local.locked_groups[group].read_only, false)
-      ])
-      ? { kind = local.lock_modes.read_only }
-      : { kind = local.lock_modes.no_delete }
-    )
-    : null
-  )
-
+  lock = local.resource_group_locks[each.key]
   tags = local.resource_group_tags[each.key]
 }
 
@@ -62,27 +41,7 @@ module "storage_accounts" {
   account_kind               = each.value.account_type
   account_replication_type   = each.value.replication_type
   https_traffic_only_enabled = !(each.value.allow_http_access)
-
-  lock = (
-    length([
-      for group in each.value.lock_groups :
-      # Apply a lock only if lock_groups specifies a locked group
-      group if contains(keys(local.locked_groups), group)
-    ]) > 0
-    ? (
-      anytrue([
-        for group in each.value.lock_groups :
-        # Apply a lock only if the group is locked
-        # Read-only is the most restrictive lock. If any group is read-only, apply it.
-        # Otherwise, apply a no-delete lock.
-        contains(keys(local.locked_groups), group)
-        && try(local.locked_groups[group].read_only, false)
-      ])
-      ? { kind = local.lock_modes.read_only }
-      : { kind = local.lock_modes.no_delete }
-    )
-    : null
-  )
+  lock                       = local.storage_account_locks[each.key]
 
   containers = {
     for container_name, container in var.blob_containers :
@@ -113,32 +72,10 @@ module "key_vaults" {
   # version = "0.10.0"
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
-  location            = var.locations[each.value.location_name]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
-
-  name = local.key_vault_names[each.key]
-
-  lock = (
-    length([
-      for group in each.value.lock_groups :
-      # Apply a lock only if lock_groups specifies a locked group
-      group if contains(keys(local.locked_groups), group)
-    ]) > 0
-    ? (
-      anytrue([
-        for group in each.value.lock_groups :
-        # Apply a lock only if the group is locked
-        # Read-only is the most restrictive lock. If any group is read-only, apply it.
-        # Otherwise, apply a no-delete lock.
-        contains(keys(local.locked_groups), group)
-        && try(local.locked_groups[group].read_only, false)
-      ])
-      ? { kind = local.lock_modes.read_only }
-      : { kind = local.lock_modes.no_delete }
-    )
-    : null
-  )
-
+  location                        = var.locations[each.value.location_name]
+  resource_group_name             = module.resource_groups[each.value.resource_group_name].name
+  name                            = local.key_vault_names[each.key]
+  lock                            = local.key_vault_locks[each.key]
   tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
   sku_name                        = each.value.sku_name
   enabled_for_deployment          = each.value.enabled_for_deployment
@@ -229,6 +166,7 @@ module "private_endpoints" {
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
   network_interface_name         = each.value.network_interface_name
+  lock                           = each.value.lock
 
   # IP configurations if specified
   ip_configurations = each.value.ip_configurations
@@ -236,7 +174,7 @@ module "private_endpoints" {
   # Subresource names
   subresource_names = each.value.subresource_names
 
-  private_dns_zone_group_name   = each.value.private_dns_zone_group_name
+  private_dns_zone_group_name = each.value.private_dns_zone_group_name
   # DNS configuration
   private_dns_zone_resource_ids = each.value.private_dns_zone_resource_ids
 
@@ -257,6 +195,7 @@ module "networks" {
   address_space       = [each.value.address_space]
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   tags                = local.network_tags[each.key]
+  lock                = each.value.lock
 
   ddos_protection_plan = (
     each.value.enable_ddos_protection
@@ -266,8 +205,6 @@ module "networks" {
     }
     : null
   )
-
-  lock = each.value.lock
 
   dns_servers = { # What?
     dns_servers = (each.value.dns_ips == null ? null : each.value.dns_ips)
@@ -424,26 +361,7 @@ module "virtual_machine_sets" {
     : local.vm_set_maintenance_configurations[each.key]
   )
 
-  lock_mode = (
-    length([
-      for group in each.value.lock_groups :
-      # Apply a lock only if lock_groups specifies a locked group
-      group if contains(keys(local.locked_groups), group)
-    ]) > 0
-    ? (
-      anytrue([
-        for group in each.value.lock_groups :
-        # Apply a lock only if the group is locked
-        # Read-only is the most restrictive lock. If any group is read-only, apply it.
-        # Otherwise, apply a no-delete lock.
-        contains(keys(local.locked_groups), group)
-        && try(local.locked_groups[group].read_only, false)
-      ])
-      ? "read_only"
-      : "no_delete"
-    )
-    : null
-  )
+  lock_mode = local.virtual_machine_set_locks[each.key]
 
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
@@ -468,27 +386,7 @@ module "virtual_machine_sets" {
       disk_size_gb                 = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
       storage_account_type         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
       enable_public_network_access = disk.enable_public_network_access
-
-      lock_mode = (
-        length([
-          for group in disk.lock_groups :
-          # Apply a lock only if lock_groups specifies a locked group
-          group if contains(keys(local.locked_groups), group)
-        ]) > 0
-        ? (
-          anytrue([
-            for group in disk.lock_groups :
-            # Apply a lock only if the group is locked
-            # Read-only is the most restrictive lock. If any group is read-only, apply it.
-            # Otherwise, apply a no-delete lock.
-            contains(keys(local.locked_groups), group)
-            && try(local.locked_groups[group].read_only, false)
-          ])
-          ? "read_only"
-          : "no_delete"
-        )
-        : null
-      )
+      lock_mode                    = local.disk_locks[each.key][disk_name]
     }
   }
 
@@ -497,27 +395,7 @@ module "virtual_machine_sets" {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
       subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
-
-      lock_mode = (
-        length([
-          for group in nic.lock_groups :
-          # Apply a lock only if lock_groups specifies a locked group
-          group if contains(keys(local.locked_groups), group)
-        ]) > 0
-        ? (
-          anytrue([
-            for group in nic.lock_groups :
-            # Apply a lock only if the group is locked
-            # Read-only is the most restrictive lock. If any group is read-only, apply it.
-            # Otherwise, apply a no-delete lock.
-            contains(keys(local.locked_groups), group)
-            && try(local.locked_groups[group].read_only, false)
-          ])
-          ? "read_only"
-          : "no_delete"
-        )
-        : null
-      )
+      lock                          = local.network_interface_locks[each.key][nic_name]
     }
   }
 

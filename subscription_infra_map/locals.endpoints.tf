@@ -26,27 +26,7 @@ locals {
       private_service_connection_name = "${var.deployment_prefix}-${pe.key_vault_name}-kv-psc"
       subresource_names               = ["vault"]
       network_interface_name          = "${var.deployment_prefix}-${pe.key_vault_name}-kv-nic"
-
-      lock = (
-        length([
-          for group in pe.lock_groups :
-          # Apply a lock only if lock_groups specifies a locked group
-          group if contains(keys(local.locked_groups), group)
-        ]) > 0
-        ? (
-          anytrue([
-            for group in pe.lock_groups :
-            # Apply a lock only if the group is locked
-            # Read-only is the most restrictive lock. If any group is read-only, apply it.
-            # Otherwise, apply a no-delete lock.
-            contains(keys(local.locked_groups), group)
-            && try(local.locked_groups[group].read_only, false)
-          ])
-          ? { kind = local.lock_modes.read_only }
-          : { kind = local.lock_modes.no_delete }
-        )
-        : null
-      )
+      lock                            = local.private_endpoint_locks[pe_name]
 
       # IP configurations if a specific IP is required
       ip_configurations = pe.private_ip != null ? {
@@ -92,6 +72,7 @@ locals {
       private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.blob_container_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["blob"]
+      lock                            = local.private_endpoint_locks[pe_name]
 
       # IP configurations if a specific IP is required
       ip_configurations = try(pe.private_ip, null) != null ? {
@@ -136,6 +117,7 @@ locals {
       private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.file_share_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["file"]
+      lock                            = local.private_endpoint_locks[pe_name]
 
       # IP configurations if a specific IP is required
       ip_configurations = try(pe.private_ip, null) != null ? {

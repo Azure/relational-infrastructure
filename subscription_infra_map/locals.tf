@@ -1,9 +1,4 @@
 locals {
-  lock_modes = {
-    no_delete = "CanNotDelete"
-    read_only = "ReadOnly"
-  }
-
   # We only use [default_location] in places that are theoretically inconsequential, 
   # like resource group locations.
 
@@ -14,13 +9,6 @@ locals {
     var.default_resource_group_name
   )
 
-  locked_groups = {
-    for group_name, group in var.lock_groups : group_name => {
-      locked    = group.locked
-      read_only = group.read_only
-    } if group.locked
-  }
-
   networks = {
     for network_ref, network in var.networks : network_ref => {
       address_space          = network.address_space
@@ -30,27 +18,7 @@ locals {
       resource_group_name    = network.resource_group_name
       name                   = local.network_names[network_ref]
       tags                   = network.tags
-
-      lock = (
-        length([
-          for group in network.lock_groups :
-          # Apply a lock only if lock_groups specifies a locked group
-          group if contains(keys(local.locked_groups), group)
-        ]) > 0
-        ? (
-          anytrue([
-            for group in network.lock_groups :
-            # Apply a lock only if the group is locked
-            # Read-only is the most restrictive lock. If any group is read-only, apply it.
-            # Otherwise, apply a no-delete lock.
-            contains(keys(local.locked_groups), group)
-            && try(local.locked_groups[group].read_only, false)
-          ])
-          ? { kind = local.lock_modes.read_only }
-          : { kind = local.lock_modes.no_delete }
-        )
-        : null
-      )
+      lock                   = local.network_locks[network_ref]
 
       subnets = {
         for subnet_ref, subnet in network.subnets : subnet_ref => {

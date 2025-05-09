@@ -135,7 +135,16 @@ subscriptions = {
 
 > Terraform variable: `var.lock_groups`
 
-The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. If a resource belongs to multiple groups with `locked = true`, the most restrictive lock applies: ReadOnly (no changes) overrides CanNotDelete (allows updates). In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
+The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. 
+
+This is how lock groups work:
+
+* If the resource has no `lock_groups`, the resource is unlocked.
+* If any of the resource's `lock_groups` are unlocked, the resource is unlocked.
+* If all of a resource group's `lock_groups` are locked and any of the `lock_groups` are configured for `read_only`, a read-only lock is applied to the resource.
+* If all of a resource group's `lock_groups` are locked and none of the `lock_groups` are configured for `read_only`, a do-not-delete lock is applied to the resource.
+
+In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
 
 ```hcl
 lock_groups = {
