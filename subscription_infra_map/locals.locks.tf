@@ -1,24 +1,3 @@
-# lock = (
-#     length([
-#       for group in each.value.lock_groups :
-#       # Apply a lock only if lock_groups specifies a locked group
-#       group if contains(keys(local.locked_groups), group)
-#     ]) > 0
-#     ? (
-#       anytrue([
-#         for group in each.value.lock_groups :
-#         # Apply a lock only if the group is locked
-#         # Read-only is the most restrictive lock. If any group is read-only, apply it.
-#         # Otherwise, apply a no-delete lock.
-#         contains(keys(local.locked_groups), group)
-#         && try(local.locked_groups[group].read_only, false)
-#       ])
-#       ? { kind = local.lock_modes.read_only }
-#       : { kind = local.lock_modes.no_delete }
-#     )
-#     : null
-#   )
-
 locals {
   lock_modes = {
     no_delete = "CanNotDelete"
