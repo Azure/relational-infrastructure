@@ -55,7 +55,6 @@ erDiagram
   "Resource Groups" ||--o{ "Networks" : "have"
   "Key Vaults" ||--o{ "Private Endpoints" : "have"
   "Subnets" ||--o{ "Private Endpoints" : "have"
-  "Storage Accounts" ||--o{ "Private Endpoints" : "have"
   "Networks" ||..o{ "Peerings" : "have"
   "Peerings" ||--|| "Networks" : "peered to"
   "Peerings" ||--|| "External Networks" : "peered to"
@@ -69,6 +68,8 @@ erDiagram
   "Lock Groups" ||--o{ "Storage Accounts" : "lock"
   "Storage Accounts" ||--o{ "Blob Containers" : "have"
   "Storage Accounts" ||--o{ "File Shares" : "have"
+  "Blob Containers" ||--o{ "Private Endpoints" : "have"
+  "File Shares" ||--o{ "Private Endpoints" : "have"
 ```
 
 > [!NOTE]
