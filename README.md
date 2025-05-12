@@ -9,8 +9,6 @@ The Azure Relational Infrastructure (or AzRI) [Terraform module](https://develop
 ```mermaid
 ---
 title: Infrastructure Map Model
-config:
-        layout: elk
 ---
 erDiagram
   Locations ||--o{ "Resource Groups" : ""
