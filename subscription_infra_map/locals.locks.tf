@@ -80,12 +80,12 @@ locals {
   }
 
   resource_group_locked = {
-    for group_name, group in var.lock_groups :
-    group_name => (
-      (length(group.lock_groups) > 0) &&
+    for resource_group_name, resource_group in var.resource_groups :
+    resource_group_name => (
+      (length(resource_group.lock_groups) > 0) &&
       (anytrue([
-        for group in group.lock_groups :
-        group if !contains(keys(local.unlocked_groups), group)
+        for lock_group in resource_group.lock_groups :
+        lock_group if !contains(keys(local.unlocked_groups), lock_group)
       ]))
     )
   }
@@ -193,13 +193,13 @@ locals {
   }
 
   resource_group_locks = {
-    for group_name, group in var.lock_groups :
-    group_name => (
-      local.resource_group_locked[group_name]
+    for resource_group_name, resource_group in var.resource_groups :
+    resource_group_name => (
+      local.resource_group_locked[resource_group_name]
       ? (
         anytrue(([
-          for group_name in group.lock_groups :
-          var.lock_groups[group_name].read_only
+          for lock_group_name in resource_group.lock_groups :
+          var.lock_groups[lock_group_name].read_only
         ]))
         ? local.avm_convention_locks.read_only
         : local.avm_convention_locks.no_delete

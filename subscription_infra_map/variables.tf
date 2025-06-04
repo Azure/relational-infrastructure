@@ -61,6 +61,15 @@ DESCRIPTION
   }
 }
 
+variable "port_sets" {
+  type = map(object({
+    port_ranges = list(string)
+  }))
+
+  default     = {}
+  description = "A map of reusable port sets to be used in this model."
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
@@ -302,6 +311,7 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -313,6 +323,7 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -326,6 +337,7 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -337,6 +349,7 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -353,6 +366,7 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -364,6 +378,7 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -377,6 +392,7 @@ variable "networks" {
             from = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
@@ -388,6 +404,7 @@ variable "networks" {
             to = optional(object({
               address_space = optional(string, null)
               port_range    = optional(string, null)
+              port_sets     = optional(list(string), null)
               network = optional(object({
                 network_name = string
               }), null)
