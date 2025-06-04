@@ -49,6 +49,19 @@ locals {
     : 0 # No  (module count == 0)
   }
 
+  ddos_protection_plans_by_subscription = {
+    "${local.subscription_slot_names[0]}" = try(module.az_subscription_1_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[1]}" = try(module.az_subscription_2_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[2]}" = try(module.az_subscription_3_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[3]}" = try(module.az_subscription_4_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[4]}" = try(module.az_subscription_5_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[5]}" = try(module.az_subscription_6_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[6]}" = try(module.az_subscription_7_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[7]}" = try(module.az_subscription_8_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[8]}" = try(module.az_subscription_9_infra_map[0].ddos_protection_plan, null),
+    "${local.subscription_slot_names[9]}" = try(module.az_subscription_10_infra_map[0].ddos_protection_plan, null)
+  }
+
   external_networks = {
     for network_name, network in merge(var.networks, var.external_networks)
     : network_name => {

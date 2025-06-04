@@ -16,6 +16,15 @@ output "resources" {
       for vm in module.virtual_machines : {
         resource_id   = vm.resource_id
         resource_name = vm.name
+
+        network_interfaces = {
+          for nic_name, nic in vm.network_interfaces :
+          nic_name => {
+            resource_id        = nic.id
+            resource_name      = nic.name
+            private_ip_address = nic.private_ip_address
+          }
+        }
       }
     ]
   }
