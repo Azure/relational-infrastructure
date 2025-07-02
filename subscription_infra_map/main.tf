@@ -342,21 +342,20 @@ module "network_security_groups" {
   tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
 
   security_rules = {
-    for rule_ref, rule in merge(
-      local.allow_inbound_network_security_rules,
-      local.allow_outbound_network_security_rules,
-      local.deny_inbound_network_security_rules,
-      local.deny_outbound_network_security_rules) : rule_ref => {
-      destination_address_prefix = rule.destination.address_space
-      destination_port_ranges    = rule.port_ranges
-      direction                  = rule.direction
-      name                       = rule.rule_name
-      access                     = rule.access
-      priority                   = rule.priority
-      protocol                   = rule.protocol
-      source_address_prefix      = rule.source.address_space
-      source_port_ranges         = ["*"]
-    } if rule.security_group_ref == each.key
+    for rule_name, rule in each.value.security_rules :
+    rule_name => {
+      access                                     = rule.config.access
+      direction                                  = rule.config.direction
+      priority                                   = rule.priority
+      protocol                                   = rule.config.protocol
+      name                                       = rule_name
+      destination_address_prefixes               = rule.config.destination_address_prefixes
+      destination_application_security_group_ids = rule.config.destination_application_security_group_ids
+      destination_port_ranges                    = rule.config.destination_port_ranges
+      source_address_prefixes                    = rule.config.source_address_prefixes
+      source_application_security_group_ids      = rule.config.source_application_security_group_ids
+      source_port_ranges                         = ["*"]
+    }
   }
 }
 

@@ -56,7 +56,7 @@ locals {
 
   networks = {
     for network_ref, network in var.networks : network_ref => {
-      address_space          = network.address_space
+      address_spaces         = coalesce(network.address_spaces, compact([network.address_space]))
       dns_ips                = network.dns_ip_addresses
       enable_ddos_protection = network.enable_ddos_protection
       location_name          = network.location_name
@@ -101,7 +101,7 @@ locals {
   network_address_spaces = {
     for network_name, network in merge(var.networks, var.external_networks)
     : network_name => {
-      address_space = network.address_space
+      address_spaces = coalesce(network.address_spaces, compact([network.address_space]))
 
       subnets = {
         for subnet_name, subnet in network.subnets
