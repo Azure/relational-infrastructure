@@ -67,6 +67,23 @@ variable "tags" {
   description = "A map of universal tags to apply to all resources defined by this model."
 }
 
+variable "ports" {
+  type        = map(number)
+  default     = {}
+  description = "A map of known network ports to use in security rules and other configurations."
+
+  validation {
+    condition = alltrue([
+      for port_number in values(var.ports) : (
+        port_number >= 1 &&               // Valid port numbers are 1
+        port_number <= 65535 &&           // through 65535
+        floor(port_number) == port_number // and must be integers
+      )
+    ])
+    error_message = "All port numbers must be valid integer port numbers between 1 and 65535."
+  }
+}
+
 variable "extensions" {
   type        = list(string)
   default     = []
@@ -256,7 +273,8 @@ variable "networks" {
   type = map(object({
     location_name                     = string
     resource_group_name               = string
-    address_space                     = string
+    address_space                     = optional(string, null)
+    address_spaces                    = optional(set(string), null)
     lock_groups                       = optional(list(string), [])
     name                              = optional(string, null)
     tags                              = optional(map(string), {})
@@ -293,9 +311,10 @@ variable "networks" {
       })), null)
 
       security_rules = optional(map(object({
-        name     = optional(string, null)
-        priority = number
-        protocol = optional(string, "*")
+        name       = optional(string, null)
+        priority   = number
+        protocol   = optional(string, "*")
+        port_names = optional(set(string), null)
 
         allow = optional(object({
           in = optional(object({

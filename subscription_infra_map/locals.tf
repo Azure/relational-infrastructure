@@ -21,6 +21,39 @@ locals {
     } if group.locked
   }
 
+  internal_network_ids = {
+    for network_name, network in local.networks :
+    network_name => {
+      resource_id = module.networks[network_name].resource_id
+
+      subnets = {
+        for subnet_name, subnet in network.subnets :
+        subnet_name => {
+          resource_id = module.networks[network_name].subnets[subnet_name].resource_id
+        }
+      }
+    } if network != null
+  }
+
+  external_network_ids = {
+    for network_name, network in var.external_networks :
+    network_name => {
+      resource_id = module.external_networks[network_name].resource_id
+
+      subnets = {
+        for subnet_name, subnet in network.subnets :
+        subnet_name => {
+          resource_id = lower("${trimsuffix(network.resource_id, "/")}/subnets/${coalesce(subnet.name, subnet_name)}")
+        }
+      }
+    } if try(network.resource_id, null) != null
+  }
+
+  network_ids = merge(
+    local.internal_network_ids,
+    local.external_network_ids
+  )
+
   networks = {
     for network_ref, network in var.networks : network_ref => {
       address_space          = network.address_space

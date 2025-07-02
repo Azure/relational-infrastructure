@@ -236,7 +236,7 @@ module "private_endpoints" {
   # Subresource names
   subresource_names = each.value.subresource_names
 
-  private_dns_zone_group_name   = each.value.private_dns_zone_group_name
+  private_dns_zone_group_name = each.value.private_dns_zone_group_name
   # DNS configuration
   private_dns_zone_resource_ids = each.value.private_dns_zone_resource_ids
 
@@ -348,14 +348,14 @@ module "network_security_groups" {
       local.deny_inbound_network_security_rules,
       local.deny_outbound_network_security_rules) : rule_ref => {
       destination_address_prefix = rule.destination.address_space
-      destination_port_range     = rule.destination.port_range
+      destination_port_ranges    = rule.port_ranges
       direction                  = rule.direction
       name                       = rule.rule_name
       access                     = rule.access
       priority                   = rule.priority
       protocol                   = rule.protocol
       source_address_prefix      = rule.source.address_space
-      source_port_range          = rule.source.port_range
+      source_port_ranges         = ["*"]
     } if rule.security_group_ref == each.key
   }
 }
@@ -496,7 +496,7 @@ module "virtual_machine_sets" {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
+      subnet_id                     = local.network_ids[nic.network_name].subnets[nic.subnet_name].resource_id
 
       lock_mode = (
         length([

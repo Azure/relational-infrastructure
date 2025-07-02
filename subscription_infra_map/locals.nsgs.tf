@@ -37,6 +37,12 @@ locals {
             direction          = "Inbound"
             access             = "Allow"
 
+            port_ranges = [
+              for port_name in inbound_rule.port_names : tostring(var.ports[port_name])
+            ]
+            
+            
+
             destination = (
               inbound_rule.allow.in.to == null
               ? local.default_network_tuple
@@ -50,7 +56,6 @@ locals {
                     : coalesce(inbound_rule.allow.in.to.address_space, "*")
                   )
                 )
-                port_range = coalesce(inbound_rule.allow.in.to.port_range, "*")
               }
             )
 
@@ -67,7 +72,6 @@ locals {
                     : coalesce(inbound_rule.allow.in.from.address_space, "*")
                   )
                 )
-                port_range = coalesce(inbound_rule.allow.in.from.port_range, "*")
               }
             )
           } if try(inbound_rule.allow.in != null, false)
@@ -91,6 +95,10 @@ locals {
             direction          = "Outbound"
             access             = "Allow"
 
+            port_ranges = [
+              for port_name in outbound_rule.port_names : tostring(var.ports[port_name])
+            ]
+
             destination = (
               outbound_rule.allow.out.to == null
               ? local.default_network_tuple
@@ -104,7 +112,6 @@ locals {
                     : coalesce(outbound_rule.allow.out.to.address_space, "*")
                   )
                 )
-                port_range = coalesce(outbound_rule.allow.out.to.port_range, "*")
               }
             )
 
@@ -121,7 +128,6 @@ locals {
                     : coalesce(outbound_rule.allow.out.from.address_space, "*")
                   )
                 )
-                port_range = coalesce(outbound_rule.allow.out.from.port_range, "*")
               }
             )
           } if try(outbound_rule.allow.out != null, false)
@@ -145,6 +151,10 @@ locals {
             direction          = "Inbound"
             access             = "Deny"
 
+            port_ranges = [
+              for port_name in inbound_rule.port_names : tostring(var.ports[port_name])
+            ]
+
             destination = (
               inbound_rule.deny.in.to == null
               ? local.default_network_tuple
@@ -158,7 +168,6 @@ locals {
                     : coalesce(inbound_rule.deny.in.to.address_space, "*")
                   )
                 )
-                port_range = coalesce(inbound_rule.deny.in.to.port_range, "*")
               }
             )
 
@@ -175,7 +184,6 @@ locals {
                     : coalesce(inbound_rule.deny.in.from.address_space, "*")
                   )
                 )
-                port_range = coalesce(inbound_rule.deny.in.from.port_range, "*")
               }
             )
           } if try(inbound_rule.deny.in != null, false)
@@ -199,6 +207,10 @@ locals {
             direction          = "Outbound"
             access             = "Deny"
 
+            port_ranges = [
+              for port_name in inbound_rule.port_names : tostring(var.ports[port_name])
+            ]
+
             destination = (
               outbound_rule.deny.out.to == null
               ? local.default_network_tuple
@@ -212,7 +224,6 @@ locals {
                     : coalesce(outbound_rule.deny.out.to.address_space, "*")
                   )
                 )
-                port_range = coalesce(outbound_rule.deny.out.to.port_range, "*")
               }
             )
 
@@ -229,7 +240,6 @@ locals {
                     : coalesce(outbound_rule.deny.out.from.address_space, "*")
                   )
                 )
-                port_range = coalesce(outbound_rule.deny.out.from.port_range, "*")
               }
             )
           } if try(outbound_rule.deny.out != null, false)
