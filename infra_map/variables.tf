@@ -247,7 +247,7 @@ variable "network_security_rules" {
           network = optional(object({
             network_name = string
           }), null)
-          subnet = optional(obect({
+          subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
@@ -263,7 +263,7 @@ variable "network_security_rules" {
             network_name = string
           }), null)
           subnet = optional(object({
-            network_name = stringj
+            network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
@@ -318,7 +318,7 @@ variable "network_security_rules" {
           network = optional(object({
             network_name = string
           }), null)
-          subnet = optional(obect({
+          subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
@@ -334,7 +334,7 @@ variable "network_security_rules" {
             network_name = string
           }), null)
           subnet = optional(object({
-            network_name = stringj
+            network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
@@ -377,6 +377,9 @@ variable "network_security_rules" {
       }), null)
     }), null)
   }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "networks" {

@@ -32,10 +32,11 @@ module "az_subscription_8_infra_map" {
   private_link_resource_group_name = local.subscriptions_by_slot[local._s8].private_link_resource_group_name
 
   external_networks = {
-    for network_name, network in merge(var.networks, var.external_networks)
+    for network_name, network in var.external_networks
     : network_name => {
       address_space  = network.address_space
       address_spaces = network.address_spaces
+      resource_id    = network.resource_id
 
       subnets = {
         for subnet_name, subnet in network.subnets

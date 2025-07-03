@@ -254,7 +254,7 @@ module "networks" {
 
   name                = each.value.name
   location            = var.locations[each.value.location_name]
-  address_space       = [each.value.address_space]
+  address_space       = each.value.address_spaces
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   tags                = local.network_tags[each.key]
 
@@ -396,9 +396,24 @@ resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_l
 #  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
 # }
 
+resource "azurerm_application_security_group" "application_security_group" {
+  for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
+
+  name                = local.virtual_machine_set_asg_names[each.key]
+  location            = var.locations[each.value.location_name]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  tags                = local.virtual_machine_set_asg_tags[each.key]
+}
+
+
 module "virtual_machine_sets" {
   source   = "../infra_map_vm_set"
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
+
+  depends_on = [
+    module.resource_groups,
+    azurerm_application_security_group.application_security_group
+  ]
 
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
@@ -524,4 +539,25 @@ module "virtual_machine_sets" {
     disk_size_gb         = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
     storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
   }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "asg_associations" {
+  for_each = {
+    for vm_nic in flatten([
+      for vm_set_name, vm_set in module.virtual_machine_sets : [
+        for vm_index, vm in vm_set.resources.virtual_machines : [
+          for nic_name, nic in vm.network_interfaces : {
+            vm_set_name = vm_set_name
+            vm_index    = vm_index
+            nic_name    = nic_name
+            nic_id      = nic.resource_id
+            key         = "${vm_set_name}_${vm_index}_${nic_name}"
+          }
+        ]
+      ]
+    ]) : vm_nic.key => vm_nic
+  }
+
+  network_interface_id          = each.value.nic_id
+  application_security_group_id = azurerm_application_security_group.application_security_group[each.value.vm_set_name].id
 }

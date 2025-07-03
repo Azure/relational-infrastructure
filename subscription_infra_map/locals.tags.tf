@@ -145,6 +145,19 @@ locals {
     )
   }
 
+  virtual_machine_set_asg_tags = {
+    for vm_set_name, vm_set in var.virtual_machine_sets :
+    vm_set_name => merge(
+      var.tags,
+      vm_set.tags,
+      var.include_label_tags ? {
+        "location_label"       = vm_set.location_name
+        "resource_group_label" = vm_set.resource_group_name
+        "vm_set_label"         = vm_set_name
+      } : {}
+    )
+  }
+
   maintenance_configuration_tags = {
     for config_name, config in local.vm_set_maintenance_configurations :
     config_name => merge(

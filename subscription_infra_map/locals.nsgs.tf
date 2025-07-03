@@ -82,7 +82,7 @@ locals {
               port_ranges            = local.security_rule_port_ranges[rule_name]
             }
             : {
-              app_security_group_ids = [module.virtual_machine_sets[rule.to.vm_set.vm_set_name].application_security_group.resource_id]
+              app_security_group_ids = [azurerm_application_security_group.application_security_group[rule.to.vm_set.vm_set_name].id]
               address_space          = null
               port_ranges            = local.security_rule_port_ranges[rule_name]
             }
@@ -99,7 +99,7 @@ locals {
       local.deny_in_security_rules,
       local.deny_out_security_rules
       ) : rule_name => (
-      rule.from == null_
+      rule.from == null
       ? local.default_network_tuple
       : (
         rule.from.address_space != null
@@ -123,7 +123,7 @@ locals {
               port_range             = "*"
             }
             : {
-              app_security_group_ids = [module.virtual_machine_sets[rule.from.vm_set.vm_setname].application_security_group.resource_id]
+              app_security_group_ids = [azurerm_application_security_group.application_security_group[rule.from.vm_set.vm_setname].id]
               address_space          = null
               port_range             = "*"
             }
