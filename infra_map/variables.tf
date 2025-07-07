@@ -233,153 +233,155 @@ variable "external_networks" {
   description = "A map of external networks."
 }
 
+variable "network_ports" {
+  type        = map(string)
+  default     = {}
+  nullable    = false
+  description = "Defines this model's network ports."
+}
+
 variable "network_security_rules" {
   type = map(object({
-    allow = optional(object({
-      port_range  = optional(string, null)
-      port_ranges = optional(list(string), null)
+    protocol   = optional(string, "*")
+    port_name  = optional(string, null)
+    port_names = optional(set(string), null)
 
+    allow = optional(object({
       in = optional(object({
         to = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
         from = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
       }), null)
 
       out = optional(object({
         to = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
         from = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
       }), null)
     }), null)
 
     deny = optional(object({
-      port_range  = optional(string, null)
-      port_ranges = optional(list(string), null)
-
       in = optional(object({
         to = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
         from = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
       }), null)
 
       out = optional(object({
         to = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
         from = optional(object({
-          port_range    = optional(string, null)
-          port_ranges   = optional(list(string), null)
+          port_name     = optional(string, null)
+          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            name = string
           }), null)
           subnet = optional(object({
             network_name = string
             subnet_name  = string
           }), null)
           vm_set = optional(object({
-            vm_set_name = string
+            name = string
           }), null)
         }), null)
       }), null)
     }), null)
   }))
-
-  default  = {}
-  nullable = false
 }
 
 variable "networks" {

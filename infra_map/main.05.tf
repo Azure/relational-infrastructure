@@ -18,6 +18,7 @@ module "az_subscription_5_infra_map" {
   virtual_machine_extensions = var.virtual_machine_extensions
   locations                  = var.locations
   lock_groups                = var.lock_groups
+  network_ports              = var.network_ports
   network_security_rules     = var.network_security_rules
 
   tags = merge(

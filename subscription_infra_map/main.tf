@@ -351,10 +351,12 @@ module "network_security_groups" {
       name                                       = rule_name
       destination_address_prefixes               = rule.config.destination_address_prefixes
       destination_application_security_group_ids = rule.config.destination_application_security_group_ids
+      destination_port_range                     = rule.config.destination_port_range
       destination_port_ranges                    = rule.config.destination_port_ranges
       source_address_prefixes                    = rule.config.source_address_prefixes
       source_application_security_group_ids      = rule.config.source_application_security_group_ids
-      source_port_ranges                         = ["*"]
+      source_port_range                          = rule.config.source_port_range
+      source_port_ranges                         = rule.config.source_port_ranges
     }
   }
 }
