@@ -99,129 +99,199 @@ locals {
       local.deny_out_security_rules
       ) : rule_name => {
 
-      destination_port_range = (rule.destination_port_names == null ? "*" : null)
-      source_port_range      = (rule.source_port_names == null ? "*" : null)
+      destination_port_range = (rule.destination_port_names == null ? "*" : tostring(null))
+      source_port_range      = (rule.source_port_names == null ? "*" : tostring(null))
 
       destination_port_ranges = (
-        rule.destination_port_names == null ? null :
+        rule.destination_port_names == null ? [] :
         [for port_name in rule.destination_port_names : var.network_ports[port_name]]
       )
 
       source_port_ranges = (
-        rule.source_port_names == null ? null :
+        rule.source_port_names == null ? [] :
         [for port_name in rule.source_port_names : var.network_ports[port_name]]
       )
     }
   }
 
-  security_rule_destinations = {
-    for rule_name, rule in merge(
-      local.allow_in_security_rules,
-      local.allow_out_security_rules,
-      local.deny_in_security_rules,
-      local.deny_out_security_rules
-      ) : rule_name => (
-      rule.to == null
-      ? local.default_network_tuple
-      : (
-        rule.to.address_space != null
-        ? {
-          app_security_group_ids = null
-          address_spaces         = [rule.to.address_space]
-          port_range             = local.security_rule_port_ranges[rule_name].destination_port_range
-          port_ranges            = local.security_rule_port_ranges[rule_name].destination_port_ranges
-        }
-        : (
-          rule.to.subnet != null
-          ? {
-            app_security_group_ids = null
-            address_spaces         = [local.network_address_spaces[rule.to.subnet.network_name].subnets[rule.to.subnet.subnet_name].address_space]
-            port_range             = local.security_rule_port_ranges[rule_name].destination_port_range
-            port_ranges            = local.security_rule_port_ranges[rule_name].destination_port_ranges
-          }
-          : (
-            rule.to.network != null
-            ? {
-              app_security_group_ids = null
-              address_spaces         = local.network_address_spaces[rule.to.network.name].address_spaces
-              port_range             = local.security_rule_port_ranges[rule_name].destination_port_range
-              port_ranges            = local.security_rule_port_ranges[rule_name].destination_port_ranges
-            }
-            : {
-              app_security_group_ids = [azurerm_application_security_group.application_security_group[rule.to.vm_set.name].id]
-              address_spaces         = []
-              port_range             = local.security_rule_port_ranges[rule_name].destination_port_range
-              port_ranges            = local.security_rule_port_ranges[rule_name].destination_port_ranges
-            }
-          )
-        )
-      )
+  base_security_rules = merge(
+    local.allow_in_security_rules,
+    local.allow_out_security_rules,
+    local.deny_in_security_rules,
+    local.deny_out_security_rules
+  )
+
+  is_source_default = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(rule.from == null)
+  }
+
+  is_source_address_space = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.from.address_space, null) != null)
+  }
+
+  is_source_network = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.from.network, null) != null)
+  }
+
+  is_source_subnet = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.from.subnet, null) != null)
+  }
+
+  is_source_vm_set = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.from.vm_set, null) != null)
+  }
+
+  is_destination_default = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(rule.to == null)
+  }
+
+  is_destination_address_space = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.to.address_space, null) != null)
+  }
+
+  is_destination_network = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.to.network, null) != null)
+  }
+
+  is_destination_subnet = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.to.subnet, null) != null)
+  }
+
+  is_destination_vm_set = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tobool(try(rule.to.vm_set, null) != null)
+  }
+
+  # destination_address_spaces = {
+  #   for rule_name, rule in local.base_security_rules :
+  #   rule_name => (
+  #     local.is_destination_address_space[rule_name]
+  #     ? tostring(local.network_address_spaces[rule.to.address_space].address_space)
+  #     : tostring(null)
+  #   )
+  # }
+
+  destination_address_spaces_to_address_spaces = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(local.network_address_spaces[rule.to.address_space].address_space)
+    if local.is_destination_address_space[rule_name]
+  }
+
+  destination_address_space_sets = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => toset(local.network_address_spaces[rule.to.network.name].address_spaces)
+    if local.is_destination_network[rule_name]
+  }
+
+  destination_subnets_to_address_spaces = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(local.network_address_spaces[rule.to.subnet.network_name].subnets[rule.to.subnet.subnet_name].address_space)
+    if local.is_destination_subnet[rule_name]
+  }
+
+  destination_app_security_group_ids = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(azurerm_application_security_group.application_security_group[rule.to.vm_set.name].id)
+    if local.is_destination_vm_set[rule_name]
+  }
+
+  destination_address_spaces = merge(
+    local.destination_address_spaces_to_address_spaces,
+    local.destination_subnets_to_address_spaces
+  )
+
+  source_address_spaces_to_address_spaces = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(local.network_address_spaces[rule.from.address_space].address_space)
+    if local.is_source_address_space[rule_name]
+  }
+
+  source_address_space_sets = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => toset(local.network_address_spaces[rule.from.network.name].address_spaces)
+    if local.is_source_network[rule_name]
+  }
+
+  source_subnets_to_address_spaces = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(local.network_address_spaces[rule.from.subnet.network_name].subnets[rule.from.subnet.subnet_name].address_space)
+    if local.is_source_subnet[rule_name]
+  }
+
+  source_app_security_group_ids = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => tostring(azurerm_application_security_group.application_security_group[rule.from.vm_set.name].id)
+    if local.is_source_vm_set[rule_name]
+  }
+
+  source_address_spaces = merge(
+    local.source_address_spaces_to_address_spaces,
+    local.source_subnets_to_address_spaces
+  )
+
+    destination_network_tuples = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => (
+      local.is_destination_default[rule_name] ?
+      local.default_network_tuple :
+      {
+        address_space          = tostring(lookup(local.destination_address_spaces, rule_name, null))
+        address_spaces         = lookup(local.destination_address_space_sets, rule_name, null)
+        app_security_group_ids = compact([lookup(local.destination_app_security_group_ids, rule_name, null)])
+      }
     )
   }
 
-  security_rule_sources = {
-    for rule_name, rule in merge(
-      local.allow_in_security_rules,
-      local.allow_out_security_rules,
-      local.deny_in_security_rules,
-      local.deny_out_security_rules
-      ) : rule_name => (
-      rule.from == null
-      ? local.default_network_tuple
-      : (
-        rule.from.address_space != null
-        ? {
-          app_security_group_ids = []
-          address_spaces         = [rule.from.address_space]
-          port_ranges            = local.security_rule_port_ranges[rule_name].source_port_ranges
-          port_range             = local.security_rule_port_ranges[rule_name].source_port_range
-        }
-        : (
-          rule.from.subnet != null
-          ? {
-            app_security_group_ids = []
-            address_spaces         = [local.network_address_spaces[rule.from.subnet.network_name].subnets[rule.from.subnet.subnet_name].address_space]
-            port_ranges            = local.security_rule_port_ranges[rule_name].source_port_ranges
-            port_range             = local.security_rule_port_ranges[rule_name].source_port_range
-          }
-          : (
-            rule.from.network != null
-            ? {
-              app_security_group_ids = []
-              address_spaces         = local.network_address_spaces[rule.from.network.name].address_spaces
-              port_ranges            = local.security_rule_port_ranges[rule_name].source_port_ranges
-              port_range             = local.security_rule_port_ranges[rule_name].source_port_range
-            }
-            : {
-              app_security_group_ids = [azurerm_application_security_group.application_security_group[rule.from.vm_set.name].id]
-              address_spaces         = []
-              port_ranges            = local.security_rule_port_ranges[rule_name].source_port_ranges
-              port_range             = local.security_rule_port_ranges[rule_name].source_port_range
-            }
-          )
-        )
-      )
+  source_network_tuples = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => (
+      local.is_source_default[rule_name] ?
+      local.default_network_tuple :
+      {
+        address_space          = tostring(lookup(local.source_address_spaces, rule_name, null))
+        address_spaces         = lookup(local.source_address_space_sets, rule_name, null)
+        app_security_group_ids = compact([lookup(local.source_app_security_group_ids, rule_name, null)])
+      }
     )
   }
 
-  security_rule_config = {
-    for rule_name, rule in merge(
-      local.allow_in_security_rules,
-      local.allow_out_security_rules,
-      local.deny_in_security_rules,
-      local.deny_out_security_rules
-      ) : rule_name => {
+  security_rules = {
+    for rule_name, rule in local.base_security_rules :
+    rule_name => {
       access                                     = rule.access
       direction                                  = rule.direction
       protocol                                   = rule.protocol
-      destination_address_prefixes               = local.security_rule_destinations[rule_name].address_spaces
-      destination_application_security_group_ids = local.security_rule_destinations[rule_name].app_security_group_ids
-      destination_port_ranges                    = local.security_rule_destinations[rule_name].port_ranges
-      source_address_prefixes                    = local.security_rule_sources[rule_name].address_spaces
-      source_application_security_group_ids      = local.security_rule_sources[rule_name].app_security_group_ids
-      source_port_ranges                         = local.security_rule_sources[rule_name].port_ranges
+      destination_address_prefix                 = local.destination_network_tuples[rule_name].address_space
+      destination_address_prefixes               = local.destination_network_tuples[rule_name].address_spaces
+      destination_application_security_group_ids = local.destination_network_tuples[rule_name].app_security_group_ids
+      source_address_prefix                      = local.source_network_tuples[rule_name].address_space
+      source_address_prefixes                    = local.source_network_tuples[rule_name].address_spaces
+      source_application_security_group_ids      = local.source_network_tuples[rule_name].app_security_group_ids
     }
   }
+
+  default_network_tuple = {
+    address_space          = "*"
+    address_spaces         = null
+    app_security_group_ids = []
+  }
+
+  # default_network_tuple = {
+  #   address_space         = tostring("*")
+  #   address_spaces        = toset([])
+  #   app_security_group_id = tostring(null)
+  #   port_range            = tostring("*")
+  #   port_ranges           = toset([])
+  # }
 
   network_security_groups = tomap({
     for group in flatten([
@@ -238,8 +308,8 @@ locals {
 
           security_rules = {
             for rule_index, rule_name in subnet.security_rules : rule_name => {
-              priority = (100 + (rule_index * 5)) // Start at 100. Increment by 5 to leave room for future additions.
-              config   = local.security_rule_config[rule_name]
+              priority = (100 + rule_index)
+              config   = local.security_rules[rule_name]
             }
           }
 
@@ -247,13 +317,6 @@ locals {
       ] if network != null
     ]) : "${group.network_ref}_${group.subnet_ref}" => group
   })
-
-  default_network_tuple = {
-    app_security_group_id = null
-    address_spaces        = null
-    port_ranges           = null
-    port_range            = "*"
-  }
 
   no_network_security_group_subnets = [
     "gatewaysubnet",

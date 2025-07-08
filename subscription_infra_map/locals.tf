@@ -101,12 +101,12 @@ locals {
   network_address_spaces = {
     for network_name, network in merge(var.networks, var.external_networks)
     : network_name => {
-      address_spaces = coalesce(network.address_spaces, compact([network.address_space]))
+      address_spaces = toset(coalesce(network.address_spaces, compact([network.address_space])))
 
       subnets = {
         for subnet_name, subnet in network.subnets
         : subnet_name => {
-          address_space = subnet.address_space
+          address_space = tostring(subnet.address_space)
         }
       }
     } if network != null
