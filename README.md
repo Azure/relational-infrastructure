@@ -306,7 +306,7 @@ network_security_rules = {
     deny = {
       in = {
         to = {
-          network = {            # ❌ Deny in to network...
+          network = {            # ❌ Deny inbound to network...
             name = "main"        # 🔗 Linked to var.networks or var.external_networks
           }
         }
@@ -327,7 +327,7 @@ network_security_rules = {
     ]
 
     allow = {
-      in = {                                        # ✅ Allow in...
+      in = {                                        # ✅ Allow inbound...
         from = {
           network = {                               # From network...
             name = "alt"                            # 🔗 Linked to var.networks or var.external_networks
@@ -349,17 +349,17 @@ network_security_rules = {
 
 ```hcl
 network_security_rules = {
-  allow_all_tcp_from_on_prem_to_app_vm_set = {
-    protocol = "Tcp"
+  allow_all_tcp_from_on_prem_to_app_vm_set = {  # 🔑 Named security rule
+    protocol = "Tcp"                            # Optional; Tcp protocol only
 
     allow = {
-      out = {
+      out = {                                   # ✅ Allow outbound...
         from = {
-          address_space = "10.100.0.0/16"
+          address_space = "10.100.0.0/16"       # From address space 10.100.0.0/16
         }
         to = {
-          vm_set = {
-            name = "app"
+          vm_set = {                            # To role-based VM set
+            name = "app"                        # 🔗 Linked to var.virtual_machine_sets
           }
         }
       }
