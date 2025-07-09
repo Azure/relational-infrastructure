@@ -288,10 +288,11 @@ The `network_security_rules` names layer 4 network security rules that can be ap
 Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
 
 * Specific address spaces
-* [Networks defined in the `networks` table](#networks)
-* [External networks defined in the `external_networks` table](#external-networks)
-* [Subnets defined in the `networks` table](#subnets)
-* [Subnets defined in the `external_networks` table](#subnets)
+* Networks defined in [`networks`](#networks)
+* External networks defined in [`external_networks`](#external-networks)
+* Specific network subnets defined in [`networks`](#networks)
+* Specific external network subnets defined in [`external_networks`](#external-subnets)
+* Role-based VM sets defined in [`virtual_machine_sets`](#virtual-machine-sets)
 
 The `network_security_rules` table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
 
