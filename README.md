@@ -266,7 +266,7 @@ virtual_machine_extensions = {
 
 > Terraform variable: `var.network_ports`
 
-The `network_ports` is a map of commonly used port names to port numbers. These ports are used when configuring [security rules](#security-rules).
+The `network_ports` table maps port names to port numbers. These ports are used when configuring [security rules](#security-rules).
 
 The example below illustrates some commonly used ports.
 
