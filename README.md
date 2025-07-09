@@ -283,7 +283,7 @@ network_ports = {
 
 > Terraform variable: `var.network_security_rules`
 
-The `network_security_rules` names layer 4 network security rules that can be applied to [`subnets`](#subnets) defined in the [`networks`](#networks) table. These security rules can be applied to zero or more [`subnets`](#subnets). Each [`subnet`](#subnets) can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each [`subnet`](#subnets) defined in the [`networks`](#networks) table. 
+The `network_security_rules` names layer 4 network security rules that can be applied to subnets defined in the [`networks`](#networks) table. These security rules can be applied to zero or more subnets. Each subnet can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each subnet defined in the [`networks`](#networks) table. 
 
 Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
 
