@@ -345,6 +345,28 @@ network_security_rules = {
 }
 ```
 
+#### Example Rule: Allow all TCP traffic out from `10.100.0.0/16` space to `app` VM set
+
+```hcl
+network_security_rules = {
+  allow_all_tcp_from_on_prem_to_app_vm_set = {
+    protocol = "Tcp"
+
+    allow = {
+      out = {
+        from = {
+          address_space = "10.100.0.0/16"
+        }
+        to = {
+          vm_set = {
+            name = "app"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ### Networks
 
