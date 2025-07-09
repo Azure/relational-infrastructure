@@ -350,13 +350,31 @@ module "network_security_groups" {
       protocol                                   = rule.config.protocol
       name                                       = rule_name
       destination_address_prefix                 = rule.config.destination_address_prefix
-      destination_address_prefixes               = rule.config.destination_address_prefixes
       destination_application_security_group_ids = rule.config.destination_application_security_group_ids
-      destination_port_range                     = "*"
+      destination_port_range                     = rule.config.destination_port_range
       source_address_prefix                      = rule.config.source_address_prefix
-      source_address_prefixes                    = rule.config.source_address_prefixes
       source_application_security_group_ids      = rule.config.source_application_security_group_ids
-      source_port_range                          = "*"
+      source_port_range                          = rule.config.source_port_range
+
+      destination_address_prefixes = (
+        length(rule.config.destination_address_prefixes) == 0
+        ? null : rule.config.destination_address_prefixes
+      )
+
+      source_address_prefixes = (
+        length(rule.config.source_address_prefixes) == 0
+        ? null : rule.config.source_address_prefixes
+      )
+
+      destination_port_ranges = (
+        length(rule.config.destination_port_ranges) == 0
+        ? null : rule.config.destination_port_ranges
+      )
+
+      source_port_ranges = (
+        length(rule.config.source_port_ranges) == 0
+        ? null : rule.config.source_port_ranges
+      )
     }
   }
 }

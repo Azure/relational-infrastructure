@@ -243,14 +243,11 @@ variable "network_ports" {
 variable "network_security_rules" {
   type = map(object({
     protocol   = optional(string, "*")
-    port_name  = optional(string, null)
     port_names = optional(set(string), null)
 
     allow = optional(object({
       in = optional(object({
         to = optional(object({
-          port_name     = optional(string, null)
-          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
@@ -264,7 +261,6 @@ variable "network_security_rules" {
           }), null)
         }), null)
         from = optional(object({
-          port_name     = optional(string, null)
           port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
@@ -282,8 +278,6 @@ variable "network_security_rules" {
 
       out = optional(object({
         to = optional(object({
-          port_name     = optional(string, null)
-          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
@@ -297,7 +291,6 @@ variable "network_security_rules" {
           }), null)
         }), null)
         from = optional(object({
-          port_name     = optional(string, null)
           port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
@@ -317,8 +310,6 @@ variable "network_security_rules" {
     deny = optional(object({
       in = optional(object({
         to = optional(object({
-          port_name     = optional(string, null)
-          port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
@@ -332,7 +323,6 @@ variable "network_security_rules" {
           }), null)
         }), null)
         from = optional(object({
-          port_name     = optional(string, null)
           port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
@@ -350,7 +340,6 @@ variable "network_security_rules" {
 
       out = optional(object({
         to = optional(object({
-          port_name     = optional(string, null)
           port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
@@ -365,7 +354,6 @@ variable "network_security_rules" {
           }), null)
         }), null)
         from = optional(object({
-          port_name     = optional(string, null)
           port_names    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({

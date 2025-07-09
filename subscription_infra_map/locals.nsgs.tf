@@ -1,104 +1,56 @@
 locals {
   allow_in_security_rules = {
-    for rule_name, rule in var.network_security_rules : rule_name => {
-      access    = "Allow"
-      direction = "Inbound"
-      protocol  = rule.protocol
-      from      = rule.allow.in.from
-      to        = rule.allow.in.to
-
-      destination_port_names = try(coalesce(
-        rule.allow.in.to.port_names,
-        rule.allow.in.to.port_name != null ? [rule.allow.in.to.port_name] : null,
-        rule.port_names,
-        rule.port_name != null ? [rule.port_name] : null
-      ), null)
-
-      source_port_names = try(coalesce(
-        rule.allow.in.from.port_names,
-        rule.allow.in.from.port_name != null ? [rule.allow.in.from.port_name] : null
-      ), null)
-
+    for rule_name, rule in var.network_security_rules :
+    rule_name => {
+      access                 = "Allow"
+      direction              = "Inbound"
+      protocol               = rule.protocol
+      from                   = rule.allow.in.from
+      to                     = rule.allow.in.to
+      destination_port_names = rule.port_names
+      source_port_names      = try(rule.allow.in.from.port_names, null)
     } if try(rule.allow.in != null, false)
   }
 
   allow_out_security_rules = {
     for rule_name, rule in var.network_security_rules : rule_name => {
-      access    = "Allow"
-      direction = "Outbound"
-      protocol  = rule.protocol
-      from      = rule.allow.out.from
-      to        = rule.allow.out.to
-
-      destination_port_names = try(coalesce(
-        rule.allow.out.to.port_names,
-        rule.allow.out.to.port_name != null ? [rule.allow.out.to.port_name] : null,
-        rule.port_names,
-        rule.port_name != null ? [rule.port_name] : null
-      ), null)
-
-      source_port_names = try(coalesce(
-        rule.allow.out.from.port_names,
-        rule.allow.out.from.port_name != null ? [rule.allow.out.from.port_name] : null
-      ), null)
-
+      access                 = "Allow"
+      direction              = "Outbound"
+      protocol               = rule.protocol
+      from                   = rule.allow.out.from
+      to                     = rule.allow.out.to
+      destination_port_names = rule.port_names
+      source_port_names      = try(rule.allow.out.from.port_names, null)
     } if try(rule.allow.out != null, false)
   }
 
   deny_in_security_rules = {
     for rule_name, rule in var.network_security_rules : rule_name => {
-      access    = "Deny"
-      direction = "Inbound"
-      protocol  = rule.protocol
-      from      = rule.deny.in.from
-      to        = rule.deny.in.to
-
-      destination_port_names = try(coalesce(
-        rule.deny.in.to.port_names,
-        rule.deny.in.to.port_name != null ? [rule.deny.in.to.port_name] : null,
-        rule.port_names,
-        rule.port_name != null ? [rule.port_name] : null
-      ), null)
-
-      source_port_names = try(coalesce(
-        rule.deny.in.from.port_names,
-        rule.deny.in.from.port_name != null ? [rule.deny.in.from.port_name] : null
-      ), null)
-
+      access                 = "Deny"
+      direction              = "Inbound"
+      protocol               = rule.protocol
+      from                   = rule.deny.in.from
+      to                     = rule.deny.in.to
+      destination_port_names = rule.port_names
+      source_port_names      = try(rule.deny.in.from.port_names, null)
     } if try(rule.deny.in != null, false)
   }
 
   deny_out_security_rules = {
     for rule_name, rule in var.network_security_rules : rule_name => {
-      access    = "Deny"
-      direction = "Outbound"
-      protocol  = rule.protocol
-      from      = rule.deny.out.from
-      to        = rule.deny.out.to
-
-      destination_port_names = try(coalesce(
-        rule.deny.out.to.port_names,
-        rule.deny.out.to.port_name != null ? [rule.deny.out.to.port_name] : null,
-        rule.port_names,
-        rule.port_name != null ? [rule.port_name] : null
-      ), null)
-
-      source_port_names = try(coalesce(
-        rule.deny.out.from.port_names,
-        rule.deny.out.from.port_name != null ? [rule.deny.out.from.port_name] : null
-      ), null)
-
+      access                 = "Deny"
+      direction              = "Outbound"
+      protocol               = rule.protocol
+      from                   = rule.deny.out.from
+      to                     = rule.deny.out.to
+      destination_port_names = rule.port_names
+      source_port_names      = try(rule.deny.out.from.port_names, null)
     } if try(rule.deny.out != null, false)
   }
 
   security_rule_port_ranges = {
-    for rule_name, rule in merge(
-      local.allow_in_security_rules,
-      local.allow_out_security_rules,
-      local.deny_in_security_rules,
-      local.deny_out_security_rules
-      ) : rule_name => {
-
+    for rule_name, rule in local.base_security_rules
+    : rule_name => {
       destination_port_range = (rule.destination_port_names == null ? "*" : tostring(null))
       source_port_range      = (rule.source_port_names == null ? "*" : tostring(null))
 
@@ -171,15 +123,6 @@ locals {
     rule_name => tobool(try(rule.to.vm_set, null) != null)
   }
 
-  # destination_address_spaces = {
-  #   for rule_name, rule in local.base_security_rules :
-  #   rule_name => (
-  #     local.is_destination_address_space[rule_name]
-  #     ? tostring(local.network_address_spaces[rule.to.address_space].address_space)
-  #     : tostring(null)
-  #   )
-  # }
-
   destination_address_spaces_to_address_spaces = {
     for rule_name, rule in local.base_security_rules :
     rule_name => tostring(local.network_address_spaces[rule.to.address_space].address_space)
@@ -238,14 +181,14 @@ locals {
     local.source_subnets_to_address_spaces
   )
 
-    destination_network_tuples = {
+  destination_network_tuples = {
     for rule_name, rule in local.base_security_rules :
     rule_name => (
       local.is_destination_default[rule_name] ?
       local.default_network_tuple :
       {
         address_space          = tostring(lookup(local.destination_address_spaces, rule_name, null))
-        address_spaces         = lookup(local.destination_address_space_sets, rule_name, null)
+        address_spaces         = lookup(local.destination_address_space_sets, rule_name, [])
         app_security_group_ids = compact([lookup(local.destination_app_security_group_ids, rule_name, null)])
       }
     )
@@ -258,7 +201,7 @@ locals {
       local.default_network_tuple :
       {
         address_space          = tostring(lookup(local.source_address_spaces, rule_name, null))
-        address_spaces         = lookup(local.source_address_space_sets, rule_name, null)
+        address_spaces         = lookup(local.source_address_space_sets, rule_name, [])
         app_security_group_ids = compact([lookup(local.source_app_security_group_ids, rule_name, null)])
       }
     )
@@ -273,15 +216,19 @@ locals {
       destination_address_prefix                 = local.destination_network_tuples[rule_name].address_space
       destination_address_prefixes               = local.destination_network_tuples[rule_name].address_spaces
       destination_application_security_group_ids = local.destination_network_tuples[rule_name].app_security_group_ids
+      destination_port_range                     = local.security_rule_port_ranges[rule_name].destination_port_range
+      destination_port_ranges                    = local.security_rule_port_ranges[rule_name].destination_port_ranges
       source_address_prefix                      = local.source_network_tuples[rule_name].address_space
       source_address_prefixes                    = local.source_network_tuples[rule_name].address_spaces
       source_application_security_group_ids      = local.source_network_tuples[rule_name].app_security_group_ids
+      source_port_range                          = local.security_rule_port_ranges[rule_name].source_port_range
+      source_port_ranges                         = local.security_rule_port_ranges[rule_name].source_port_ranges
     }
   }
 
   default_network_tuple = {
     address_space          = "*"
-    address_spaces         = null
+    address_spaces         = []
     app_security_group_ids = []
   }
 
