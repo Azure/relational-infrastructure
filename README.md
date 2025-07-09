@@ -302,12 +302,12 @@ Each rule can also specify a protocol (e.g., `Tcp`, `Udp`). By default, all prot
 
 ```hcl
 network_security_rules = {
-  deny_all_to_network = {
+  deny_all_to_network = {        # 🔑 Named security rule
     deny = {
       in = {
         to = {
-          network = {
-            name = "main"
+          network = {            # ❌ Deny in to network...
+            name = "main"        # 🔗 Linked to var.networks or var.external_networks
           }
         }
       }
@@ -320,22 +320,22 @@ network_security_rules = {
 
 ```hcl
 network_security_rules = {
-  allow_all_http_s_from_alt_to_main_production = {
-    port_names = [
+  allow_all_http_s_from_alt_to_main_production = {  # 🔑 Named security rule
+    port_names = [                                  # 🔗 Optional; links to `var.network_ports`
       "http",
       "https"
     ]
 
     allow = {
-      in = {
+      in = {                                        # ✅ Allow in...
         from = {
-          network = {
-            name = "alt"
+          network = {                               # From network...
+            name = "alt"                            # 🔗 Linked to var.networks or var.external_networks
           }
         }
-        to = {
-          subnet = {
-            network_name = "main"
+        to = {                
+          subnet = {                                # To subnet...
+            network_name = "main"                   # 🔗 Linked to var.networks or var.external_networks
             subnet_name  = "production"
           }
         }
