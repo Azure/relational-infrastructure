@@ -283,7 +283,17 @@ network_ports = {
 
 > Terraform variable: `var.network_security_rules`
 
-The `security_rules` section within `subnets` of the [`networks`](#networks) table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
+The `network_security_rules` names layer 4 network security rules that can be applied to [`subnets`](#subnets) defined in the [`networks`](#networks) table. These security rules can be applied to zero or more [`subnets`](#subnets). Each [`subnet`](#subnets) can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each [`subnet`](#subnets) defined in the [`networks`](#networks) table. 
+
+Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
+
+* Specific address spaces
+* [Networks defined in the `networks` table](#networks)
+* [External networks defined in the `external_networks` table](#external-networks)
+* [Subnets defined in the `networks` table](#subnets)
+* [Subnets defined in the `external_networks` table](#subnets)
+
+The `network_security_rules` table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
 
 ```hcl
 networks = {
