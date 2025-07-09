@@ -298,7 +298,23 @@ Each network security rule can specify optional inbound/outbound ports as define
 
 Each rule can also specify a protocol (e.g., `Tcp`, `Udp`). By default, all protocols are included in the rule's scope.
 
-Here are a few example rules:
+Example Rule: Deny all traffic to `main` network
+
+```hcl
+network_security_rules = {
+  deny_all_to_network = {
+    deny = {
+      in = {
+        to = {
+          network = {
+            name = "main"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 
 
