@@ -391,6 +391,11 @@ networks = {
       subnet_a = {                       # 🔑 "subnet_a" subnet
         name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
         address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
+
+        security_rules = [               # 🔗 Optional; links to var.network_security_rules
+          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
+          "deny_all_to_subnet_a"         # network security group in the order they're defined here
+        ]
       }
 
       subnet_b = {                       # 🔑 "subnet_b" subnet
