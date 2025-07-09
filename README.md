@@ -294,88 +294,13 @@ Network security rules are implemented using an easy-to-read fluent syntax that 
 * Specific external network subnets defined in [`external_networks`](#external-subnets)
 * Role-based VM sets defined in [`virtual_machine_sets`](#virtual-machine-sets)
 
-The `network_security_rules` table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
+Each network security rule can specify optional inbound/outbound ports as defined in the [`network_ports`](#network-ports) table.
 
-```hcl
-networks = {
-  main = {                                      # 🔑 "main" network
-                                                # Other fields like location_name...
-    subnets = {                        
-      subnet_a = {                              # 🔑 "subnet_a" subnet
-        security_rules = {                      # Layer 4 (NSG) security rules
-          allow_static_in = {                   # 🔑 "allow_static_in" rule
-            priority = "100"                    # Rule priority is 100
-            allow = { in = { from = {           # Allow in from...
-              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
-              port_range    = "443"             # on port 443
-            }}}
-          },
-          allow_network_in = {                  # 🔑 "allow_network_in" rule
-            priority = "110"                    # Rule priority is 110
-            allow = { in = { from = {           # Allow in from...
-              network = {                       # network defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                port_range   = "100-200"        # on ports 100-200
-              }
-            }}}
-          },
-          deny_subnet_in = {                    # 🔑 "deny_subnet_in" rule
-            priority = "120"                    # Rule priority is 120
-            deny = { in = { from = {            # Deny in from...
-              subnet = {                        # subnet defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          },
-          allow_static_out = {                  # 🔑 "allow_static_out" rule
-            priority = "130"                    # Rule priority is 130
-            allow = { out = { to = {            # Allow out to...
-              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
-              port_range    = "443"             # on port 443
-            }}}
-          },
-          deny_network_out = {                  # 🔑 "deny_network_out" rule
-            priority = "140"                    # Rule priority is 140
-            deny = { out = { to = {             # Deny out to...
-              network = {                       # network defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          },
-          allow_subnet_out = {                  # 🔑 "allow_subnet_out" rule
-            priority = "150"                    # Rule priority is 150
-            allow = { out = { to = {            # Allow out to...
-              subnet = {                        # subnet defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          }
-        }
-      }
-    }
-  }
-  alt = {                                       # 🔑 "alt" network
-                                                # Other fields...
-    subnets = {
-      subnet_b = {                              # 🔑 "subnet_b" subnet
-                                                # Subnet details...          
-      }
-    }
-  }
-}
-```
+Each rule can also specify a protocol (e.g., `Tcp`, `Udp`). By default, all protocols are included in the rule's scope.
 
-| Field | Description |
-|-------|-------------|
-| `priority` | Sets the NSG rule priority, e.g., `100`. Lower numbers take precedence. |
-| `allow`/`deny` | Defines whether the rule allows or denies traffic, with `in` or `out` specifying direction. |
-| `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
-| `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
+Here are a few example rules:
+
+
 
 ### Networks
 
