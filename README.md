@@ -316,6 +316,34 @@ network_security_rules = {
 }
 ```
 
+Example Rule: Allow all HTTP/S traffic from `alt` network to `production` subnet on `main` network
+
+```hcl
+network_security_rules = {
+  allow_all_http_s_from_alt_to_main_production = {
+    port_names = [
+      "http",
+      "https"
+    ]
+
+    allow = {
+      in = {
+        from = {
+          network = {
+            name = "alt"
+          }
+        }
+        to = {
+          subnet = {
+            network_name = "main"
+            subnet_name  = "production"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 
 ### Networks
