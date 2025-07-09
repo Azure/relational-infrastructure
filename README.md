@@ -336,7 +336,7 @@ network_security_rules = {
         to = {                
           subnet = {                                # To subnet...
             network_name = "main"                   # 🔗 Linked to var.networks or var.external_networks
-            subnet_name  = "production"
+            subnet_name  = "production"             # 🔗 Subnet defined on linked network
           }
         }
       }
