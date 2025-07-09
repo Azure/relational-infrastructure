@@ -298,7 +298,7 @@ Each network security rule can specify optional inbound/outbound ports as define
 
 Each rule can also specify a protocol (e.g., `Tcp`, `Udp`). By default, all protocols are included in the rule's scope.
 
-Example Rule: Deny all traffic to `main` network
+#### Example Rule: Deny all traffic to `main` network
 
 ```hcl
 network_security_rules = {
@@ -316,7 +316,7 @@ network_security_rules = {
 }
 ```
 
-Example Rule: Allow all HTTP/S traffic from `alt` network to `production` subnet on `main` network
+#### Example Rule: Allow all HTTP/S traffic from `alt` network to `production` subnet on `main` network
 
 ```hcl
 network_security_rules = {
