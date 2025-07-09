@@ -33,6 +33,7 @@ erDiagram
   "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
+  "Subnets" }o--o{ "Security Rules" : "have"
   "External Networks" ||..o{ "External Subnets" : ""
   "Subnets" ||..o{ "Routes" : ""
   "Routes" ||--|| "Networks" : "to"
