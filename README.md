@@ -262,6 +262,23 @@ virtual_machine_extensions = {
 | `automatic_upgrade_enabled` | Activates automatic upgrades for the extension if `true`. |
 | `settings` | Optional; holds custom settings for the extension, or `null` if unused. |
 
+### Network Ports
+
+> Terraform variable: `var.network_ports`
+
+The `network_ports` is a map of commonly used port names to port numbers. These ports are used when configuring [security rules](#security-rules).
+
+The example below illustrates some commonly used ports.
+
+```hcl
+network_ports = {
+  http  = "80"    # 🔑 "http" port
+  https = "443"   # 🔑 "https" port
+  rdp   = "3389"  # 🔑 "rdp" port
+  ssh   = "22"    # 🔑 "ssh" port
+}
+```
+
 ### Networks
 
 > Terraform variable: `var.networks`
@@ -305,23 +322,6 @@ networks = {
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
 | `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
-
-#### Ports
-
-> Terraform variable: `var.network_ports`
-
-The `network_ports` is a map of commonly used port names to port numbers. These ports are used when configuring [security rules](#security-rules).
-
-The example below illustrates some commonly used ports.
-
-```hcl
-network_ports = {
-  http  = "80"    # 🔑 "http" port
-  https = "443"   # 🔑 "https" port
-  rdp   = "3389"  # 🔑 "rdp" port
-  ssh   = "22"    # 🔑 "ssh" port
-}
-```
 
 #### Peerings
 
