@@ -19,6 +19,8 @@ module "az_subscription_4_infra_map" {
   virtual_machine_images     = var.virtual_machine_images
   locations                  = var.locations
   lock_groups                = var.lock_groups
+  network_ports              = var.network_ports
+  network_security_rules     = var.network_security_rules
 
   tags = merge(
     var.tags,
@@ -31,9 +33,11 @@ module "az_subscription_4_infra_map" {
   private_link_resource_group_name = local.subscriptions_by_slot[local._s4].private_link_resource_group_name
 
   external_networks = {
-    for network_name, network in merge(var.networks, var.external_networks)
+    for network_name, network in var.external_networks
     : network_name => {
-      address_space = network.address_space
+      address_space  = network.address_space
+      address_spaces = network.address_spaces
+      resource_id    = network.resource_id
 
       subnets = {
         for subnet_name, subnet in network.subnets
@@ -47,14 +51,16 @@ module "az_subscription_4_infra_map" {
   networks = {
     for network_name, network in var.networks
     : network_name => {
-      location_name          = network.location_name
-      resource_group_name    = network.resource_group_name
-      address_space          = network.address_space
-      name                   = network.name
-      dns_ip_addresses       = network.dns_ip_addresses
-      enable_ddos_protection = network.enable_ddos_protection
-      subnets                = network.subnets
-      lock_groups            = network.lock_groups
+      location_name                     = network.location_name
+      resource_group_name               = network.resource_group_name
+      address_space                     = network.address_space
+      address_spaces                    = network.address_spaces
+      name                              = network.name
+      dns_ip_addresses                  = network.dns_ip_addresses
+      enable_ddos_protection            = network.enable_ddos_protection
+      subnets                           = network.subnets
+      lock_groups                       = network.lock_groups
+      include_deployment_prefix_in_name = network.include_deployment_prefix_in_name
     }
     if local.subscription_slots[network.subscription_name] == local._s4
   }

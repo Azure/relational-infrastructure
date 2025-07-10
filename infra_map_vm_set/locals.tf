@@ -14,6 +14,11 @@ locals {
     : { kind = lookup(local.lock_modes, var.lock_mode, null) }
   )
 
+  asg_lock = (
+    var.lock_mode == null ? null
+    : { kind = lookup(local.lock_modes, var.lock_mode, null) }
+  )
+
   maintenance_configuration_name = "${var.resource_prefix}-mc"
   virtual_machine_scale_set_name = "${var.resource_prefix}-vmss"
 

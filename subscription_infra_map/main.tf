@@ -9,7 +9,28 @@ module "resource_groups" {
   )
 
   name = local.resource_group_names[each.key]
-  lock = local.resource_group_locks[each.key]
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
+
   tags = local.resource_group_tags[each.key]
 }
 
@@ -41,7 +62,27 @@ module "storage_accounts" {
   account_kind               = each.value.account_type
   account_replication_type   = each.value.replication_type
   https_traffic_only_enabled = !(each.value.allow_http_access)
-  lock                       = local.storage_account_locks[each.key]
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
 
   containers = {
     for container_name, container in var.blob_containers :
@@ -72,10 +113,32 @@ module "key_vaults" {
   # version = "0.10.0"
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
-  location                        = var.locations[each.value.location_name]
-  resource_group_name             = module.resource_groups[each.value.resource_group_name].name
-  name                            = local.key_vault_names[each.key]
-  lock                            = local.key_vault_locks[each.key]
+  location            = var.locations[each.value.location_name]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+
+  name = local.key_vault_names[each.key]
+
+  lock = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? { kind = local.lock_modes.read_only }
+      : { kind = local.lock_modes.no_delete }
+    )
+    : null
+  )
+
   tenant_id                       = coalesce(each.value.tenant_id, data.azurerm_client_config.current.tenant_id)
   sku_name                        = each.value.sku_name
   enabled_for_deployment          = each.value.enabled_for_deployment
@@ -166,7 +229,6 @@ module "private_endpoints" {
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
   network_interface_name         = each.value.network_interface_name
-  lock                           = each.value.lock
 
   # IP configurations if specified
   ip_configurations = each.value.ip_configurations
@@ -192,10 +254,9 @@ module "networks" {
 
   name                = each.value.name
   location            = var.locations[each.value.location_name]
-  address_space       = [each.value.address_space]
+  address_space       = each.value.address_spaces
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   tags                = local.network_tags[each.key]
-  lock                = each.value.lock
 
   ddos_protection_plan = (
     each.value.enable_ddos_protection
@@ -205,6 +266,8 @@ module "networks" {
     }
     : null
   )
+
+  lock = each.value.lock
 
   dns_servers = { # What?
     dns_servers = (each.value.dns_ips == null ? null : each.value.dns_ips)
@@ -279,21 +342,40 @@ module "network_security_groups" {
   tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
 
   security_rules = {
-    for rule_ref, rule in merge(
-      local.allow_inbound_network_security_rules,
-      local.allow_outbound_network_security_rules,
-      local.deny_inbound_network_security_rules,
-      local.deny_outbound_network_security_rules) : rule_ref => {
-      destination_address_prefix = rule.destination.address_space
-      destination_port_range     = rule.destination.port_range
-      direction                  = rule.direction
-      name                       = rule.rule_name
-      access                     = rule.access
-      priority                   = rule.priority
-      protocol                   = rule.protocol
-      source_address_prefix      = rule.source.address_space
-      source_port_range          = rule.source.port_range
-    } if rule.security_group_ref == each.key
+    for rule_name, rule in each.value.security_rules :
+    rule_name => {
+      access                                     = rule.config.access
+      direction                                  = rule.config.direction
+      priority                                   = rule.priority
+      protocol                                   = rule.config.protocol
+      name                                       = rule_name
+      destination_address_prefix                 = rule.config.destination_address_prefix
+      destination_application_security_group_ids = rule.config.destination_application_security_group_ids
+      destination_port_range                     = rule.config.destination_port_range
+      source_address_prefix                      = rule.config.source_address_prefix
+      source_application_security_group_ids      = rule.config.source_application_security_group_ids
+      source_port_range                          = rule.config.source_port_range
+
+      destination_address_prefixes = (
+        length(rule.config.destination_address_prefixes) == 0
+        ? null : rule.config.destination_address_prefixes
+      )
+
+      source_address_prefixes = (
+        length(rule.config.source_address_prefixes) == 0
+        ? null : rule.config.source_address_prefixes
+      )
+
+      destination_port_ranges = (
+        length(rule.config.destination_port_ranges) == 0
+        ? null : rule.config.destination_port_ranges
+      )
+
+      source_port_ranges = (
+        length(rule.config.source_port_ranges) == 0
+        ? null : rule.config.source_port_ranges
+      )
+    }
   }
 }
 
@@ -334,9 +416,24 @@ resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_l
 #  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
 # }
 
+resource "azurerm_application_security_group" "application_security_group" {
+  for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
+
+  name                = local.virtual_machine_set_asg_names[each.key]
+  location            = var.locations[each.value.location_name]
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  tags                = local.virtual_machine_set_asg_tags[each.key]
+}
+
+
 module "virtual_machine_sets" {
   source   = "../infra_map_vm_set"
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
+
+  depends_on = [
+    module.resource_groups,
+    azurerm_application_security_group.application_security_group
+  ]
 
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
@@ -361,7 +458,26 @@ module "virtual_machine_sets" {
     : local.vm_set_maintenance_configurations[each.key]
   )
 
-  lock_mode = local.virtual_machine_set_locks[each.key]
+  lock_mode = (
+    length([
+      for group in each.value.lock_groups :
+      # Apply a lock only if lock_groups specifies a locked group
+      group if contains(keys(local.locked_groups), group)
+    ]) > 0
+    ? (
+      anytrue([
+        for group in each.value.lock_groups :
+        # Apply a lock only if the group is locked
+        # Read-only is the most restrictive lock. If any group is read-only, apply it.
+        # Otherwise, apply a no-delete lock.
+        contains(keys(local.locked_groups), group)
+        && try(local.locked_groups[group].read_only, false)
+      ])
+      ? "read_only"
+      : "no_delete"
+    )
+    : null
+  )
 
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
@@ -386,7 +502,27 @@ module "virtual_machine_sets" {
       disk_size_gb                 = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
       storage_account_type         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
       enable_public_network_access = disk.enable_public_network_access
-      lock_mode                    = local.disk_locks[each.key][disk_name]
+
+      lock_mode = (
+        length([
+          for group in disk.lock_groups :
+          # Apply a lock only if lock_groups specifies a locked group
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in disk.lock_groups :
+            # Apply a lock only if the group is locked
+            # Read-only is the most restrictive lock. If any group is read-only, apply it.
+            # Otherwise, apply a no-delete lock.
+            contains(keys(local.locked_groups), group)
+            && try(local.locked_groups[group].read_only, false)
+          ])
+          ? "read_only"
+          : "no_delete"
+        )
+        : null
+      )
     }
   }
 
@@ -394,8 +530,28 @@ module "virtual_machine_sets" {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = module.networks[nic.network_name].subnets[nic.subnet_name].resource_id
-      lock                          = local.network_interface_locks[each.key][nic_name]
+      subnet_id                     = local.network_ids[nic.network_name].subnets[nic.subnet_name].resource_id
+
+      lock_mode = (
+        length([
+          for group in nic.lock_groups :
+          # Apply a lock only if lock_groups specifies a locked group
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in nic.lock_groups :
+            # Apply a lock only if the group is locked
+            # Read-only is the most restrictive lock. If any group is read-only, apply it.
+            # Otherwise, apply a no-delete lock.
+            contains(keys(local.locked_groups), group)
+            && try(local.locked_groups[group].read_only, false)
+          ])
+          ? "read_only"
+          : "no_delete"
+        )
+        : null
+      )
     }
   }
 
@@ -403,4 +559,25 @@ module "virtual_machine_sets" {
     disk_size_gb         = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
     storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
   }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "asg_associations" {
+  for_each = {
+    for vm_nic in flatten([
+      for vm_set_name, vm_set in module.virtual_machine_sets : [
+        for vm_index, vm in vm_set.resources.virtual_machines : [
+          for nic_name, nic in vm.network_interfaces : {
+            vm_set_name = vm_set_name
+            vm_index    = vm_index
+            nic_name    = nic_name
+            nic_id      = nic.resource_id
+            key         = "${vm_set_name}_${vm_index}_${nic_name}"
+          }
+        ]
+      ]
+    ]) : vm_nic.key => vm_nic
+  }
+
+  network_interface_id          = each.value.nic_id
+  application_security_group_id = azurerm_application_security_group.application_security_group[each.value.vm_set_name].id
 }

@@ -223,6 +223,22 @@ locals {
     )
   }
 
+  virtual_machine_set_asg_names = {
+    for vm_set_name, vm_set in var.virtual_machine_sets
+    : vm_set_name => (
+      replace(
+        vm_set.name == null
+        ? "${var.deployment_prefix}-${vm_set_name}-asg"
+        : (
+          vm_set.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${vm_set.name}-asg"
+          : "${vm_set.name}-asg"
+        ),
+        "_", "-"
+      )
+    )
+  }
+
   maintenance_configuration_names = {
     for vm_set_name, prefix in local.virtual_machine_set_prefixes
     : vm_set_name => "${prefix}-mc"
