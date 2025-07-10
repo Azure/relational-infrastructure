@@ -1,16 +1,12 @@
 # Azure Relational Infrastructure (AzRI)
 
-The Azure Relational Infrastructure (or AzRI) [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack simplifies [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment through a powerful relational model that cuts infrastructure as code (IaC) complexity by up to 70%¹. Built almost entirely from Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure's Well-Architected Framework (WAF)](https://learn.microsoft.com/azure/well-architected/), AzRI's highly extensible model arranges resources as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary and foreign keys, using a familiar approach to enable faster, simpler, and more resilient deployments by default at any scale. With innovative new features like [lock groups](#lock-groups), AzRI incorporates years of lessons learned from both Microsoft and the partner community deploying and managing complex Azure environments for organizations around the world.
-
-> ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
+Azure Relational Infrastructure (AzRI) simplifies Azure deployments by modeling infrastructure as code (IaC) like a relational database. In the 1970s, relational databases tamed chaotic data with structured tables, primary keys, and foreign keys, making data compact, queryable, and easy to update. Similarly, AzRI organizes Terraform resources into concise maps with clear relationships, slashing code sprawl and complexity. This relational approach mirrors database normalization, eliminating redundancy and simplifying modifications. Built on [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure’s Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/), AzRI ensures resilient, scalable Terraform deployments. Features like [lock groups](#lock-groups) enhance management, drawing on Microsoft and partner expertise. AzRI makes Azure IaC cleaner and more efficient, just as relational databases transformed data management.
 
 ## Model Reference
 
 ```mermaid
 ---
 title: Infrastructure Map Model
-config:
-        layout: elk
 ---
 erDiagram
   Locations ||--o{ "Resource Groups" : ""
@@ -57,7 +53,6 @@ erDiagram
   "Resource Groups" ||--o{ "Networks" : "have"
   "Key Vaults" ||--o{ "Private Endpoints" : "have"
   "Subnets" ||--o{ "Private Endpoints" : "have"
-  "Storage Accounts" ||--o{ "Private Endpoints" : "have"
   "Networks" ||..o{ "Peerings" : "have"
   "Peerings" ||--|| "Networks" : "peered to"
   "Peerings" ||--|| "External Networks" : "peered to"
@@ -71,6 +66,8 @@ erDiagram
   "Lock Groups" ||--o{ "Storage Accounts" : "lock"
   "Storage Accounts" ||--o{ "Blob Containers" : "have"
   "Storage Accounts" ||--o{ "File Shares" : "have"
+  "Blob Containers" ||--o{ "Private Endpoints" : "have"
+  "File Shares" ||--o{ "Private Endpoints" : "have"
 ```
 
 > [!NOTE]
@@ -137,7 +134,16 @@ subscriptions = {
 
 > Terraform variable: `var.lock_groups`
 
-The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. If a resource belongs to multiple groups with `locked = true`, the most restrictive lock applies: ReadOnly (no changes) overrides CanNotDelete (allows updates). In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
+The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. 
+
+This is how lock groups work:
+
+* If the resource has no `lock_groups`, the resource is unlocked.
+* If any of the resource's `lock_groups` are unlocked, the resource is unlocked.
+* If all of a resource group's `lock_groups` are locked and any of the `lock_groups` are configured for `read_only`, a read-only lock is applied to the resource.
+* If all of a resource group's `lock_groups` are locked and none of the `lock_groups` are configured for `read_only`, a do-not-delete lock is applied to the resource.
+
+In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
 
 ```hcl
 lock_groups = {
