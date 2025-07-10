@@ -77,9 +77,8 @@ erDiagram
 > In the sections below:
 > * 🔑 indicates a "primary key"; typically the "one" side of a one-to-many relationship
 > * 🔗 indicates a "foreign key"; typically the "many" side of a one-to-many relationship
-> * 🔴 indicates a required table that must have one or more entries
 
-### 🔴 Locations
+### Locations
 
 > Terraform variable: `var.locations`
 
