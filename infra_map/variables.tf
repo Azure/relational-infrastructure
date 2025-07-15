@@ -386,6 +386,12 @@ variable "networks" {
     enable_ddos_protection            = optional(bool, false)
     include_deployment_prefix_in_name = optional(bool, true)
 
+    private_dns_zones = optional(object({
+      registration_zone_name = optional(string, null)
+      resolution_zone_name   = optional(string, null)
+      resolution_zone_names  = optional(set(string), null)
+    }), null)
+
     subnets = map(object({
       address_space       = string
       name                = optional(string, null)
@@ -455,6 +461,7 @@ variable "virtual_machine_sets" {
     enable_boot_diagnostics           = optional(bool, false)
     capacity_reservation_group_id     = optional(string, null)
     lock_mode                         = optional(string, null)
+    secrets_key_vault_resource_id     = optional(string, null)
 
     data_disks = optional(map(object({
       lun                          = number
@@ -699,6 +706,17 @@ variable "key_vaults" {
   nullable    = false
 }
 
+variable "private_dns_zones" {
+  type = map(object({
+    domain_name         = string
+    resource_group_name = string
+    subscription_name   = string
+  }))
+
+  default     = {}
+  description = "A map of Azure private DNS zones to be deployed."
+  nullable    = false
+}
 
 variable "private_endpoints" {
   type = object({
@@ -712,8 +730,9 @@ variable "private_endpoints" {
       name                              = optional(string, null)
       include_deployment_prefix_in_name = optional(bool, true)
       dns_zone_group = optional(object({
-        name                 = optional(string, "default")
-        private_dns_zone_ids = optional(list(string), [])
+        name                   = optional(string, "default")
+        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})
 
@@ -728,8 +747,9 @@ variable "private_endpoints" {
       include_deployment_prefix_in_name = optional(bool, true)
 
       dns_zone_group = optional(object({
-        name                 = optional(string, "default")
-        private_dns_zone_ids = optional(list(string), [])
+        name                   = optional(string, "default")
+        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})
 
@@ -744,8 +764,9 @@ variable "private_endpoints" {
       include_deployment_prefix_in_name = optional(bool, true)
 
       dns_zone_group = optional(object({
-        name                 = optional(string, "default")
-        private_dns_zone_ids = optional(list(string), [])
+        name                   = optional(string, "default")
+        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})
   })

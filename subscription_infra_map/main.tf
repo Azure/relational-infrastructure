@@ -186,37 +186,118 @@ module "key_vaults" {
   tags = local.key_vault_tags[each.key]
 }
 
+resource "azurerm_private_dns_zone" "private_dns_zones" {
+  for_each = var.private_dns_zones
 
-# Creating the Private DNS Zone for all Key Vault
-resource "azurerm_private_dns_zone" "keyvault_dns_zone" {
-  name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
-  tags                = merge(var.tags, { service = "dns" })
+  name                = each.value.domain_name
+  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  tags                = merge(var.tags, { "zone_name" = each.key })
 }
 
-resource "azurerm_private_dns_zone" "blob_storage_dns_zone" {
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
-  tags                = merge(var.tags, { service = "dns" })
+resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_registration_zone_vnet_links" {
+  for_each = local.registration_dns_zones
+
+  name                  = "${each.key}_registration_link_to_${each.value.zone_config.domain_name}"
+  resource_group_name   = module.resource_groups[each.value.zone_config.resource_group_name].name
+  private_dns_zone_name = each.value.zone_config.domain_name
+  virtual_network_id    = module.networks[each.key].resource_id
+  registration_enabled  = true
 }
 
-resource "azurerm_private_dns_zone" "file_share_dns_zone" {
-  name                = "privatelink.file.core.windows.net"
-  resource_group_name = module.resource_groups[local.private_link_resource_group_name].name
-  tags                = merge(var.tags, { service = "dns" })
+resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_resolution_zone_vnet_links" {
+  for_each = local.resolution_dns_zones
+
+  name                  = "${each.value.network_name}_resolution_link_to_${each.value.zone_config.domain_name}"
+  resource_group_name   = module.resource_groups[each.value.zone_config.resource_group_name].name
+  private_dns_zone_name = each.value.zone_config.domain_name
+  virtual_network_id    = module.networks[each.value.network_name].resource_id
+  registration_enabled  = false
 }
+
+# resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_registration_zone_vnet_links" {
+#   for_each = {
+#     for network_name, network in var.networks : network_name => name
+#     if try(local.network_private_dns_registration_zone_names[network_name], null) != null
+#   }
+
+#   name                  = "baloney"
+#   resource_group_name   = module.resource_groups[local.network_private_dns_registration_zones[each.key].resource_group_name].name
+#   private_dns_zone_name = local.network_private_dns_registration_zones[each.key].domain_name
+#   virtual_network_id    = module.networks[network_name].resource_id
+#   registration_enabled  = true
+# }
+
+
+# for group in flatten([
+#       for network_ref, network in local.networks : [
+#         for subnet_ref, subnet in network.subnets : {
+#           location_ref        = network.location_name
+#           network_ref         = network_ref
+#           subnet_ref          = subnet_ref
+#           subnet_name         = subnet.name
+#           name                = local.security_group_names[network_ref][subnet_ref]
+#           resource_group_name = network.resource_group_name
+#           tags                = network.tags
+#           lock                = network.lock
+
+#           security_rules = {
+#             for rule_index, rule_name in subnet.security_rules : rule_name => {
+#               priority = (100 + rule_index)
+#               config   = local.security_rules[rule_name]
+#             }
+#           }
+
+#         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
+#       ] if network != null
+#     ]) : "${group.network_ref}_${group.subnet_ref}" => group
+#   })
+
+# resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_resolution_zone_vnet_links" {
+#   for_each = {
+#     for pair in flatten([
+#       for network_name, network in var.networks : [
+#         for zone_name in concat(
+#           compact([try(network.private_dns_zones.resolution.zone_name, null)]),
+#           try(network.private_dns_zones.resolution.zone_names, [])
+#         ) : {
+#           network_name = network_name
+#           zone_name = zone_name
+#         }
+#       ]
+#     ])
+#   }
+
+#   name = "baloney"
+#   resource_group_name = module.resource_groups[var.private_dns_zones]
+# }
+
+# resource "azurerm_virtual_network_peering" "az_subscription_1_peerings" {
+#   for_each = {
+#     for pair in flatten([
+#       for from_name, from_network in var.networks : [
+#         for to_name in from_network.peered_to : {
+#           key                    = "peer-${from_name}-to-${to_name}"
+#           from_name              = from_name
+#           to_name                = to_name
+#           from_subscription_name = from_network.subscription_name
+#         }
+#         if from_network.subscription_name == try(local.subscription_names_by_slot[local._s1], null)
+#       ]
+#     ]) : pair.key => pair
+#   }
+
 
 # Create Virtual Network Links for all networks that need to resolve the private endpoint
-resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
-  for_each = local.networks
+# resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
+#   for_each = local.networks
 
-  name                  = local.key_vault_private_link_names[each.key]
-  resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
-  private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
-  virtual_network_id    = module.networks[each.key].resource_id
-  registration_enabled  = false
-  tags                  = merge(var.tags, { network_name = each.value.name })
-}
+#   name                  = local.key_vault_private_link_names[each.key]
+#   resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
+#   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
+#   virtual_network_id    = module.networks[each.key].resource_id
+#   registration_enabled  = false
+#   tags                  = merge(var.tags, { network_name = each.value.name })
+# }
 
 # Private Endpoints for Azure services
 module "private_endpoints" {
@@ -482,7 +563,11 @@ module "virtual_machine_sets" {
   # Pass the Key Vault resource ID for secret storage
   # Use primary key vault for primary location VMs, and alt key vault for alt location VMs
   generated_secrets_key_vault_secret_config = {
-    key_vault_resource_id          = module.key_vaults[each.value.key_vault_name].resource_id
+    key_vault_resource_id = coalesce(
+      each.value.secrets_key_vault_resource_id,
+      module.key_vaults[each.value.key_vault_name].resource_id
+    )
+
     name                           = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-creds"
     expiration_date_length_in_days = 90
     content_type                   = "password"

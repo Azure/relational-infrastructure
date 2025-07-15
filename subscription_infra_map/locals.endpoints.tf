@@ -1,19 +1,4 @@
 locals {
-  # Pre-defined DNS zones for common Azure services
-  private_dns_zones = {
-    keyvault = {
-      id = azurerm_private_dns_zone.keyvault_dns_zone.id
-    }
-
-    blob = {
-      id = azurerm_private_dns_zone.blob_storage_dns_zone.id
-    }
-
-    file = {
-      id = azurerm_private_dns_zone.file_share_dns_zone.id
-    }
-  }
-
   # Transform Key Vault private endpoints configuration
   key_vault_private_endpoints = {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => {
@@ -59,26 +44,34 @@ locals {
       } : {}
 
       # DNS zone configuration
-      private_dns_zone_group_name   = try(pe.dns_zone_group.name, "default")
-      private_dns_zone_resource_ids = try(pe.dns_zone_group.private_dns_zone_ids, [])
+      private_dns_zone_group_name = try(pe.dns_zone_group.name, "default")
+
+      private_dns_zone_names = concat(
+        compact([pe.dns_zone_group.private_dns_zone_name]),
+        try(pe.dns_zone_group.private_dns_zone_names, [])
+      )
 
       # Tags
       tags = merge(var.tags, (var.include_label_tags ? { keyvault_label = pe.key_vault_name } : {}))
     }
   }
 
-  # Add private DNS zone to Key Vault private endpoints
   key_vault_private_endpoints_with_dns = {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => merge(
       local.key_vault_private_endpoints[pe_name],
       {
-        # Always include the Key Vault private DNS zone
         private_dns_zone_resource_ids = concat(
-          try(local.key_vault_private_endpoints[pe_name].private_dns_zone_resource_ids, []),
-          [local.private_dns_zones.keyvault.id]
-        )
+          compact([pe.dns_zone_group.private_dns_zone_id]),
+          tolist(try(pe.dns_zone_group.private_dns_zone_ids, [])),
+          tolist([
+            for zone_name in concat(
+              compact([pe.dns_zone_group.private_dns_zone_name]),
+              try(pe.dns_zone_group.private_dns_zone_names, [])
+            ) :
+            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+        ]))
       }
-    )
+    ) if (pe.dns_zone_group != null)
   }
 
   blob_container_private_endpoints = {
@@ -104,8 +97,12 @@ locals {
       } : {}
 
       # DNS zone configuration
-      private_dns_zone_group_name   = try(pe.dns_zone_group.name, "default")
-      private_dns_zone_resource_ids = try(pe.dns_zone_group.private_dns_zone_ids, [])
+      private_dns_zone_group_name = try(pe.dns_zone_group.name, "default")
+
+      private_dns_zone_names = concat(
+        compact([pe.dns_zone_group.private_dns_zone_name]),
+        try(pe.dns_zone_group.private_dns_zone_names, [])
+      )
 
       # Tags
       tags = local.blob_container_private_endpoint_tags[pe_name]
@@ -116,10 +113,12 @@ locals {
     for pe_name, pe in try(var.private_endpoints.blob_containers, {}) : pe_name => merge(
       local.blob_container_private_endpoints[pe_name],
       {
-        # Always include the Key Vault private DNS zone
         private_dns_zone_resource_ids = concat(
-          try(local.blob_container_private_endpoints[pe_name].private_dns_zone_resource_ids, []),
-          [local.private_dns_zones.blob.id]
+          pe.private_dns_zone_resource_ids,
+          [
+            for zone_name in pe.private_dns_zone_names :
+            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+          ]
         )
       }
     )
@@ -148,8 +147,12 @@ locals {
       } : {}
 
       # DNS zone configuration
-      private_dns_zone_group_name   = try(pe.dns_zone_group.name, "default")
-      private_dns_zone_resource_ids = try(pe.dns_zone_group.private_dns_zone_ids, [])
+      private_dns_zone_group_name = try(pe.dns_zone_group.name, "default")
+
+      private_dns_zone_names = concat(
+        compact([pe.dns_zone_group.private_dns_zone_name]),
+        try(pe.dns_zone_group.private_dns_zone_names, [])
+      )
 
       # Tags
       tags = local.file_share_private_endpoint_tags[pe_name]
@@ -160,10 +163,12 @@ locals {
     for pe_name, pe in try(var.private_endpoints.file_shares, {}) : pe_name => merge(
       local.file_share_private_endpoints[pe_name],
       {
-        # Always include the file share private DNS zone
         private_dns_zone_resource_ids = concat(
-          try(local.file_share_private_endpoints[pe_name].private_dns_zone_resource_ids, []),
-          [local.private_dns_zones.file.id]
+          pe.private_dns_zone_resource_ids,
+          [
+            for zone_name in pe.private_dns_zone_names :
+            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+          ]
         )
       }
     )

@@ -54,6 +54,31 @@ locals {
     local.external_network_ids
   )
 
+  registration_dns_zones = {
+    for network_name, network in var.networks :
+    network_name => {
+      zone_name   = network.private_dns_zones.registration_zone_name
+      zone_config = var.private_dns_zones[network.private_dns_zones.registration_zone_name]
+      zone_id     = azurerm_private_dns_zone.private_dns_zones[network.private_dns_zones.registration_zone_name].id
+    } if try(network.private_dns_zones.registration_zone_name, null) != null
+  }
+
+  resolution_dns_zones = {
+    for network_resolution_zone in flatten([
+      for network_name, network in var.networks : values({
+        for zone_name in concat(
+          compact([network.private_dns_zones.resolution_zone_name]),
+          try(network.private_dns_zones.resolution_zone_names, [])
+          ) : zone_name => {
+          network_name = network_name
+          zone_name    = zone_name
+          zone_config  = var.private_dns_zones[zone_name]
+          zone_id      = azurerm_private_dns_zone.private_dns_zones[zone_name].id
+        }
+      }) if(network.private_dns_zones != null)
+    ]) : "${network_resolution_zone.network_name}_${network_resolution_zone.zone_name}" => network_resolution_zone
+  }
+
   networks = {
     for network_ref, network in var.networks : network_ref => {
       address_spaces         = coalesce(network.address_spaces, compact([network.address_space]))
