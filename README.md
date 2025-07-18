@@ -291,6 +291,9 @@ private_dns_zones = {
 }
 ```
 
+> [!NOTE]
+> Private endpoints for Azure services require specific domain names. In the example provided above, `privatelink.vaultcore.azure.net` is the required domain name for Key Vault private endpoints. [Refer to this documentation for more information.](https://learn.microsoft.com/azure/private-link/private-endpoint-dns)
+
 ### Network Ports
 
 > Terraform variable: `var.network_ports`
