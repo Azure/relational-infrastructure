@@ -1,16 +1,12 @@
 # Azure Relational Infrastructure (AzRI)
 
-The Azure Relational Infrastructure (or AzRI) [Terraform module](https://developer.hashicorp.com/terraform/language/modules) stack simplifies [Azure infrastructure](https://azure.microsoft.com/resources/cloud-computing-dictionary/what-is-iaas) deployment through a powerful relational model that cuts infrastructure as code (IaC) complexity by up to 70%¹. Built almost entirely from Microsoft’s [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure's Well-Architected Framework (WAF)](https://learn.microsoft.com/azure/well-architected/), AzRI's highly extensible model arranges resources as [Terraform maps](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects), like database tables with primary and foreign keys, using a familiar approach to enable faster, simpler, and more resilient deployments by default at any scale. With innovative new features like [lock groups](#lock-groups), AzRI incorporates years of lessons learned from both Microsoft and the partner community deploying and managing complex Azure environments for organizations around the world.
-
-> ¹ Estimated 70% code reduction based on conventional multi-resource setup comparisons ([HashiCorp, 2023](https://www.hashicorp.com/state-of-the-cloud)).
+Azure Relational Infrastructure (AzRI) simplifies Azure deployments by modeling infrastructure as code (IaC) like a relational database. In the 1970s, relational databases tamed chaotic data with structured tables, primary keys, and foreign keys, making data compact, queryable, and easy to update. Similarly, AzRI organizes Terraform resources into concise maps with clear relationships, slashing code sprawl and complexity. This relational approach mirrors database normalization, eliminating redundancy and simplifying modifications. Built on [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure’s Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/), AzRI ensures resilient, scalable Terraform deployments. Features like [lock groups](#lock-groups) enhance management, drawing on Microsoft and partner expertise. AzRI makes Azure IaC cleaner and more efficient, just as relational databases transformed data management.
 
 ## Model Reference
 
 ```mermaid
 ---
 title: Infrastructure Map Model
-config:
-        layout: elk
 ---
 erDiagram
   Locations ||--o{ "Resource Groups" : ""
@@ -26,26 +22,26 @@ erDiagram
   "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Key Vaults" : ""
   "Resource Groups" ||--o{ "Storage Accounts" : ""
-  "Resource Groups" ||--o{ "Private DNS Zones" : ""
   "Subscriptions" ||..|| "Resource Groups" : "has a default"
   "Subscriptions" ||..|| "Resource Groups" : "has a dedicated private link"
   "Subscriptions" ||--o{ "Networks" : ""
   "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
   "Subscriptions" ||--o{ "Key Vaults" : ""
-  "Subscriptions" ||--o{ "Private DNS Zones" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
+  "Subnets" }o--o{ "Security Rules" : "have"
   "External Networks" ||..o{ "External Subnets" : ""
   "Subnets" ||..o{ "Routes" : ""
   "Routes" ||--|| "Networks" : "to"
   "Routes" ||--|| "External Networks" : "to"
   "Routes" ||--|| "Subnets" : "to"
   "Routes" ||--|| "External Subnets" : "to"
-  "Subnets" ||..o{ "Security Rules" : "protect"
+  "Ports" }o--o{ "Security Rules" : "to/from"
   "Security Rules" ||--o{ "Networks" : "to/from"
   "Security Rules" ||--o{ "Subnets" : "to/from"
   "Security Rules" ||--o{ "External Networks" : "to/from"
   "Security Rules" ||--o{ "External Subnets" : "to/from"
+  "Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
   "Key Vaults" ||..o{ "Role-Based VM Sets" : "protect"
   "Role-Based VM Sets" ||..|{ "Network Interfaces" : "have"
   "Role-Based VM Sets" ||..|{ "Data Disks" : "have"
@@ -57,7 +53,6 @@ erDiagram
   "Resource Groups" ||--o{ "Networks" : "have"
   "Key Vaults" ||--o{ "Private Endpoints" : "have"
   "Subnets" ||--o{ "Private Endpoints" : "have"
-  "Storage Accounts" ||--o{ "Private Endpoints" : "have"
   "Networks" ||..o{ "Peerings" : "have"
   "Peerings" ||--|| "Networks" : "peered to"
   "Peerings" ||--|| "External Networks" : "peered to"
@@ -69,10 +64,10 @@ erDiagram
   "Lock Groups" ||--o{ "Network Interfaces" : "lock"
   "Lock Groups" ||--o{ "Private Endpoints" : "lock"
   "Lock Groups" ||--o{ "Storage Accounts" : "lock"
-  "Private DNS Zones" }o--o{ "Private Endpoints" : ""
-  "Networks" }o--o{ "Private DNS Zones" : ""
   "Storage Accounts" ||--o{ "Blob Containers" : "have"
   "Storage Accounts" ||--o{ "File Shares" : "have"
+  "Blob Containers" ||--o{ "Private Endpoints" : "have"
+  "File Shares" ||--o{ "Private Endpoints" : "have"
 ```
 
 > [!NOTE]
@@ -139,7 +134,16 @@ subscriptions = {
 
 > Terraform variable: `var.lock_groups`
 
-The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. If a resource belongs to multiple groups with `locked = true`, the most restrictive lock applies: ReadOnly (no changes) overrides CanNotDelete (allows updates). In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
+The `lock_groups` table groups Azure resources—like [VMs](#virtual-machine-sets), [networks](#networks), or [disks](#virtual-machine-data-disks)—into logical sets for coordinated [lock management](https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources) during maintenance, such as updating a region’s infrastructure or a compute tier. Resources in tables like [`var.virtual_machine_sets`](#virtual-machine-sets) or [`var.networks`](#networks) can list lock group keys in their `lock_groups` property to join one or more groups. Each group toggles locks (CanNotDelete or ReadOnly) for its members. 
+
+This is how lock groups work:
+
+* If the resource has no `lock_groups`, the resource is unlocked.
+* If any of the resource's `lock_groups` are unlocked, the resource is unlocked.
+* If all of a resource group's `lock_groups` are locked and any of the `lock_groups` are configured for `read_only`, a read-only lock is applied to the resource.
+* If all of a resource group's `lock_groups` are locked and none of the `lock_groups` are configured for `read_only`, a do-not-delete lock is applied to the resource.
+
+In the ERD, `lock_groups` has a many-to-many relationship with resources, linked via `lock_groups` properties in other tables.
 
 ```hcl
 lock_groups = {
@@ -264,6 +268,112 @@ virtual_machine_extensions = {
 | `automatic_upgrade_enabled` | Activates automatic upgrades for the extension if `true`. |
 | `settings` | Optional; holds custom settings for the extension, or `null` if unused. |
 
+### Network Ports
+
+> Terraform variable: `var.network_ports`
+
+The `network_ports` table maps port names to port numbers. These ports are used when configuring [security rules](#security-rules).
+
+The example below illustrates some commonly used ports.
+
+```hcl
+network_ports = {
+  http  = "80"    # 🔑 "http" port
+  https = "443"   # 🔑 "https" port
+  rdp   = "3389"  # 🔑 "rdp" port
+  ssh   = "22"    # 🔑 "ssh" port
+}
+```
+
+### Network Security Rules
+
+> Terraform variable: `var.network_security_rules`
+
+The `network_security_rules` names layer 4 network security rules that can be applied to subnets defined in the [`networks`](#networks) table. These security rules can be applied to zero or more subnets. Each subnet can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each subnet defined in the [`networks`](#networks) table. 
+
+Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
+
+* Specific address spaces
+* Networks defined in [`networks`](#networks)
+* External networks defined in [`external_networks`](#external-networks)
+* Specific network subnets defined in [`networks`](#networks)
+* Specific external network subnets defined in [`external_networks`](#external-subnets)
+* Role-based VM sets defined in [`virtual_machine_sets`](#virtual-machine-sets)
+
+Each network security rule can specify optional inbound/outbound ports as defined in the [`network_ports`](#network-ports) table.
+
+Each rule can also specify a protocol (e.g., `Tcp`, `Udp`). By default, all protocols are included in the rule's scope.
+
+#### Example Rule: Deny all traffic to `main` network
+
+```hcl
+network_security_rules = {
+  deny_all_to_network = {        # 🔑 Named security rule
+    deny = {
+      in = {
+        to = {
+          network = {            # ❌ Deny inbound to network...
+            name = "main"        # 🔗 Linked to var.networks or var.external_networks
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Example Rule: Allow all HTTP/S traffic from `alt` network to `production` subnet on `main` network
+
+```hcl
+network_security_rules = {
+  allow_all_http_s_from_alt_to_main_production = {  # 🔑 Named security rule
+    port_names = [                                  # 🔗 Optional; links to `var.network_ports`
+      "http",
+      "https"
+    ]
+
+    allow = {
+      in = {                                        # ✅ Allow inbound...
+        from = {
+          network = {                               # From network...
+            name = "alt"                            # 🔗 Linked to var.networks or var.external_networks
+          }
+        }
+        to = {                
+          subnet = {                                # To subnet...
+            network_name = "main"                   # 🔗 Linked to var.networks or var.external_networks
+            subnet_name  = "production"             # 🔗 Subnet defined on linked network
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Example Rule: Allow all TCP traffic out from `10.100.0.0/16` space to `app` VM set
+
+```hcl
+network_security_rules = {
+  allow_all_tcp_from_on_prem_to_app_vm_set = {  # 🔑 Named security rule
+    protocol = "Tcp"                            # Optional; Tcp protocol only
+
+    allow = {
+      out = {                                   # ✅ Allow outbound...
+        from = {
+          address_space = "10.100.0.0/16"       # From address space 10.100.0.0/16
+        }
+        to = {
+          vm_set = {                            # To role-based VM set
+            name = "app"                        # 🔗 Linked to var.virtual_machine_sets
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ### Networks
 
 > Terraform variable: `var.networks`
@@ -287,6 +397,11 @@ networks = {
       subnet_a = {                       # 🔑 "subnet_a" subnet
         name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
         address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
+
+        security_rules = [               # 🔗 Optional; links to var.network_security_rules
+          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
+          "deny_all_to_subnet_a"         # network security group in the order they're defined here
+        ]
       }
 
       subnet_b = {                       # 🔑 "subnet_b" subnet
@@ -409,93 +524,6 @@ networks = {
 | `to_internet` | Optional; if `true`, routes to the Internet. Defaults to `false`. |
 | `to_nowhere` | Optional; if `true`, drops traffic. Defaults to `false`. |
 | `to_appliance` | Optional; routes to an appliance with `ip_address` (e.g., `192.168.1.1`). Defaults to `null`. |
-
-#### Security Rules
-
-> Terraform variable: `var.networks.subnets.security_rules`
-
-The `security_rules` section within `subnets` of the [`networks`](#networks) table configures [layer 4 network security group (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) rules for each subnet, controlling inbound and outbound traffic. Using a fluent syntax, rules define source/destination addresses, ports, and priorities, referencing [`var.networks`](#networks) or [`var.external_networks`](#external-networks). In the ERD, `security_rules` is a child of `subnets`, with one-to-many links to traffic rules. An NSG is created for each network, regardless of whether `security_rules` is defined.
-
-```hcl
-networks = {
-  main = {                                      # 🔑 "main" network
-                                                # Other fields like location_name...
-    subnets = {                        
-      subnet_a = {                              # 🔑 "subnet_a" subnet
-        security_rules = {                      # Layer 4 (NSG) security rules
-          allow_static_in = {                   # 🔑 "allow_static_in" rule
-            priority = "100"                    # Rule priority is 100
-            allow = { in = { from = {           # Allow in from...
-              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
-              port_range    = "443"             # on port 443
-            }}}
-          },
-          allow_network_in = {                  # 🔑 "allow_network_in" rule
-            priority = "110"                    # Rule priority is 110
-            allow = { in = { from = {           # Allow in from...
-              network = {                       # network defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                port_range   = "100-200"        # on ports 100-200
-              }
-            }}}
-          },
-          deny_subnet_in = {                    # 🔑 "deny_subnet_in" rule
-            priority = "120"                    # Rule priority is 120
-            deny = { in = { from = {            # Deny in from...
-              subnet = {                        # subnet defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          },
-          allow_static_out = {                  # 🔑 "allow_static_out" rule
-            priority = "130"                    # Rule priority is 130
-            allow = { out = { to = {            # Allow out to...
-              address_space = "192.168.1.0/24"  # any IP in 192.168.1.0/24
-              port_range    = "443"             # on port 443
-            }}}
-          },
-          deny_network_out = {                  # 🔑 "deny_network_out" rule
-            priority = "140"                    # Rule priority is 140
-            deny = { out = { to = {             # Deny out to...
-              network = {                       # network defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          },
-          allow_subnet_out = {                  # 🔑 "allow_subnet_out" rule
-            priority = "150"                    # Rule priority is 150
-            allow = { out = { to = {            # Allow out to...
-              subnet = {                        # subnet defined in var.networks or var.external_networks
-                network_name = "alt"            # 🔗 linked to "alt" network in var.networks
-                subnet_name  = "subnet_b"       # 🔗 linked to "subnet_b" subnet in var.networks.subnets
-                port_range   = "443"            # on port 443
-              }
-            }}}
-          }
-        }
-      }
-    }
-  }
-  alt = {                                       # 🔑 "alt" network
-                                                # Other fields...
-    subnets = {
-      subnet_b = {                              # 🔑 "subnet_b" subnet
-                                                # Subnet details...          
-      }
-    }
-  }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `priority` | Sets the NSG rule priority, e.g., `100`. Lower numbers take precedence. |
-| `allow`/`deny` | Defines whether the rule allows or denies traffic, with `in` or `out` specifying direction. |
-| `from`/`to` | For `in`, `from` sets the source; for `out`, `to` sets the destination. Can use `address_space` (CIDR), `network` (with `network_name`), or `subnet` (with `network_name` and `subnet_name`) from [`var.networks`](#networks) or [`var.external_networks`](#external-networks). |
-| `port_range` | Specifies the port or range (e.g., `443`, `100-200`) for the rule. |
 
 ### External Networks
 
