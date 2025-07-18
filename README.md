@@ -276,7 +276,7 @@ virtual_machine_extensions = {
 
 > Terraform variable: `var.private_dns_zones`
 
-The `private_dns_zones` table provisions [Azure Private DNS Zones](https://learn.microsoft.com/en-us/azure/dns/private-dns-overview).
+The `private_dns_zones` table provisions [Azure Private DNS Zones](https://learn.microsoft.com/azure/dns/private-dns-overview).
 
 * Private endpoints can refer to these zones by name when configuring DNS.
 * [Networks](#networks) can refer to these zones by name for both DNS registration and resolution.
@@ -405,31 +405,39 @@ The `networks` table defines the virtual networks (VNets) in your Azure environm
 
 ```hcl
 networks = {
-  main = {                               # 🔑 "main" network
-    location_name       = "primary"      # 🔗 Links to var.locations
-    subscription_name   = "production"   # 🔗 Links to var.subscriptions
-    resource_group_name = "production"   # 🔗 Links to var.resource_groups
-    name                = "main-vnet"    # Optional; defaults to key 🔑 "main" if unset
-    address_space       = "10.0.0.0/16"  # Defines network address space in CIDR format
+  main = {                                         # 🔑 "main" network
+    location_name       = "primary"                # 🔗 Links to var.locations
+    subscription_name   = "production"             # 🔗 Links to var.subscriptions
+    resource_group_name = "production"             # 🔗 Links to var.resource_groups
+    name                = "main-vnet"              # Optional; defaults to key 🔑 "main" if unset
+    address_space       = "10.0.0.0/16"            # Defines network address space in CIDR format
 
     lock_groups = [
-      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+      "production_lock"                            # 🔗 Optional; links to var.lock_groups
     ]
 
-    subnets = {
-      subnet_a = {                       # 🔑 "subnet_a" subnet
-        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
-        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
+    private_dns_zones = {                          
+      registration_zone_name = "registration_zone" # 🔗 Optional; links to var.private_dns_zones 
+                                                   # Only one registration zone is supported
+      resolution_zone_names = [                    # 🔗 Optional; links to var.private_dns_zones
+        "resolution_zone"                          # Multiple resolution zones are supported
+      ]
+    }
 
-        security_rules = [               # 🔗 Optional; links to var.network_security_rules
-          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
-          "deny_all_to_subnet_a"         # network security group in the order they're defined here
+    subnets = {
+      subnet_a = {                                 # 🔑 "subnet_a" subnet
+        name            = "subnet-a"               # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space   = "10.0.0.0/24"            # Defines "subnet_a" address space in CIDR format
+
+        security_rules = [                         # 🔗 Optional; links to var.network_security_rules
+          "allow_from_on_prem_to_apps"             # When specified, rules will be added to an underlying
+          "deny_all_to_subnet_a"                   # network security group in the order they're defined here
         ]
       }
 
-      subnet_b = {                       # 🔑 "subnet_b" subnet
-        name            = "subnet-b"     # Optional, defaults to key 🔑 "subnet_b" if unset
-        address_space   = "10.0.1.0/24"  # Defines "subnet_a" address space in CIDR format
+      subnet_b = {                                 # 🔑 "subnet_b" subnet
+        name            = "subnet-b"               # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space   = "10.0.1.0/24"            # Defines "subnet_a" address space in CIDR format
       }
     }
   }
@@ -441,6 +449,7 @@ networks = {
 | `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the VNet. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VNet to a subscription. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VNet. |
+| `private_dns_zones` | Optional; if set, links to [`var.private_dns_zones`](#private-dns-zones). Specifies both registration and resolution DNS zones. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
