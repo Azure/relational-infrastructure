@@ -466,6 +466,7 @@ variable "virtual_machine_sets" {
     data_disks = optional(map(object({
       lun                          = number
       caching                      = optional(string, "ReadWrite")
+      disk_encryption_set_id       = optional(string, null)
       enable_public_network_access = optional(bool, false)
       lock_groups                  = optional(list(string), [])
 
@@ -731,7 +732,9 @@ variable "private_endpoints" {
       include_deployment_prefix_in_name = optional(bool, true)
       dns_zone_group = optional(object({
         name                   = optional(string, "default")
-        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_id    = optional(string, null)
+        private_dns_zone_ids   = optional(set(string), [])
+        private_dns_zone_name  = optional(string, null)
         private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})
@@ -748,7 +751,9 @@ variable "private_endpoints" {
 
       dns_zone_group = optional(object({
         name                   = optional(string, "default")
-        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_id    = optional(string, null)
+        private_dns_zone_ids   = optional(set(string), [])
+        private_dns_zone_name  = optional(string, null)
         private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})
@@ -765,7 +770,9 @@ variable "private_endpoints" {
 
       dns_zone_group = optional(object({
         name                   = optional(string, "default")
-        private_dns_zone_ids   = optional(list(string), [])
+        private_dns_zone_id    = optional(string, null)
+        private_dns_zone_ids   = optional(set(string), [])
+        private_dns_zone_name  = optional(string, null)
         private_dns_zone_names = optional(list(string), [])
       }), {})
     })), {})

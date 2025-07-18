@@ -519,7 +519,6 @@ module "virtual_machine_sets" {
   location                                      = var.locations[each.value.location_name]
   resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
   resource_group_id                             = module.resource_groups[each.value.resource_group_name].resource_id
-  resource_prefix                               = "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
   resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   deploy_scale_set                              = each.value.deploy_scale_set
@@ -533,6 +532,12 @@ module "virtual_machine_sets" {
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
   #                                               zone distribution is always even across all 3 zones.
+
+  resource_prefix = (
+    each.value.include_deployment_prefix_in_name
+    ? "${var.deployment_prefix}${coalesce(each.value.name, each.key)}"
+    : coalesce(each.value.name, each.key)
+  )
 
   maintenance_configuration = (
     try(each.value.maintenance.schedule_name, null) == null ? null
