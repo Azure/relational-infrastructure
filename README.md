@@ -872,7 +872,10 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_zone_distribution`
 
-The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from [`virtual_machine_sets`](#virtual-machine-sets) across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_specs`](#virtual-machine-set-specs) via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), tailoring zonal deployment for each set.
+The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from [`virtual_machine_sets`](#virtual-machine-sets) across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_specs`](#virtual-machine-set-specs) via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), tailoring zonal deployment for each set. 
+
+> [!NOTE]
+> If no zone distribution is configured for a [VM set defined in `var.virtual_machine_sets`](#virtual-machine-sets), VMs will be distributed evenly across all three availability zones.
 
 ```hcl
 virtual_machine_set_zone_distribution = {
