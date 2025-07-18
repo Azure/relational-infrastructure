@@ -272,6 +272,25 @@ virtual_machine_extensions = {
 | `automatic_upgrade_enabled` | Activates automatic upgrades for the extension if `true`. |
 | `settings` | Optional; holds custom settings for the extension, or `null` if unused. |
 
+### Private DNS Zones
+
+> Terraform variable: `var.private_dns_zones`
+
+The `private_dns_zones` table provisions [Azure Private DNS Zones](https://learn.microsoft.com/en-us/azure/dns/private-dns-overview).
+
+* Private endpoints can refer to these zones by name when configuring DNS.
+* [Networks](#networks) can refer to these zones by name for both DNS registration and resolution.
+
+```hcl
+private_dns_zones = {
+  key_vault_private_endpoints = {                            # 🔑 "key_vault_private_endpoints" DNS zone
+    domain_name         = "privatelink.vaultcore.azure.net"  # Must be a valid domain name
+    resource_group_name = "production"                       # 🔗 Links to var.resource_groups
+    subscription_name   = "production"                       # 🔗 Links to var.subscriptions
+  }
+}
+```
+
 ### Network Ports
 
 > Terraform variable: `var.network_ports`
