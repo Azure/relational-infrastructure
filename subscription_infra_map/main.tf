@@ -585,13 +585,17 @@ module "virtual_machine_sets" {
   }
 
   virtual_machine_data_disks = {
-    for disk_name, disk in each.value.data_disks : disk_name => {
+    for disk_name, disk in local.data_disks[each.key] : disk_name => {
       caching                      = disk.caching
       image                        = disk.image
       lun                          = disk.lun
-      disk_size_gb                 = var.virtual_machine_set_specs[each.key].data_disks[disk_name].disk_size_gb
-      storage_account_type         = var.virtual_machine_set_specs[each.key].data_disks[disk_name].storage_account_type
+      disk_size_gb                 = disk.disk_size_gb
+      storage_account_type         = disk.storage_account_type
       enable_public_network_access = disk.enable_public_network_access
+      disk_iops_read_only          = disk.disk_iops_read_only
+      disk_iops_read_write         = disk.disk_iops_read_write
+      disk_encryption_set_id       = disk.disk_encryption_set_id
+      tags                         = disk.tags
 
       lock_mode = (
         length([
@@ -620,7 +624,7 @@ module "virtual_machine_sets" {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = local.network_ids[nic.network_name].subnets[nic.subnet_name].resource_id
+      subnet_id                     = local.network_resource_ids[nic.network_name].subnets[nic.subnet_name].resource_id
 
       lock_mode = (
         length([

@@ -41,7 +41,7 @@ locals {
     for i in range(var.virtual_machine_count) : {
       for disk_name, disk_config in var.virtual_machine_data_disks : disk_name => {
         name                      = lower("${local.virtual_machine_names[i]}-${disk_name}-disk")
-        tags                      = var.resource_tags
+        tags                      = merge(var.resource_tags, disk_config.tags)
         caching                   = lookup(disk_config, "caching", "ReadWrite")
         storage_account_type      = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
         lun                       = disk_config.lun

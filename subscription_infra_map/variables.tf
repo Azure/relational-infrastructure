@@ -519,9 +519,11 @@ variable "virtual_machine_sets" {
     key_vault_name                    = string
     location_name                     = string
     resource_group_name               = string
-    name                              = string
+    subscription_name                 = string
     deploy_scale_set                  = optional(bool, true)
     lock_groups                       = optional(list(string), [])
+    name                              = string
+    include_deployment_prefix_in_name = optional(bool, true)
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
     os_type                           = optional(string, "Windows")
@@ -529,14 +531,14 @@ variable "virtual_machine_sets" {
     enable_boot_diagnostics           = optional(bool, false)
     capacity_reservation_group_id     = optional(string, null)
     lock_mode                         = optional(string, null)
-    include_deployment_prefix_in_name = optional(bool, true)
     secrets_key_vault_resource_id     = optional(string, null)
 
-    data_disks = optional(map(object({
-      lun                          = number
+    data_disk_groups = optional(map(object({
       caching                      = optional(string, "ReadWrite")
+      disk_encryption_set_id       = optional(string, null)
       enable_public_network_access = optional(bool, false)
       lock_groups                  = optional(list(string), [])
+
       image = optional(object({
         copy = optional(object({
           resource_id = string
@@ -552,7 +554,7 @@ variable "virtual_machine_sets" {
           resource_id = string
         }), null)
       }), null)
-    })), {})
+    })))
 
     network_interfaces = map(object({
       network_name                  = string
@@ -587,10 +589,15 @@ variable "virtual_machine_set_specs" {
   type = map(object({
     vm_count = optional(number, 2)
     sku_size = string
-    data_disks = optional(map(object({
+
+    data_disk_groups = optional(map(object({
+      disk_count           = optional(number, 1)
+      disk_iops_read_only  = optional(number, null)
+      disk_iops_read_write = optional(number, null)
       disk_size_gb         = number
       storage_account_type = optional(string, "PremiumV2_LRS")
     })), {})
+
     os_disk = object({
       disk_size_gb         = number
       storage_account_type = optional(string, "PremiumV2_LRS")

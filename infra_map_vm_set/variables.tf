@@ -202,6 +202,7 @@ variable "virtual_machine_data_disks" {
     enable_public_network_access = optional(bool, false)
     storage_account_type         = optional(string, "PremiumV2_LRS")
     lock_mode                    = optional(string, null)
+    tags                         = optional(map(string), {})
     disk_size_gb                 = number
     lun                          = number
   }))
