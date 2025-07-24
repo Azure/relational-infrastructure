@@ -2,7 +2,9 @@
 
 **AzRI deploys 2-3x faster, reducing lines of code (LoC) over traditional Terraform by 55% on average.**
 
-Fewer LoC means quicker authoring, reviews, and edits, boosting deployment frequency and cutting lead times. These gains are based on the common infrastructure scenarios described below. 
+Fewer LoC means quicker authoring, reviews, and edits, boosting deployment frequency and cutting lead times.
+
+But don't take our word for it — review the scenarios below to learn how we arrived at these numbers.
 
 ## Scenarios Overview
 
