@@ -1,8 +1,8 @@
 # Why AzRI?
 
-AzRI models Azure IaC like relational databases, using concise maps to cut code sprawl. It simplifies updates compared to traditional Terraform’s repetitive setups. Built on Azure Verified Modules (AVM) and Azure’s Well-Architected Framework, AzRI ensures scalable, resilient deployments with lock groups for coordinated management.
+**AzRI deploys 2-3x faster, reducing lines of code (LoC) over traditional Terraform by 55% on average.**
 
-AzRI deploys 2-3x faster in five scenarios, reducing lines of code (LoC) by 55% on average (25 to 11 LoC per scenario). Fewer LoC means quicker authoring, reviews, and edits, boosting deployment frequency and cutting lead times.
+These gains are based on the common infrastructure scenarios described below. Fewer LoC means quicker authoring, reviews, and edits, boosting deployment frequency and cutting lead times. 
 
 ## Efficiency Highlights
 
