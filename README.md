@@ -1,6 +1,6 @@
 # Azure Relational Infrastructure (AzRI)
 
-> **AzRI deploys 2-3x faster, reducing lines of code (LoC) over traditional Terraform by 55% on average.** Learn more about these metrics.
+> **AzRI deploys 2-3x faster, reducing lines of code (LoC) over traditional Terraform by 55% on average.** [Learn more.](/docs/why_azri)
 
 Azure Relational Infrastructure (AzRI) simplifies Azure deployments by modeling infrastructure as code (IaC) like a relational database. In the 1970s, relational databases tamed chaotic data with structured tables, primary keys, and foreign keys, making data compact, queryable, and easy to update. Similarly, AzRI organizes Terraform resources into concise maps with clear relationships, slashing code sprawl and complexity. This relational approach mirrors database normalization, eliminating redundancy and simplifying modifications. Built on [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure’s Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/), AzRI ensures resilient, scalable Terraform deployments. Features like [lock groups](#lock-groups) enhance management, drawing on Microsoft and partner expertise. AzRI makes Azure IaC cleaner and more efficient, just as relational databases transformed data management.
 
