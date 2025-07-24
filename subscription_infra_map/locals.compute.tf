@@ -5,9 +5,11 @@ locals {
       for disk in flatten([
         for disk_group_name, disk_group in vm_set.data_disk_groups : [
           for disk_index in range(var.virtual_machine_set_specs[vm_set_name].data_disk_groups[disk_group_name].disk_count) : {
+            disk_index                   = disk_index
             vm_set_name                  = vm_set_name
             disk_group_name              = disk_group_name
             caching                      = disk_group.caching
+            image                        = disk_group.image
             enable_public_network_access = disk_group.enable_public_network_access
             disk_encryption_set_id       = disk_group.disk_encryption_set_id
             lock_groups                  = disk_group.lock_groups
@@ -17,12 +19,11 @@ locals {
             storage_account_type         = var.virtual_machine_set_specs[vm_set_name].data_disk_groups[disk_group_name].storage_account_type
 
             tags = {
-              vm_set_name     = vm_set_name
-              disk_group_name = disk_group_name
+              disk_group_label = disk_group_name
             }
           }
         ]
-      ]) : "${disk_group_name}-${disk_index}" => disk
+      ]) : "${disk.disk_group_name}-${disk.disk_index}" => disk
     }
   }
 

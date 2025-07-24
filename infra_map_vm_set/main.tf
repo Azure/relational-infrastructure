@@ -9,6 +9,7 @@ module "virtual_machine_scale_set" {
   extension_protected_setting = {}
   user_data_base64            = null
   tags                        = var.resource_tags
+  single_placement_group      = false # Make this configurable in the future?
 }
 
 module "virtual_machines" {

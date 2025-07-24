@@ -484,7 +484,7 @@ variable "virtual_machine_sets" {
           resource_id = string
         }), null)
       }), null)
-    })))
+    })), {})
 
     network_interfaces = map(object({
       network_name                  = string
