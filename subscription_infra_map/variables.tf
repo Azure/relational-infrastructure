@@ -496,6 +496,25 @@ variable "virtual_machine_images" {
   description = "Defines this model's virtual machine images"
 }
 
+variable "virtual_machine_shutdown_schedules" {
+  type = map(object({
+    daily_recurrence_time = string
+    notification_settings = optional(object({
+      enabled         = optional(bool, false)
+      email           = optional(string, null)
+      time_in_minutes = optional(string, "30")
+      webhook_url     = optional(string, null)
+    }), { enabled = false })
+    timezone = string
+    enabled  = optional(bool, true)
+    tags     = optional(map(string), null)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's virtual machine shutdown schedules."
+}
+
 variable "virtual_machine_sets" {
   type = map(object({
     image_name                        = string
@@ -507,6 +526,7 @@ variable "virtual_machine_sets" {
     lock_groups                       = optional(list(string), [])
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
+    shutdown_schedule_name            = optional(string, null)
     os_type                           = optional(string, "Windows")
     disk_controller_type              = optional(string, null)
     enable_boot_diagnostics           = optional(bool, false)

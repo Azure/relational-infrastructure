@@ -285,6 +285,25 @@ variable "virtual_machine_image" {
   }
 }
 
+variable "virtual_machine_shutdown_schedule" {
+  type = map(object({
+    daily_recurrence_time = string
+    notification_settings = optional(object({
+      enabled         = optional(bool, false)
+      email           = optional(string, null)
+      time_in_minutes = optional(string, "30")
+      webhook_url     = optional(string, null)
+    }), { enabled = false })
+    timezone = string
+    enabled  = optional(bool, true)
+    tags     = optional(map(string), null)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "A map of shutdown schedules to create for each virtual machine."
+}
+
 variable "virtual_machine_network_interfaces" {
   type = map(object({
     private_ip                    = optional(string)

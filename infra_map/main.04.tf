@@ -10,17 +10,18 @@ module "az_subscription_4_infra_map" {
     azurerm = azurerm.az_subscription_4
   }
 
-  deployment_prefix          = var.deployment_prefix
-  enable_automatic_updates   = var.enable_automatic_updates
-  include_label_tags         = var.include_label_tags
-  extensions                 = var.extensions
-  maintenance_schedules      = var.maintenance_schedules
-  virtual_machine_extensions = var.virtual_machine_extensions
-  virtual_machine_images     = var.virtual_machine_images
-  locations                  = var.locations
-  lock_groups                = var.lock_groups
-  network_ports              = var.network_ports
-  network_security_rules     = var.network_security_rules
+  deployment_prefix                  = var.deployment_prefix
+  enable_automatic_updates           = var.enable_automatic_updates
+  include_label_tags                 = var.include_label_tags
+  extensions                         = var.extensions
+  maintenance_schedules              = var.maintenance_schedules
+  virtual_machine_extensions         = var.virtual_machine_extensions
+  virtual_machine_images             = var.virtual_machine_images
+  virtual_machine_shutdown_schedules = var.virtual_machine_shutdown_schedules
+  locations                          = var.locations
+  lock_groups                        = var.lock_groups
+  network_ports                      = var.network_ports
+  network_security_rules             = var.network_security_rules
 
   tags = merge(
     var.tags,
