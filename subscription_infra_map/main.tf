@@ -459,7 +459,7 @@ module "virtual_machine_sets" {
   )
 
   virtual_machine_shutdown_schedule = (
-    try(each.value.shutdown_schedule, null) == null ? null
+    try(each.value.shutdown_schedule_name, null) == null ? null
     : local.vm_set_shutdown_schedules[each.key]
   )
 
