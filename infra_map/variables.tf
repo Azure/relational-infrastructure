@@ -370,6 +370,9 @@ variable "network_security_rules" {
       }), null)
     }), null)
   }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "networks" {

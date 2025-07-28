@@ -1,9 +1,4 @@
 locals {
-  lock_modes = {
-    no_delete = "CanNotDelete"
-    read_only = "ReadOnly"
-  }
-
   # We only use [default_location] in places that are theoretically inconsequential, 
   # like resource group locations.
 
