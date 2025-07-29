@@ -159,4 +159,16 @@ locals {
       vm_set_name         = vm_set_name
     } if try(vm_set.maintenance.schedule_name, null) != null
   }
+
+  vm_set_shutdown_schedules = {
+    for vm_set_name, vm_set in var.virtual_machine_sets :
+    vm_set_name => {
+      for sched_name, sched_config in var.virtual_machine_shutdown_schedules : sched_name => {
+        enabled               = sched_config.enabled
+        daily_recurrence_time = sched_config.daily_recurrence_time
+        timezone              = sched_config.timezone
+        notification_settings = sched_config.notification_settings
+      }
+    } if try(vm_set.shutdown_schedule_name, null) != null
+  }
 }

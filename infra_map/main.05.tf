@@ -16,6 +16,8 @@ module "az_subscription_5_infra_map" {
   extensions                         = var.extensions
   maintenance_schedules              = var.maintenance_schedules
   virtual_machine_extensions         = var.virtual_machine_extensions
+  virtual_machine_images             = var.virtual_machine_images
+  virtual_machine_shutdown_schedules = var.virtual_machine_shutdown_schedules
   locations                          = var.locations
   lock_groups                        = var.lock_groups
   network_ports                      = var.network_ports

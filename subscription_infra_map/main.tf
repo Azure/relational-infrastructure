@@ -460,6 +460,11 @@ module "virtual_machine_sets" {
     : local.vm_set_maintenance_configurations[each.key]
   )
 
+  virtual_machine_shutdown_schedule = (
+    try(each.value.shutdown_schedule_name, null) == null ? null
+    : local.vm_set_shutdown_schedules[each.key]
+  )
+
   lock_mode = (
     length([
       for group in each.value.lock_groups :
