@@ -13,6 +13,8 @@ module "virtual_machine_scale_set" {
   managed_identities = {
     user_assigned_resource_ids = var.user_assigned_identity_ids
   }
+  
+  single_placement_group      = false # Make this configurable in the future?
 }
 
 module "virtual_machines" {

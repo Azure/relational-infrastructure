@@ -21,9 +21,13 @@ erDiagram
   Subscriptions ||--o{ "Networks" : ""
   Subscriptions ||--o{ "Role-Based VM Sets" : ""
   Subscriptions ||--o{ "Storage Accounts" : ""
+  Subscriptions ||--o{ "Private DNS Zones" : ""
   "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Key Vaults" : ""
   "Resource Groups" ||--o{ "Storage Accounts" : ""
+  "Resource Groups" ||--o{ "Private DNS Zones" : ""
+  "Private Endpoints" }o--o{ "Private DNS Zones" : ""
+  "Networks" }o--o{ "Private DNS Zones" : ""
   "Subscriptions" ||..|| "Resource Groups" : "has a default"
   "Subscriptions" ||..|| "Resource Groups" : "has a dedicated private link"
   "Subscriptions" ||--o{ "Networks" : ""
@@ -270,6 +274,28 @@ virtual_machine_extensions = {
 | `automatic_upgrade_enabled` | Activates automatic upgrades for the extension if `true`. |
 | `settings` | Optional; holds custom settings for the extension, or `null` if unused. |
 
+### Private DNS Zones
+
+> Terraform variable: `var.private_dns_zones`
+
+The `private_dns_zones` table provisions [Azure Private DNS Zones](https://learn.microsoft.com/azure/dns/private-dns-overview).
+
+* Private endpoints can refer to these zones by name when configuring DNS.
+* [Networks](#networks) can refer to these zones by name for both DNS registration and resolution.
+
+```hcl
+private_dns_zones = {
+  key_vault_private_endpoints = {                            # 🔑 "key_vault_private_endpoints" DNS zone
+    domain_name         = "privatelink.vaultcore.azure.net"  # Must be a valid domain name
+    resource_group_name = "production"                       # 🔗 Links to var.resource_groups
+    subscription_name   = "production"                       # 🔗 Links to var.subscriptions
+  }
+}
+```
+
+> [!NOTE]
+> [Private endpoints for Azure services require specific domain names.](https://learn.microsoft.com/azure/private-link/private-endpoint-dns) In the example provided above, `privatelink.vaultcore.azure.net` is the required domain name for Key Vault private endpoints.
+
 ### Network Ports
 
 > Terraform variable: `var.network_ports`
@@ -384,16 +410,24 @@ The `networks` table defines the virtual networks (VNets) in your Azure environm
 
 ```hcl
 networks = {
-  main = {                               # 🔑 "main" network
-    location_name       = "primary"      # 🔗 Links to var.locations
-    subscription_name   = "production"   # 🔗 Links to var.subscriptions
-    resource_group_name = "production"   # 🔗 Links to var.resource_groups
-    name                = "main-vnet"    # Optional; defaults to key 🔑 "main" if unset
-    address_space       = "10.0.0.0/16"  # Defines network address space in CIDR format
+  main = {                                         # 🔑 "main" network
+    location_name       = "primary"                # 🔗 Links to var.locations
+    subscription_name   = "production"             # 🔗 Links to var.subscriptions
+    resource_group_name = "production"             # 🔗 Links to var.resource_groups
+    name                = "main-vnet"              # Optional; defaults to key 🔑 "main" if unset
+    address_space       = "10.0.0.0/16"            # Defines network address space in CIDR format
 
     lock_groups = [
-      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+      "production_lock"                            # 🔗 Optional; links to var.lock_groups
     ]
+
+    private_dns_zones = {                          
+      registration_zone_name = "registration_zone" # 🔗 Optional; links to var.private_dns_zones 
+                                                   # Only one registration zone is supported
+      resolution_zone_names = [                    # 🔗 Optional; links to var.private_dns_zones
+        "resolution_zone"                          # Multiple resolution zones are supported
+      ]
+    }
 
     subnets = {
       subnet_a = {                       # 🔑 "subnet_a" subnet
@@ -406,9 +440,9 @@ networks = {
         ]
       }
 
-      subnet_b = {                       # 🔑 "subnet_b" subnet
-        name            = "subnet-b"     # Optional, defaults to key 🔑 "subnet_b" if unset
-        address_space   = "10.0.1.0/24"  # Defines "subnet_a" address space in CIDR format
+      subnet_b = {                                 # 🔑 "subnet_b" subnet
+        name            = "subnet-b"               # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space   = "10.0.1.0/24"            # Defines "subnet_a" address space in CIDR format
       }
     }
   }
@@ -420,6 +454,7 @@ networks = {
 | `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the VNet. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VNet to a subscription. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VNet. |
+| `private_dns_zones` | Optional; if set, links to [`var.private_dns_zones`](#private-dns-zones). Specifies both registration and resolution DNS zones. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
@@ -839,7 +874,10 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_zone_distribution`
 
-The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from [`virtual_machine_sets`](#virtual-machine-sets) across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_specs`](#virtual-machine-set-specs) via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), tailoring zonal deployment for each set.
+The `virtual_machine_set_zone_distribution` table adjusts the placement of VMs from [`virtual_machine_sets`](#virtual-machine-sets) across [Azure availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-overview?tabs=azure-cli), overriding the default even distribution (across all three zones) set by `infra_map_vm_set`. It shares a one-to-one relationship with [`virtual_machine_sets`](#virtual-machine-sets) and [`virtual_machine_set_specs`](#virtual-machine-set-specs) via a common key, used only when custom zone allocations are needed, like for capacity constraints. In the ERD, `virtual_machine_set_zone_distribution` links one-to-one with [`virtual_machine_sets`](#virtual-machine-sets), tailoring zonal deployment for each set. 
+
+> [!NOTE]
+> If no zone distribution is configured for a [VM set defined in `var.virtual_machine_sets`](#virtual-machine-sets), VMs in that set will be distributed evenly across all three availability zones.
 
 ```hcl
 virtual_machine_set_zone_distribution = {
