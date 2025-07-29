@@ -70,6 +70,28 @@ variable "enable_automatic_updates" {
   default = false
 }
 
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  description = "A list of user-assigned managed identity resource IDs to assign to the virtual machines."
+  default     = []
+  nullable    = false
+  validation {
+    condition     = alltrue([for id in var.user_assigned_identity_ids : startswith(id, "/subscriptions/")])
+    error_message = "[user_assigned_identity_ids] must be a list of valid Azure resource IDs."
+  }
+}
+
+variable "enable_vm_system_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "Enable system-assigned managed identity for the virtual machines."
+  nullable    = false
+  validation {
+    condition     = var.enable_vm_system_assigned_identity == true || var.enable_vm_system_assigned_identity == false
+    error_message = "[enable_vm_system_assigned_identity] must be either true or false."
+  }
+}
+
 variable "virtual_machine_extensions" {
   type = map(object({
     name                        = string

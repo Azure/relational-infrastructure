@@ -22,6 +22,8 @@ module "az_subscription_3_infra_map" {
   lock_groups                        = var.lock_groups
   network_ports                      = var.network_ports
   network_security_rules             = var.network_security_rules
+  user_assigned_identity_ids         = var.user_assigned_identity_ids
+  enable_vm_system_assigned_identity = var.enable_vm_system_assigned_identity
 
   tags = merge(
     var.tags,
