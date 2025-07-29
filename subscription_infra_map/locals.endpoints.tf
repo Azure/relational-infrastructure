@@ -10,7 +10,8 @@ locals {
       private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id
       private_service_connection_name = "${local.key_vault_private_endpoint_names[pe_name]}-psc"
       subresource_names               = ["vault"]
-      network_interface_name          = "${local.key_vault_private_endpoint_names[pe_name]}-nic"
+      network_interface_name          = "${var.deployment_prefix}-${pe.key_vault_name}-kv-nic"
+      lock                            = local.private_endpoint_locks[pe_name]
 
       lock = (
         length([
@@ -85,6 +86,7 @@ locals {
       private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.blob_container_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["blob"]
+      lock                            = local.private_endpoint_locks[pe_name]
 
       # IP configurations if a specific IP is required
       ip_configurations = try(pe.private_ip, null) != null ? {
@@ -138,6 +140,7 @@ locals {
       private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.file_share_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["file"]
+      lock                            = local.private_endpoint_locks[pe_name]
 
       # IP configurations if a specific IP is required
       ip_configurations = try(pe.private_ip, null) != null ? {

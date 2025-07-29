@@ -524,6 +524,8 @@ module "virtual_machine_sets" {
   deploy_scale_set                              = each.value.deploy_scale_set
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
+  user_assigned_identity_ids                    = var.user_assigned_identity_ids
+  enable_vm_system_assigned_identity            = var.enable_vm_system_assigned_identity
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
   virtual_machine_image                         = var.virtual_machine_images[each.value.image_name]
@@ -542,6 +544,11 @@ module "virtual_machine_sets" {
   maintenance_configuration = (
     try(each.value.maintenance.schedule_name, null) == null ? null
     : local.vm_set_maintenance_configurations[each.key]
+  )
+
+  virtual_machine_shutdown_schedule = (
+    try(each.value.shutdown_schedule_name, null) == null ? null
+    : local.vm_set_shutdown_schedules[each.key]
   )
 
   lock_mode = (

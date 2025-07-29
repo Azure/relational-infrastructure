@@ -49,16 +49,17 @@ output "networks" {
 }
 
 output "ddos_protection_plan" {
-  value = {
-    resource_id   = try(module.ddos_protection_plan[0].resource_id, null)
-    resource_name = try(module.ddos_protection_plan[0].name, null)
+  value = (
+    try(module.ddos_protection_plan[0].resource_id, null) != null ? {
+      resource_id   = module.ddos_protection_plan[0].resource_id
+      resource_name = module.ddos_protection_plan[0].name
 
-    labels = {
-      resource_group = var.default_resource_group_name
-      location       = keys(var.locations)[0]
-    }
-
-  }
+      labels = {
+        resource_group = var.default_resource_group_name
+        location       = keys(var.locations)[0]
+      }
+    } : null
+  )
 }
 
 output "key_vaults" {
@@ -78,6 +79,36 @@ output "key_vaults" {
         secret_name => {
           resource_id = secret_id
         }
+      }
+    }
+  }
+}
+
+output "storage_accounts" {
+  value = {
+    for account_name, account in var.storage_accounts :
+    account_name => {
+      resource_id   = module.storage_accounts[account_name].resource_id
+      resource_name = module.storage_accounts[account_name].name
+
+      blob_containers = {
+        for container_name, container in module.storage_accounts[account_name].containers :
+        container_name => {
+          resource_id = container.id
+        }
+      }
+
+      file_shares = {
+        for share_name, share in module.storage_accounts[account_name].shares :
+        share_name => {
+          resource_id = share.id
+        }
+      }
+
+      labels = {
+        location        = account.location_name
+        resource_group  = account.resource_group_name
+        storage_account = account_name
       }
     }
   }

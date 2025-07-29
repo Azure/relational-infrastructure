@@ -70,6 +70,28 @@ variable "enable_automatic_updates" {
   default = false
 }
 
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  description = "A list of user-assigned managed identity resource IDs to assign to the virtual machines."
+  default     = []
+  nullable    = false
+  validation {
+    condition     = alltrue([for id in var.user_assigned_identity_ids : startswith(id, "/subscriptions/")])
+    error_message = "[user_assigned_identity_ids] must be a list of valid Azure resource IDs."
+  }
+}
+
+variable "enable_vm_system_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "Enable system-assigned managed identity for the virtual machines."
+  nullable    = false
+  validation {
+    condition     = var.enable_vm_system_assigned_identity == true || var.enable_vm_system_assigned_identity == false
+    error_message = "[enable_vm_system_assigned_identity] must be either true or false."
+  }
+}
+
 variable "virtual_machine_extensions" {
   type = map(object({
     name                        = string
@@ -284,6 +306,25 @@ variable "virtual_machine_image" {
     condition     = (var.virtual_machine_image.id != null) != (var.virtual_machine_image.reference != null)
     error_message = "You must provide either an [id] or a [reference] for the virtual machine image, but not both."
   }
+}
+
+variable "virtual_machine_shutdown_schedule" {
+  type = map(object({
+    daily_recurrence_time = string
+    notification_settings = optional(object({
+      enabled         = optional(bool, false)
+      email           = optional(string, null)
+      time_in_minutes = optional(string, "30")
+      webhook_url     = optional(string, null)
+    }), { enabled = false })
+    timezone = string
+    enabled  = optional(bool, true)
+    tags     = optional(map(string), null)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "A map of shutdown schedules to create for each virtual machine."
 }
 
 variable "virtual_machine_network_interfaces" {

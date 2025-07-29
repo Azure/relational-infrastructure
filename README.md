@@ -1,5 +1,7 @@
 # Azure Relational Infrastructure (AzRI)
 
+> 📉 [**AzRI deploys 2-3x faster, reducing lines of code (LoC) over traditional Terraform by 55% on average.**](/docs/why/README.md)
+
 Azure Relational Infrastructure (AzRI) simplifies Azure deployments by modeling infrastructure as code (IaC) like a relational database. In the 1970s, relational databases tamed chaotic data with structured tables, primary keys, and foreign keys, making data compact, queryable, and easy to update. Similarly, AzRI organizes Terraform resources into concise maps with clear relationships, slashing code sprawl and complexity. This relational approach mirrors database normalization, eliminating redundancy and simplifying modifications. Built on [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure’s Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/), AzRI ensures resilient, scalable Terraform deployments. Features like [lock groups](#lock-groups) enhance management, drawing on Microsoft and partner expertise. AzRI makes Azure IaC cleaner and more efficient, just as relational databases transformed data management.
 
 ## Model Reference
@@ -428,13 +430,13 @@ networks = {
     }
 
     subnets = {
-      subnet_a = {                                 # 🔑 "subnet_a" subnet
-        name            = "subnet-a"               # Optional; defaults to key 🔑 "subnet_a" if unset
-        address_space   = "10.0.0.0/24"            # Defines "subnet_a" address space in CIDR format
+      subnet_a = {                       # 🔑 "subnet_a" subnet
+        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
 
-        security_rules = [                         # 🔗 Optional; links to var.network_security_rules
-          "allow_from_on_prem_to_apps"             # When specified, rules will be added to an underlying
-          "deny_all_to_subnet_a"                   # network security group in the order they're defined here
+        security_rules = [               # 🔗 Optional; links to var.network_security_rules
+          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
+          "deny_all_to_subnet_a"         # network security group in the order they're defined here
         ]
       }
 

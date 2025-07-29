@@ -9,6 +9,11 @@ module "virtual_machine_scale_set" {
   extension_protected_setting = {}
   user_data_base64            = null
   tags                        = var.resource_tags
+
+  managed_identities = {
+    user_assigned_resource_ids = var.user_assigned_identity_ids
+  }
+  
   single_placement_group      = false # Make this configurable in the future?
 }
 
@@ -32,6 +37,7 @@ module "virtual_machines" {
   os_disk                                = local.virtual_machine_os_disks[count.index]
   os_type                                = var.virtual_machine_os_type
   network_interfaces                     = local.virtual_machine_network_interfaces[count.index]
+  shutdown_schedules                     = var.virtual_machine_shutdown_schedule
   patch_mode                             = "AutomaticByPlatform"
   patch_assessment_mode                  = "AutomaticByPlatform"
   resource_group_name                    = var.resource_group_name
@@ -39,6 +45,11 @@ module "virtual_machines" {
   source_image_resource_id               = var.virtual_machine_image.id
   sku_size                               = var.virtual_machine_sku_size
   zone                                   = local.virtual_machine_zones[count.index]
+
+  managed_identities = {
+    system_assigned            = var.enable_vm_system_assigned_identity
+    user_assigned_resource_ids = var.user_assigned_identity_ids
+  }
 
   virtual_machine_scale_set_resource_id = (
     var.deploy_scale_set

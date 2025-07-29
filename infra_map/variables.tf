@@ -32,6 +32,18 @@ variable "extensions" {
   description = "A set of extension names to apply to all virtual machines."
 }
 
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  default     = []
+  description = "A list of user-assigned identity IDs to apply to all virtual machines."
+}
+
+variable "enable_vm_system_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "Whether to enable system-assigned identity for all virtual machines."
+}
+
 variable "virtual_machine_extensions" {
   type = map(object({
     name                        = string
@@ -370,6 +382,9 @@ variable "network_security_rules" {
       }), null)
     }), null)
   }))
+
+  default  = {}
+  nullable = false
 }
 
 variable "networks" {
@@ -443,6 +458,25 @@ variable "virtual_machine_images" {
   description = "Defines this model's virtual machine images"
 }
 
+variable "virtual_machine_shutdown_schedules" {
+  type = map(object({
+    daily_recurrence_time = string
+    notification_settings = optional(object({
+      enabled         = optional(bool, false)
+      email           = optional(string, null)
+      time_in_minutes = optional(string, "30")
+      webhook_url     = optional(string, null)
+    }), { enabled = false })
+    timezone = string
+    enabled  = optional(bool, true)
+    tags     = optional(map(string), null)
+  }))
+
+  default     = {}
+  nullable    = false
+  description = "Defines this model's virtual machine shutdown schedules."
+}
+
 variable "virtual_machine_sets" {
   type = map(object({
     image_name                        = string
@@ -456,6 +490,7 @@ variable "virtual_machine_sets" {
     include_deployment_prefix_in_name = optional(bool, true)
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
+    shutdown_schedule_name            = optional(string, null)
     os_type                           = optional(string, "Windows")
     disk_controller_type              = optional(string, null)
     enable_boot_diagnostics           = optional(bool, false)
