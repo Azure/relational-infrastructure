@@ -32,6 +32,18 @@ variable "extensions" {
   description = "A set of extension names to apply to all virtual machines."
 }
 
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  default     = []
+  description = "A list of user-assigned identity IDs to apply to all virtual machines."
+}
+
+variable "enable_vm_system_assigned_identity" {
+  type        = bool
+  default     = false
+  description = "Whether to enable system-assigned identity for all virtual machines."
+}
+
 variable "virtual_machine_extensions" {
   type = map(object({
     name                        = string
