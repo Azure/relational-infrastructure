@@ -652,33 +652,34 @@ The `virtual_machine_sets` table configures groups of highly available VMs that 
 
 ```hcl
 virtual_machine_sets = {
-  database = {                                         # 🔑 "database" VM set                                        
-    key_vault_name                    = "primary"      # 🔗 Links to var.key_vaults
-    location_name                     = "primary"      # 🔗 Links to var.locations
-    resource_group_name               = "production"   # 🔗 Links to var.resource_groups
-    subscription_name                 = "production"   # 🔗 Links to var.subscriptions
-    name                              = "db"           # Prefix for all VMs in this set
-    include_deployment_prefix_in_name = true           # Apply var.deployment_prefix? Default: false
+  database = {                                             # 🔑 "database" VM set                                        
+    key_vault_name                    = "primary"          # 🔗 Links to var.key_vaults
+    location_name                     = "primary"          # 🔗 Links to var.locations
+    resource_group_name               = "production"       # 🔗 Links to var.resource_groups
+    subscription_name                 = "production"       # 🔗 Links to var.subscriptions
+    shutdown_schedule_name            = "evening_shutdown" # 🔗 Optional; links to var.virtual_machine_shutdown_schedules
+    name                              = "db"               # Prefix for all VMs in this set
+    include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: false
 
     tags = {
-      role = "database"                                # Optional; tags all VMs
+      role = "database"                                    # Optional; tags all VMs
     }
 
-    extensions = [                                     # Optional
-      "azure_monitor"                                  # 🔗 Links to var.virtual_machine_extensions
+    extensions = [                                         # Optional
+      "azure_monitor"                                      # 🔗 Links to var.virtual_machine_extensions
     ]
 
-    lock_groups = [                                    # Optional
-      "production_lock"                                # 🔗 Links to var.lock_groups
+    lock_groups = [                                        # Optional
+      "production_lock"                                    # 🔗 Links to var.lock_groups
     ]
 
-    maintenance = {                                    # Optional
-      schedule_name = "guest_updates"                  # 🔗 Optional; links to var.maintenance_schedules
+    maintenance = {                                        # Optional
+      schedule_name = "guest_updates"                      # 🔗 Optional; links to var.maintenance_schedules
     }
 
-    os_type                 = "Windows"                # Windows or Linux
-    disk_controller_type    = "nvme"                   # Optional; SCSI or NVMe based on SKU
-    enable_boot_diagnostics = true                     # Enable boot diagnostics? Default: false
+    os_type                 = "Windows"                    # Windows or Linux
+    disk_controller_type    = "nvme"                       # Optional; SCSI or NVMe based on SKU
+    enable_boot_diagnostics = true                         # Enable boot diagnostics? Default: false
   }
 }
 ```
@@ -691,6 +692,7 @@ virtual_machine_sets = {
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
+| `shutdown_schedule_name` | Optional; if set, links to keys in [`var.virtual_machine_shutdown_schedules`](#shutdown-schedules). Applies a shutdown schedule to the VM set. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
