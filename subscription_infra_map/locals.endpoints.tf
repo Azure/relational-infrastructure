@@ -80,7 +80,7 @@ locals {
     : pe_name => {
       name                            = local.blob_container_private_endpoint_names[pe_name]
       resource_group_name             = pe.resource_group_name
-      location                        = var.locations[var.blob_containers[pe.container_name].location_name]
+      location                        = var.locations[var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].location_name]
       subnet_resource_id              = local.network_resource_ids[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].resource_id
       private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
@@ -134,7 +134,7 @@ locals {
     : pe_name => {
       name                            = local.file_share_private_endpoint_names[pe_name]
       resource_group_name             = pe.resource_group_name
-      location                        = var.locations[var.file_shares[pe.share_name].location_name]
+      location                        = var.locations[var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].location_name]
       subnet_resource_id              = local.network_resource_ids[pe.network_name].subnets[pe.subnet_name].resource_id
       private_connection_resource_id  = module.storage_accounts[var.file_shares[pe.share_name].storage_account_name].resource_id
       private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"

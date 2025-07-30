@@ -98,12 +98,6 @@ module "az_subscription_5_infra_map" {
     if local.subscription_slots[var.storage_accounts[share.storage_account_name].subscription_name] == local._s5
   }
 
-  virtual_machine_images = {
-    for image_name, image in var.virtual_machine_images
-    : image_name => image
-    if local.subscription_slots[image.subscription_name] == local._s5
-  }
-
   virtual_machine_set_specs = {
     for vm_set_name, vm_set_specs in var.virtual_machine_set_specs
     : vm_set_name => vm_set_specs

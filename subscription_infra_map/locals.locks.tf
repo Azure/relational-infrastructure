@@ -80,19 +80,19 @@ locals {
     )
   }
 
-  disk_locked = {
-    for vm_set_name, vm_set in var.virtual_machine_sets :
-    vm_set_name => {
-      for disk_name, disk in vm_set.data_disks :
-      disk_name => (
-        (length(disk.lock_groups) > 0) &&
-        (anytrue([
-          for group in disk.lock_groups :
-          group if !contains(keys(local.unlocked_groups), group)
-        ]))
-      )
-    }
-  }
+  # disk_locked = {
+  #   for vm_set_name, vm_set in var.virtual_machine_sets :
+  #   vm_set_name => {
+  #     for disk_name, disk in vm_set.data_disks :
+  #     disk_name => (
+  #       (length(disk.lock_groups) > 0) &&
+  #       (anytrue([
+  #         for group in disk.lock_groups :
+  #         group if !contains(keys(local.unlocked_groups), group)
+  #       ]))
+  #     )
+  #   }
+  # }
 
   network_interface_locked = {
     for vm_set_name, vm_set in var.virtual_machine_sets :
@@ -203,27 +203,27 @@ locals {
     )
   }
 
-  disk_locks = {
-    for vm_set_name, vm_set in var.virtual_machine_sets :
-    vm_set_name => {
-      for disk_name, disk in vm_set.data_disks :
-      disk_name => (
-        (
-          local.virtual_machine_set_locked[vm_set_name] ||
-          local.disk_locked[vm_set_name][disk_name]
-        )
-        ? (
-          anytrue(([
-            for group_name in disk.lock_groups :
-            var.lock_groups[group_name].read_only
-          ]))
-          ? "read_only"
-          : "no_delete"
-        )
-        : null
-      )
-    }
-  }
+  # disk_locks = {
+  #   for vm_set_name, vm_set in var.virtual_machine_sets :
+  #   vm_set_name => {
+  #     for disk_name, disk in vm_set.data_disks :
+  #     disk_name => (
+  #       (
+  #         local.virtual_machine_set_locked[vm_set_name] ||
+  #         local.disk_locked[vm_set_name][disk_name]
+  #       )
+  #       ? (
+  #         anytrue(([
+  #           for group_name in disk.lock_groups :
+  #           var.lock_groups[group_name].read_only
+  #         ]))
+  #         ? "read_only"
+  #         : "no_delete"
+  #       )
+  #       : null
+  #     )
+  #   }
+  # }
 
   network_interface_locks = {
     for vm_set_name, vm_set in var.virtual_machine_sets :

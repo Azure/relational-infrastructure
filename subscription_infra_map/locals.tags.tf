@@ -135,6 +135,9 @@ locals {
       var.include_label_tags && try(vm_set.maintenance.schedule_name, null) != null ? {
         "maintenance_schedule_label" = vm_set.maintenance.schedule_name
       } : {},
+      var.include_label_tags && try(vm_set.shutdown_schedule_name, null) != null ? {
+        "shutdown_schedule_label" = vm_set.shutdown_schedule_name
+      } : {},
       var.include_label_tags ? {
         "image_label"          = vm_set.image_name
         "key_vault_label"      = vm_set.key_vault_name
