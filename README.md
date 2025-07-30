@@ -947,16 +947,6 @@ virtual_machine_set_specs = {
       disk_size_gb         = 128              # OS disk is 128 GiB
       storage_account_type = "Premium_LRS"    # Can be Standard_LRS, Premium_LRS, StandardSSD_ZRS, or Premium_ZRS
     }
-    data_disks = {                            
-      data = {                                # 🔑 "data" data disk
-        disk_size_gb         = 128            # "data" disk is 128 GiB
-        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
-      }
-      logs = {                                # 🔑 "logs" data disk
-        disk_size_gb         = 256            # "logs" disk is 256 GiB
-        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
-      }
-    }
   }
 }
 ```
@@ -966,7 +956,6 @@ virtual_machine_set_specs = {
 | `vm_count` | Optional; sets the number of VMs in the set, e.g., `3`. Defaults to `2`. |
 | `sku_size` | Required; specifies the VM SKU, e.g., `Standard_D4ads_v5`, defining compute power. |
 | `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
-| `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
 
 #### Virtual Machine Set Data Disk Group Specs
 
