@@ -48,12 +48,12 @@ erDiagram
   "Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
   "Key Vaults" ||..o{ "Role-Based VM Sets" : "protect"
   "Role-Based VM Sets" ||..|{ "Network Interfaces" : "have"
-  "Role-Based VM Sets" ||..|{ "Data Disks" : "have"
+  "Role-Based VM Sets" ||..|{ "Data Disk Groups" : "have"
   "Subnets" ||--o{ "Network Interfaces" : "contain"
   "Role-Based VM Sets" ||--o| "Availability Zone Distribution Strategy" : "uses"
   "Role-Based VM Sets" ||--|| "VM Set Specs" : "have"
-  "VM Set Specs" ||..o{ "Data Disk Specs" : "have"
-  "Data Disks" ||..|| "Data Disk Specs" : "have"
+  "VM Set Specs" ||..o{ "Data Disk Group Specs" : "have"
+  "Data Disk Groups" ||..|| "Data Disk Group Specs" : "have"
   "Resource Groups" ||--o{ "Networks" : "have"
   "Key Vaults" ||--o{ "Private Endpoints" : "have"
   "Subnets" ||--o{ "Private Endpoints" : "have"
@@ -64,7 +64,7 @@ erDiagram
   "Lock Groups" ||--o{ "Networks" : "lock"
   "Lock Groups" ||--o{ "Key Vaults" : "lock"
   "Lock Groups" ||--o{ "Role-Based VM Sets" : "lock"
-  "Lock Groups" ||--o{ "Data Disks" : "lock"
+  "Lock Groups" ||--o{ "Data Disk Groups" : "lock"
   "Lock Groups" ||--o{ "Network Interfaces" : "lock"
   "Lock Groups" ||--o{ "Private Endpoints" : "lock"
   "Lock Groups" ||--o{ "Storage Accounts" : "lock"
@@ -694,9 +694,7 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.data_disk_groups`
 
-The `data_disk_groups` section within [`virtual_machine_sets`](#virtual-machine-sets) configures groups of data disks attached to VMs in a set, enabling scenarios like disk striping for high-performance workloads (e.g., SQL Server). Each group defines shared properties such as caching, encryption, and source images, with disks assigned contiguous Logical Unit Numbers (LUNs) for consistent attachment order.
-
-In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), linking to [`key_vaults`](#key-vaults) for encryption and [`lock_groups`](#lock-groups) for resource protection. The number of disks and their sizes are specified in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs), ensuring a one-to-one key alignment between the two tables.
+The `data_disk_groups` section within [`virtual_machine_sets`](#virtual-machine-sets) configures groups of data disks attached to VMs in a set, enabling scenarios like disk striping for high-performance workloads (e.g., SQL Server). Each group defines shared properties such as caching, encryption, and source images, with disks assigned contiguous Logical Unit Numbers (LUNs) for consistent attachment order. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), linking to [`key_vaults`](#key-vaults) for encryption and [`lock_groups`](#lock-groups) for resource protection. The number of disks and their sizes are specified in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs), ensuring a one-to-one key alignment between the two tables.
 
 ```hcl
 virtual_machine_sets = {
@@ -928,9 +926,7 @@ virtual_machine_set_specs = {
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disk_groups`
 
-The `data_disk_groups` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) defines the sizing and storage specifications for data disk groups in [`virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups). Each group specifies the number of disks, their size, and storage type, with optional IOPS settings for performance tuning.
-
-Keys must match those in [`var.virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups) for a one-to-one relationship. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), ensuring consistent disk configurations across VM sets.
+The `data_disk_groups` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) defines the sizing and storage specifications for data disk groups in [`virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups). Each group specifies the number of disks, their size, and storage type, with optional IOPS settings for performance tuning. Keys must match those in [`var.virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups) for a one-to-one relationship. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), ensuring consistent disk configurations across VM sets.
 
 ```hcl
 virtual_machine_set_specs = {
