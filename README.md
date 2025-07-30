@@ -242,6 +242,49 @@ maintenance_schedules = {
 | `expiration_date_time_utc` | Optional; sets when the schedule ends, e.g., `2026-01-06 23:00`. Defaults to `null` (no expiration). |
 | `duration` | Optional; defines the update period in HH:MM format, e.g., `2:00` or `1:30`. Defaults to `1:30` (90 minutes). Minimum varies by scope (e.g., 1.5h for guest updates). |
 
+## Shutdown Schedules
+
+> Terraform variable: `var.virtual_machine_shutdown_schedules`
+
+The `virtual_machine_shutdown_schedules` table defines daily shutdown schedules for Azure virtual machines, helping to reduce costs by automatically powering off VMs during off-hours. Each schedule specifies a shutdown time, timezone, and optional notifications (e.g., email or webhook alerts before shutdown). Schedules link to [`virtual_machine_sets`](#virtual-machine-sets) via the `shutdown_schedule_name` field, allowing multiple VM sets to share the same schedule. In the ERD, `virtual_machine_shutdown_schedules` has a one-to-many relationship with [`virtual_machine_sets`](#virtual_machine-sets), enabling efficient management of shutdown policies across your infrastructure.
+
+```hcl
+virtual_machine_shutdown_schedules = {
+  evening_shutdown = {                               # 🔑 "evening_shutdown" schedule
+    daily_recurrence_time = "1800"                   # Shutdown at 6:00 PM (24-hour format, no colon)
+    timezone              = "Pacific Standard Time"  # Timezone for the schedule
+    enabled               = true                     # Schedule is active
+
+    notification_settings = {
+      enabled         = true                        # Enable notifications
+      email           = "admin@example.com"         # Email for alerts
+      time_in_minutes = "30"                        # Notify 30 minutes before shutdown
+      webhook_url     = "https://webhook.example.com"  # Optional webhook for notifications
+    }
+
+    tags = {
+      purpose = "cost_savings"                      # Optional tags
+    }
+  }
+  weekend_shutdown = {                               # 🔑 "weekend_shutdown" schedule
+    daily_recurrence_time = "2200"                   # Shutdown at 10:00 PM
+    timezone              = "Eastern Standard Time"  # Timezone for the schedule
+    enabled               = false                    # Schedule is disabled
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `daily_recurrence_time` | Required; specifies the daily shutdown time in 24-hour format without a colon, e.g., `1800` for 6:00 PM. |
+| `timezone` | Required; sets the timezone for the schedule, e.g., `Pacific Standard Time`. Must be a valid Azure timezone string. |
+| `enabled` | Optional; if `true`, activates the schedule. Defaults to `true`. |
+| `notification_settings` | Optional; configures pre-shutdown notifications with `enabled` (defaults to `false`), `email` (optional), `time_in_minutes` (defaults to `"30"`), and `webhook_url` (optional). Defaults to `{ enabled = false }`. |
+| `tags` | Optional; applies key-value tags to the schedule, e.g., `{ purpose = "cost_savings" }`. Defaults to `null`. |
+
+> [!NOTE]  
+> Shutdown schedules are applied at the VM level and trigger daily based on the specified time and timezone. Notifications, if enabled, send alerts via email or webhook a set number of minutes before shutdown to allow for any necessary actions.
+
 ### Virtual Machine Extensions
 
 > Terraform variable: `var.virtual_machine_extensions`
