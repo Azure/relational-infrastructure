@@ -738,9 +738,6 @@ virtual_machine_sets = {
 > [!NOTE]  
 > Each disk group is assigned contiguous LUNs automatically, starting from the lowest available LUN for the VM set. For example, if the `data` group has 3 disks and `logs` has 2, LUNs might be assigned as 0–2 for `data` and 3–4 for `logs`. This supports striping configurations for high-performance workloads.
 
-> [!TIP]  
-> For SQL Server or similar workloads, configure multiple disks in a group with `caching = "ReadOnly"` and align `disk_count` in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs) to optimize I/O performance.
-
 ##### Image Configuration Options
 
 The `image` field in `data_disk_groups` specifies the source for disks in the group, supporting various scenarios like copying existing disks, importing VHDs, using Marketplace images, or restoring from backups. Below are examples for each option, using the same fluent syntax as the [`network_security_rules`](#network-security-rules) section.
@@ -927,24 +924,30 @@ virtual_machine_set_specs = {
 | `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
 | `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
 
-#### Virtual Machine Set Disk Specs
+### Virtual Machine Set Disk Specs
 
-> Terraform variable: `var.virtual_machine_set_specs.data_disks`
+> Terraform variable: `var.virtual_machine_set_specs.data_disk_groups`
 
-The `data_disks` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) outlines data disk sizes and storage types for VM sets, matching keys with [`virtual_machine_sets.data_disks`](#virtual-machine-data-disks). In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), tying storage specs to VM definitions.
+The `data_disk_groups` subsection within [`virtual_machine_set_specs`](#virtual-machine-set-specs) defines the sizing and storage specifications for data disk groups in [`virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups). Each group specifies the number of disks, their size, and storage type, with optional IOPS settings for performance tuning.
+
+Keys must match those in [`var.virtual_machine_sets.data_disk_groups`](#virtual-machine-data-disk-groups) for a one-to-one relationship. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_set_specs`](#virtual-machine-set-specs), ensuring consistent disk configurations across VM sets.
 
 ```hcl
 virtual_machine_set_specs = {
   database = {                                # 🔑 "database" VM set
                                               # Other fields...
-    data_disks = {
-      data = {                                # 🔑 "data" data disk
-        disk_size_gb         = 128            # "data" disk is 128 GiB
-        storage_account_type = "Premium_LRS"  # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
+    data_disk_groups = {
+      data = {                                # 🔑 "data" disk group
+        disk_count           = 3              # 3 disks in the group
+        disk_size_gb         = 128            # Each disk is 128 GiB
+        storage_account_type = "Premium_LRS"  # Premium locally redundant storage
+        disk_iops_read_write = 5000           # 5000 IOPS for read/write operations
       }
-      logs = {                                # 🔑 "logs" data disk 
-        disk_size_gb         = 256            # "logs" disk is 256 GiB
-        storage_account_type = "Premium_LRS"   # Can be Standard_LRS, StandardSSD_ZRS, Premium_LRS, PremiumV2_LRS, StandardSSD_LRS or UltraSSD_LRS
+      logs = {                                # 🔑 "logs" disk group
+        disk_count           = 2              # 2 disks in the group
+        disk_size_gb         = 256            # Each disk is 256 GiB
+        storage_account_type = "Premium_LRS"  # Premium locally redundant storage
+        disk_iops_read_only  = 3000           # 3000 IOPS for read-only operations
       }
     }
   }
@@ -953,8 +956,14 @@ virtual_machine_set_specs = {
 
 | Field | Description |
 |-------|-------------|
-| `disk_size_gb` | Required; sets the data disk size in gigabytes, e.g., `128` or `256`. |
-| `storage_account_type` | Optional; specifies the storage type, e.g., `Premium_LRS`. Defaults to `PremiumV2_LRS`. |
+| `disk_count` | Optional; specifies the number of disks in the group, e.g., `3`. Defaults to `1`. Useful for striping scenarios like SQL Server. |
+| `disk_size_gb` | Required; sets the size of each disk in the group in gigabytes, e.g., `128`. |
+| `storage_account_type` | Optional; specifies the storage type: `Standard_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, or `UltraSSD_LRS`. Defaults to `PremiumV2_LRS`. |
+| `disk_iops_read_write` | Optional; sets IOPS for read/write operations, e.g., `5000`. Defaults to `null` (provider default). |
+| `disk_iops_read_only` | Optional; sets IOPS for read-only operations, e.g., `3000`. Defaults to `null` (provider default). |
+
+> [!IMPORTANT]  
+> Ensure the `disk_count` aligns with workload requirements, as increasing the number of disks in a group can enhance performance for striped configurations but may increase costs. Verify that `storage_account_type` supports the chosen IOPS settings, as some types (e.g., `UltraSSD_LRS`) are required for high IOPS.
 
 ### Virtual Machine Set Zone Distribution
 
