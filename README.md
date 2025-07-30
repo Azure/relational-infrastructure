@@ -20,6 +20,7 @@ erDiagram
   Subscriptions ||--o{ "Role-Based VM Sets" : ""
   Subscriptions ||--o{ "Storage Accounts" : ""
   Subscriptions ||--o{ "Private DNS Zones" : ""
+  "Shutdown Schedules" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Key Vaults" : ""
   "Resource Groups" ||--o{ "Storage Accounts" : ""
