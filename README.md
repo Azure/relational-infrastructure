@@ -656,7 +656,7 @@ virtual_machine_sets = {
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
 
 > [!TIP]
-> Lock groups can be overridden on VM set child resources. See [data disks](#virtual-machine-data-disks) and [network interfaces](#virtual-machine-network-interfaces) for more information.
+> Lock groups can be overridden on VM set child resources. See [data disk groups](#virtual-machine-data-disk-groups) and [network interfaces](#virtual-machine-network-interfaces) for more information.
 
 #### Virtual Machine Image
 
@@ -694,7 +694,9 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.data_disk_groups`
 
-The `data_disk_groups` section within [`virtual_machine_sets`](#virtual-machine-sets) configures groups of data disks attached to VMs in a set, enabling scenarios like disk striping for high-performance workloads (e.g., SQL Server). Each group defines shared properties such as caching, encryption, and source images, with disks assigned contiguous Logical Unit Numbers (LUNs) for consistent attachment order. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), linking to [`key_vaults`](#key-vaults) for encryption and [`lock_groups`](#lock-groups) for resource protection. The number of disks and their sizes are specified in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs), ensuring a one-to-one key alignment between the two tables.
+The `data_disk_groups` section within [`virtual_machine_sets`](#virtual-machine-sets) configures groups of data disks attached to VMs in a set, enabling scenarios like disk striping for high-performance workloads (e.g., SQL Server). Each group defines shared properties such as caching, encryption, and source images, with disks assigned contiguous Logical Unit Numbers (LUNs) for consistent attachment order.
+
+In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), linking to [`key_vaults`](#key-vaults) for encryption and [`lock_groups`](#lock-groups) for resource protection. The number of disks and their sizes are specified in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs), ensuring a one-to-one key alignment between the two tables.
 
 ```hcl
 virtual_machine_sets = {
@@ -843,7 +845,6 @@ virtual_machine_sets = {
     data_disk_groups = {
       data = {                                         # 🔑 "data" disk group
         caching = "ReadWrite"                         # Enable read/write caching
-        image = null                                  # Create empty disks
       }
     }
   }
