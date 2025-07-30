@@ -694,78 +694,32 @@ virtual_machine_sets = {
 
 > Terraform variable: `var.virtual_machine_sets.data_disk_groups`
 
-The `data_disk_groups` section of `virtual_machine_sets` defines related sets of data disks that should be attached to all VMs in the set. Each disk group defined here requires a corresponding data disk spec. Refer to the example below for more information.
+The `data_disk_groups` section within [`virtual_machine_sets`](#virtual-machine-sets) configures groups of data disks attached to VMs in a set, enabling scenarios like disk striping for high-performance workloads (e.g., SQL Server). Each group defines shared properties such as caching, encryption, and source images, with disks assigned contiguous Logical Unit Numbers (LUNs) for consistent attachment order. In the ERD, `data_disk_groups` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), linking to [`key_vaults`](#key-vaults) for encryption and [`lock_groups`](#lock-groups) for resource protection. The number of disks and their sizes are specified in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs), ensuring a one-to-one key alignment between the two tables.
 
 ```hcl
 virtual_machine_sets = {
-  database = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
     data_disk_groups = {
-      data = {
-        caching                      = "ReadOnly"
-        enable_public_network_access = false
-      }
-      logs = {
+      data = {                                         # 🔑 "data" disk group
+        caching                      = "ReadOnly"      # ReadOnly caching for performance
+        enable_public_network_access = false           # Disable public access
+        disk_encryption_set_id       = "/subscriptions/12345678..."  # Optional; encryption set ID
 
-      }
-    }
-  }
-}
-```
-
-```hcl
-virtual_machine_sets = {
-  database = {                                      # 🔑 "database" VM set
-                                                    # Other fields...
-    data_disks = {
-      copy_disk = {                                 # 🔑 "copy_disk" data disk
-        lun                          = 0            # Logical unit number (LUN) is 0
-        caching                      = "ReadWrite"  # ReadWrite caching enabled
-        enable_public_network_access = false        # Public network access is disabled
-
-        image = {  
-          copy = {                                  # Copy an existing managed disk
+        image = {                                      # Optional; disk source
+          copy = {                                     # Copy from an existing managed disk
             resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
           }
         }
 
-        lock_groups = [                             # Optional; overrides lock groups defined on parent VM set
-          "data_disk_lock"                          # 🔗 Links to var.lock_groups
+        lock_groups = [                               # Optional; overrides parent VM set lock groups
+          "data_disk_lock"                            # 🔗 Links to var.lock_groups
         ]
       }
-
-      import_disk = {                               # 🔑 "import_disk" data disk
-        lun = 1                                     # Logical unit number (LUN) is 1
-
-        image = {
-          import = {                                # Import a VHD
-            uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
-            secure = true                           # Perform a secure import (recommended)
-          }
-        }
+      logs = {                                         # 🔑 "logs" disk group
+        caching                      = "ReadWrite"    # ReadWrite caching
+        enable_public_network_access = false          # Disable public access
       }
-
-      platform_disk = {                             # 🔑 "platform_disk" data disk
-        lun = 2
-                                     # Logical unit number (LUN) is 2
-        image = {
-          platform = {                              # Copy a platform image (i.e., from the Azure Marketplace)
-            image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
-          }
-        }
-      }
-
-      restore_disk = {                              # 🔑 "restore_disk" data disk
-        lun = 3                                     # Logical unit number (LUN) is 3
-        image = {
-          restore = {                               # Restore the disk from Azure Backup
-            resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/snapshots/backup-snapshot"
-          }
-        }
-      }
-
-      empty_disk = {                                # 🔑 "empty_disk" data disk
-        lun = 4                                     # Logical unit number (LUN) is 4
-      }                                             # By default, data disk is empty
     }
   }
 }
@@ -773,11 +727,128 @@ virtual_machine_sets = {
 
 | Field | Description |
 |-------|-------------|
-| `lun` | Required; sets the disk’s logical unit number, e.g., `0`, for attachment order. |
-| `caching` | Optional; configures caching: `None`, `ReadOnly`, or `ReadWrite`. Defaults to `ReadWrite`. |
-| `enable_public_network_access` | Optional; if `true`, allows public access to the disk for specific use cases. Defaults to `false`. |
-| `image` | Optional; specifies the disk’s source: `copy` (from a disk/snapshot), `import` (from a VHD file), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disk). |
-| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this data disk belongs to. These lock groups override lock groups defined at the [parent VM set](#virtual-machine-set) level. |
+| `caching` | Optional; configures caching: `None`, `ReadOnly`, or `ReadWrite`. Defaults to `ReadWrite`. Optimizes performance for workloads like SQL Server striping. |
+| `disk_encryption_set_id` | Optional; specifies a disk encryption set ID (e.g., `/subscriptions/12345678...`) from Azure Key Vault for encryption. Defaults to `null`. |
+| `enable_public_network_access` | Optional; if `true`, allows public access to disks in the group for specific use cases. Defaults to `false` for security. |
+| `image` | Optional; defines the disk group’s source: `copy` (from a disk/snapshot), `import` (from a VHD), `platform` (from a Marketplace image), `restore` (from a backup/snapshot), or `null` (empty disks). Defaults to `null`. |
+| `lock_groups` | Optional; links to keys in [`var.lock_groups`](#lock-groups). Specifies lock groups for the disk group, overriding those defined in the parent [`virtual_machine_sets`](#virtual-machine-sets). Defaults to `[]`. |
+
+> [!NOTE]  
+> Each disk group is assigned contiguous LUNs automatically, starting from the lowest available LUN for the VM set. For example, if the `data` group has 3 disks and `logs` has 2, LUNs might be assigned as 0–2 for `data` and 3–4 for `logs`. This supports striping configurations for high-performance workloads.
+
+> [!TIP]  
+> For SQL Server or similar workloads, configure multiple disks in a group with `caching = "ReadOnly"` and align `disk_count` in [`var.virtual_machine_set_specs.data_disk_groups`](#virtual-machine-set-disk-specs) to optimize I/O performance.
+
+##### Image Configuration Options
+
+The `image` field in `data_disk_groups` specifies the source for disks in the group, supporting various scenarios like copying existing disks, importing VHDs, using Marketplace images, or restoring from backups. Below are examples for each option, using the same fluent syntax as the [`network_security_rules`](#network-security-rules) section.
+
+###### Example: Copy Disks from an Existing Managed Disk
+
+This configuration copies disks from an existing Azure managed disk or snapshot, useful for replicating pre-configured disk setups.
+
+```hcl
+virtual_machine_sets = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
+    data_disk_groups = {
+      data = {                                         # 🔑 "data" disk group
+        caching = "ReadOnly"                          # Optimize for read-heavy workloads
+        image = {
+          copy = {                                     # Copy from an existing managed disk
+            resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/disks/source-disk"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+###### Example: Import Disks from a VHD File
+
+This configuration imports disks from a VHD file stored in Azure Blob Storage, ideal for migrating existing disk images.
+
+```hcl
+virtual_machine_sets = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
+    data_disk_groups = {
+      data = {                                         # 🔑 "data" disk group
+        caching = "ReadWrite"                         # Enable read/write caching
+        image = {
+          import = {                                   # Import from a VHD
+            uri    = "https://storage.blob.core.windows.net/vhds/sample.vhd"
+            secure = true                              # Perform secure import
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+###### Example: Use a Platform Image for Disks
+
+This configuration uses a platform image from the Azure Marketplace, suitable for standardized disk setups.
+
+```hcl
+virtual_machine_sets = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
+    data_disk_groups = {
+      data = {                                         # 🔑 "data" disk group
+        caching = "ReadOnly"                          # Optimize for read-heavy workloads
+        image = {
+          platform = {                                # Use a platform image
+            image_reference_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/images/ubuntu-18.04"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+###### Example: Restore Disks from a Backup
+
+This configuration restores disks from an Azure Backup snapshot, useful for disaster recovery scenarios.
+
+```hcl
+virtual_machine_sets = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
+    data_disk_groups = {
+      data = {                                         # 🔑 "data" disk group
+        caching = "ReadWrite"                         # Enable read/write caching
+        image = {
+          restore = {                                 # Restore from a backup
+            resource_id = "/subscriptions/12345678/resourceGroups/rg/providers/Microsoft.Compute/snapshots/backup-snapshot"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+###### Example: Create Empty Disks
+
+This configuration creates empty disks, ideal for initializing new storage without pre-existing data.
+
+```hcl
+virtual_machine_sets = {
+  database = {                                         # 🔑 "database" VM set
+                                                       # Other fields...
+    data_disk_groups = {
+      data = {                                         # 🔑 "data" disk group
+        caching = "ReadWrite"                         # Enable read/write caching
+        image = null                                  # Create empty disks
+      }
+    }
+  }
+}
+```
 
 #### Virtual Machine Network Interfaces
 
