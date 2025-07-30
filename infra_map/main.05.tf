@@ -64,8 +64,14 @@ module "az_subscription_5_infra_map" {
       subnets                           = network.subnets
       lock_groups                       = network.lock_groups
       include_deployment_prefix_in_name = network.include_deployment_prefix_in_name
+      private_dns_zones                 = network.private_dns_zones
     }
     if local.subscription_slots[network.subscription_name] == local._s5
+  }
+
+  private_dns_zones = {
+    for dns_zone_name, dns_zone in var.private_dns_zones : dns_zone_name => dns_zone
+    if local.subscription_slots[dns_zone.subscription_name] == local._s5
   }
 
   resource_groups = {
@@ -90,12 +96,6 @@ module "az_subscription_5_infra_map" {
     for share_name, share in var.file_shares
     : share_name => share
     if local.subscription_slots[var.storage_accounts[share.storage_account_name].subscription_name] == local._s5
-  }
-
-  virtual_machine_images = {
-    for image_name, image in var.virtual_machine_images
-    : image_name => image
-    if local.subscription_slots[image.subscription_name] == local._s5
   }
 
   virtual_machine_set_specs = {

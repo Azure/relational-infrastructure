@@ -64,8 +64,14 @@ module "az_subscription_6_infra_map" {
       subnets                           = network.subnets
       lock_groups                       = network.lock_groups
       include_deployment_prefix_in_name = network.include_deployment_prefix_in_name
+      private_dns_zones                 = network.private_dns_zones
     }
     if local.subscription_slots[network.subscription_name] == local._s6
+  }
+
+  private_dns_zones = {
+    for dns_zone_name, dns_zone in var.private_dns_zones : dns_zone_name => dns_zone
+    if local.subscription_slots[dns_zone.subscription_name] == local._s6
   }
 
   resource_groups = {
