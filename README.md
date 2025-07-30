@@ -924,7 +924,7 @@ virtual_machine_set_specs = {
 | `os_disk` | Required; configures the OS disk with `disk_size_gb` (e.g., `128`) and `storage_account_type` (e.g., `Premium_LRS`, defaults to `PremiumV2_LRS`). |
 | `data_disks` | Optional; maps data disks with `disk_size_gb` and `storage_account_type`, aligning with `var.virtual_machine_sets.data_disks` keys. |
 
-### Virtual Machine Set Disk Specs
+#### Virtual Machine Set Data Disk Group Specs
 
 > Terraform variable: `var.virtual_machine_set_specs.data_disk_groups`
 
