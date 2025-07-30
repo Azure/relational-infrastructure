@@ -692,11 +692,27 @@ virtual_machine_sets = {
 | `id` | Optional; resource ID for a custom or shared image, e.g., `/subscriptions/12345678...`. |
 | `reference` | Optional; defines a Marketplace image with `offer`, `publisher`, `sku`, and `version`. |
 
-#### Virtual Machine Data Disks
+#### Virtual Machine Data Disk Groups
 
-> Terraform variable: `var.virtual_machine_sets.data_disks`
+> Terraform variable: `var.virtual_machine_sets.data_disk_groups`
 
-The `data_disks` section within [`virtual_machine_sets`](#virtual-machine-sets) configures optional data disks for VMs, specifying their attachment and content source. Each disk defines a logical unit number (LUN), caching mode, and an optional image source, [such as a snapshot](https://learn.microsoft.com/azure/backup/restore-managed-disks), [VHD file](https://learn.microsoft.com/azure/virtual-machines/windows/disks-upload-vhd-to-managed-disk-powershell), [Marketplace image](https://learn.microsoft.com/azure/virtual-machines/managed-disks-overview#convert-an-existing-managed-disk-to-a-new-managed-disk), restored disk from [Azure Backup](https://learn.microsoft.com/azure/backup/restore-managed-disks) or [Azure Site Recovery](https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-tutorial-failover-failback), or empty disk. In the ERD, `data_disks` is a one-to-many child of [`virtual_machine_sets`](#virtual-machine-sets), supporting multiple disks per VM set for versatile storage needs.
+The `data_disk_groups` section of `virtual_machine_sets` defines related sets of data disks that should be attached to all VMs in the set. Each disk group defined here requires a corresponding data disk spec. Refer to the example below for more information.
+
+```hcl
+virtual_machine_sets = {
+  database = {
+    data_disk_groups = {
+      data = {
+        caching                      = "ReadOnly"
+        enable_public_network_access = false
+      }
+      logs = {
+
+      }
+    }
+  }
+}
+```
 
 ```hcl
 virtual_machine_sets = {
