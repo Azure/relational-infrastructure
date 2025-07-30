@@ -243,7 +243,7 @@ maintenance_schedules = {
 | `expiration_date_time_utc` | Optional; sets when the schedule ends, e.g., `2026-01-06 23:00`. Defaults to `null` (no expiration). |
 | `duration` | Optional; defines the update period in HH:MM format, e.g., `2:00` or `1:30`. Defaults to `1:30` (90 minutes). Minimum varies by scope (e.g., 1.5h for guest updates). |
 
-## Shutdown Schedules
+### Shutdown Schedules
 
 > Terraform variable: `var.virtual_machine_shutdown_schedules`
 
