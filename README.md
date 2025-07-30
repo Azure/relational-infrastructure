@@ -247,7 +247,7 @@ maintenance_schedules = {
 
 > Terraform variable: `var.virtual_machine_shutdown_schedules`
 
-The `virtual_machine_shutdown_schedules` table defines daily shutdown schedules for Azure virtual machines, helping to reduce costs by automatically powering off VMs during off-hours. Each schedule specifies a shutdown time, timezone, and optional notifications (e.g., email or webhook alerts before shutdown). Schedules link to [`virtual_machine_sets`](#virtual-machine-sets) via the `shutdown_schedule_name` field, allowing multiple VM sets to share the same schedule. In the ERD, `virtual_machine_shutdown_schedules` has a one-to-many relationship with [`virtual_machine_sets`](#virtual_machine-sets), enabling efficient management of shutdown policies across your infrastructure.
+The `virtual_machine_shutdown_schedules` table defines daily [shutdown schedules for Azure virtual machines](https://learn.microsoft.com/azure/virtual-machines/auto-shutdown-vm), helping to reduce costs by automatically powering off VMs during off-hours. Each schedule specifies a shutdown time, timezone, and optional notifications (e.g., email or webhook alerts before shutdown). Schedules link to [`virtual_machine_sets`](#virtual-machine-sets) via the `shutdown_schedule_name` field, allowing multiple VM sets to share the same schedule. In the ERD, `virtual_machine_shutdown_schedules` has a one-to-many relationship with [`virtual_machine_sets`](#virtual_machine-sets), enabling efficient management of shutdown policies across your infrastructure.
 
 ```hcl
 virtual_machine_shutdown_schedules = {
