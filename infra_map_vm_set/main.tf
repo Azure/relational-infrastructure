@@ -7,14 +7,15 @@ module "virtual_machine_scale_set" {
   location                    = var.location
   resource_group_name         = var.resource_group_name
   extension_protected_setting = {}
+  os_profile                  = {}
   user_data_base64            = null
   tags                        = var.resource_tags
 
   managed_identities = {
     user_assigned_resource_ids = var.user_assigned_identity_ids
   }
-  
-  single_placement_group      = false # Make this configurable in the future?
+
+  single_placement_group = false # Make this configurable in the future?
 }
 
 module "virtual_machines" {
