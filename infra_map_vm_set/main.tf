@@ -1,21 +1,18 @@
-module "virtual_machine_scale_set" {
-  source = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  count  = var.deploy_scale_set ? 1 : 0
+resource "azurerm_orchestrated_virtual_machine_scale_set" "virtual_machine_scale_set" {
+  count = var.deploy_scale_set ? 1 : 0
 
   name                        = local.virtual_machine_scale_set_name
-  lock                        = local.vmss_lock
   location                    = var.location
   resource_group_name         = var.resource_group_name
-  extension_protected_setting = {}
-  os_profile                  = {}
-  user_data_base64            = null
+  platform_fault_domain_count = 1
+  single_placement_group      = false
   tags                        = var.resource_tags
+  zones                       = ["1", "2", "3"]
 
-  managed_identities = {
-    user_assigned_resource_ids = var.user_assigned_identity_ids
+  identity {
+    type         = "UserAssigned"
+    identity_ids = var.user_assigned_identity_ids
   }
-
-  single_placement_group = false # Make this configurable in the future?
 }
 
 module "virtual_machines" {
@@ -54,7 +51,7 @@ module "virtual_machines" {
 
   virtual_machine_scale_set_resource_id = (
     var.deploy_scale_set
-    ? module.virtual_machine_scale_set[0].resource_id
+    ? azurerm_orchestrated_virtual_machine_scale_set.virtual_machine_scale_set[0].id
     : null
   )
 
