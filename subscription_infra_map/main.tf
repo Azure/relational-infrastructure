@@ -431,11 +431,14 @@ module "network_security_groups" {
       protocol                                   = rule.config.protocol
       name                                       = rule_name
       destination_address_prefix                 = rule.config.destination_address_prefix
-      destination_application_security_group_ids = rule.config.destination_application_security_group_ids
       destination_port_range                     = rule.config.destination_port_range
       source_address_prefix                      = rule.config.source_address_prefix
-      source_application_security_group_ids      = rule.config.source_application_security_group_ids
       source_port_range                          = rule.config.source_port_range
+
+      destination_application_security_group_ids = (
+        length(rule.config.destination_application_security_group_ids) == 0
+        ? null : rule.config.destination_application_security_group_ids
+      )
 
       destination_address_prefixes = (
         length(rule.config.destination_address_prefixes) == 0
@@ -445,6 +448,11 @@ module "network_security_groups" {
       source_address_prefixes = (
         length(rule.config.source_address_prefixes) == 0
         ? null : rule.config.source_address_prefixes
+      )
+
+      source_application_security_group_ids = (
+        length(rule.config.source_application_security_group_ids) == 0
+        ? null : rule.config.source_application_security_group_ids
       )
 
       destination_port_ranges = (
