@@ -6,7 +6,7 @@ output "resource_groups" {
       resource_name = module.resource_groups[group_name].name
 
       labels = {
-        location       = group.location_name
+        location       = group.location_key
         resource_group = group_name
       }
     }
@@ -15,32 +15,32 @@ output "resource_groups" {
 
 output "networks" {
   value = {
-    for network_name, network in var.networks :
-    network_name => {
-      resource_id   = module.networks[network_name].resource_id
-      resource_name = module.networks[network_name].name
+    for network_key, network in var.networks :
+    network_key => {
+      resource_id   = module.networks[network_key].resource_id
+      resource_name = module.networks[network_key].name
       address_space = network.address_space
 
       labels = {
-        location       = network.location_name
-        network        = network_name
-        resource_group = network.resource_group_name
+        location       = network.location_key
+        network        = network_key
+        resource_group = network.resource_group_key
       }
 
       subnets = {
-        for subnet_name, subnet in network.subnets :
-        subnet_name => {
-          subnet_id     = module.networks[network_name].subnets[subnet_name].resource_id
-          address_space = var.networks[network_name].subnets[subnet_name].address_space
+        for subnet_key, subnet in network.subnets :
+        subnet_key => {
+          subnet_id     = module.networks[network_key].subnets[subnet_key].resource_id
+          address_space = var.networks[network_key].subnets[subnet_key].address_space
 
           network_security_group = {
-            resource_id   = try(module.network_security_groups["${network_name}_${subnet_name}"].resource_id, null)
-            resource_name = try(module.network_security_groups["${network_name}_${subnet_name}"].name, null)
+            resource_id   = try(module.network_security_groups["${network_key}_${subnet_key}"].resource_id, null)
+            resource_name = try(module.network_security_groups["${network_key}_${subnet_key}"].name, null)
           }
 
           route_table = {
-            resource_id   = try(module.route_tables["${network_name}_${subnet_name}"].resource_id, null)
-            resource_name = try(module.route_tables["${network_name}_${subnet_name}"].name, null)
+            resource_id   = try(module.route_tables["${network_key}_${subnet_key}"].resource_id, null)
+            resource_name = try(module.route_tables["${network_key}_${subnet_key}"].name, null)
           }
         }
       }
@@ -55,7 +55,7 @@ output "ddos_protection_plan" {
       resource_name = module.ddos_protection_plan[0].name
 
       labels = {
-        resource_group = var.default_resource_group_name
+        resource_group = var.default_resource_group_key
         location       = keys(var.locations)[0]
       }
     } : null
@@ -70,8 +70,8 @@ output "key_vaults" {
       resource_name = module.key_vaults[vault_name].name
 
       labels = {
-        location       = vault.location_name
-        resource_group = vault.resource_group_name
+        location       = vault.location_key
+        resource_group = vault.resource_group_key
       }
 
       secrets = {
@@ -92,22 +92,22 @@ output "storage_accounts" {
       resource_name = module.storage_accounts[account_name].name
 
       blob_containers = {
-        for container_name, container in module.storage_accounts[account_name].containers :
-        container_name => {
+        for container_key, container in module.storage_accounts[account_name].containers :
+        container_key => {
           resource_id = container.id
         }
       }
 
       file_shares = {
-        for share_name, share in module.storage_accounts[account_name].shares :
-        share_name => {
+        for share_key, share in module.storage_accounts[account_name].shares :
+        share_key => {
           resource_id = share.id
         }
       }
 
       labels = {
-        location        = account.location_name
-        resource_group  = account.resource_group_name
+        location        = account.location_key
+        resource_group  = account.resource_group_key
         storage_account = account_name
       }
     }
@@ -131,9 +131,9 @@ output "virtual_machine_sets" {
       resources = module.virtual_machine_sets[vm_set_name]
 
       labels = {
-        location       = vm_set.location_name
-        resource_group = vm_set.resource_group_name
-        key_vault      = vm_set.key_vault_name
+        location       = vm_set.location_key
+        resource_group = vm_set.resource_group_key
+        key_vault      = vm_set.key_vault_key
         vm_set         = vm_set_name
       }
     }

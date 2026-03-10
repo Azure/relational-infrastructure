@@ -7,8 +7,8 @@ locals {
       protocol               = rule.protocol
       from                   = rule.allow.in.from
       to                     = rule.allow.in.to
-      destination_port_names = rule.port_names
-      source_port_names      = try(rule.allow.in.from.port_names, null)
+      destination_port_names = rule.port_keys
+      source_port_names      = try(rule.allow.in.from.port_keys, null)
     } if try(rule.allow.in != null, false)
   }
 
@@ -19,8 +19,8 @@ locals {
       protocol               = rule.protocol
       from                   = rule.allow.out.from
       to                     = rule.allow.out.to
-      destination_port_names = rule.port_names
-      source_port_names      = try(rule.allow.out.from.port_names, null)
+      destination_port_names = rule.port_keys
+      source_port_names      = try(rule.allow.out.from.port_keys, null)
     } if try(rule.allow.out != null, false)
   }
 
@@ -31,8 +31,8 @@ locals {
       protocol               = rule.protocol
       from                   = rule.deny.in.from
       to                     = rule.deny.in.to
-      destination_port_names = rule.port_names
-      source_port_names      = try(rule.deny.in.from.port_names, null)
+      destination_port_names = rule.port_keys
+      source_port_names      = try(rule.deny.in.from.port_keys, null)
     } if try(rule.deny.in != null, false)
   }
 
@@ -43,8 +43,8 @@ locals {
       protocol               = rule.protocol
       from                   = rule.deny.out.from
       to                     = rule.deny.out.to
-      destination_port_names = rule.port_names
-      source_port_names      = try(rule.deny.out.from.port_names, null)
+      destination_port_names = rule.port_keys
+      source_port_names      = try(rule.deny.out.from.port_keys, null)
     } if try(rule.deny.out != null, false)
   }
 
@@ -137,7 +137,7 @@ locals {
 
   destination_subnets_to_address_spaces = {
     for rule_name, rule in local.base_security_rules :
-    rule_name => tostring(local.network_address_spaces[rule.to.subnet.network_name].subnets[rule.to.subnet.subnet_name].address_space)
+    rule_name => tostring(local.network_address_spaces[rule.to.subnet.network_key].subnets[rule.to.subnet.subnet_key].address_space)
     if local.is_destination_subnet[rule_name]
   }
 
@@ -166,7 +166,7 @@ locals {
 
   source_subnets_to_address_spaces = {
     for rule_name, rule in local.base_security_rules :
-    rule_name => tostring(local.network_address_spaces[rule.from.subnet.network_name].subnets[rule.from.subnet.subnet_name].address_space)
+    rule_name => tostring(local.network_address_spaces[rule.from.subnet.network_key].subnets[rule.from.subnet.subnet_key].address_space)
     if local.is_source_subnet[rule_name]
   }
 
@@ -244,12 +244,12 @@ locals {
     for group in flatten([
       for network_ref, network in local.networks : [
         for subnet_ref, subnet in network.subnets : {
-          location_ref        = network.location_name
+          location_ref        = network.location_key
           network_ref         = network_ref
           subnet_ref          = subnet_ref
-          subnet_name         = subnet.name
+          subnet_key         = subnet.name
           name                = local.security_group_names[network_ref][subnet_ref]
-          resource_group_name = network.resource_group_name
+          resource_group_key = network.resource_group_key
           tags                = network.tags
           lock                = network.lock
 

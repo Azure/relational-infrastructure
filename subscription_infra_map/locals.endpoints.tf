@@ -3,14 +3,14 @@ locals {
   key_vault_private_endpoints = {
     for pe_name, pe in try(var.private_endpoints.key_vaults, {}) : pe_name => {
 
-      name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_name}-kv-pe")
-      resource_group_name             = pe.resource_group_name
-      location                        = var.locations[var.key_vaults[pe.key_vault_name].location_name]
-      subnet_resource_id              = local.network_resource_ids[pe.network_name].subnets[pe.subnet_name].resource_id
-      private_connection_resource_id  = module.key_vaults[pe.key_vault_name].resource_id
+      name                            = coalesce(pe.name, "${var.deployment_prefix}-${pe.key_vault_key}-kv-pe")
+      resource_group_key             = pe.resource_group_key
+      location                        = var.locations[var.key_vaults[pe.key_vault_key].location_key]
+      subnet_resource_id              = local.network_resource_ids[pe.network_key].subnets[pe.subnet_key].resource_id
+      private_connection_resource_id  = module.key_vaults[pe.key_vault_key].resource_id
       private_service_connection_name = "${local.key_vault_private_endpoint_names[pe_name]}-psc"
       subresource_names               = ["vault"]
-      network_interface_name          = "${var.deployment_prefix}-${pe.key_vault_name}-kv-nic"
+      network_interface_name          = "${var.deployment_prefix}-${pe.key_vault_key}-kv-nic"
       lock                            = local.private_endpoint_locks[pe_name]
 
       lock = (
@@ -53,7 +53,7 @@ locals {
       )
 
       # Tags
-      tags = merge(var.tags, (var.include_label_tags ? { keyvault_label = pe.key_vault_name } : {}))
+      tags = merge(var.tags, (var.include_label_tags ? { keyvault_label = pe.key_vault_key } : {}))
     }
   }
 
@@ -69,7 +69,7 @@ locals {
               compact([pe.dns_zone_group.private_dns_zone_name]),
               try(pe.dns_zone_group.private_dns_zone_names, [])
             ) :
-            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+            module.private_dns_zones[zone_name].resource_id
         ]))
       }
     ) if(pe.dns_zone_group != null)
@@ -79,10 +79,10 @@ locals {
     for pe_name, pe in try(var.private_endpoints.blob_containers, {})
     : pe_name => {
       name                            = local.blob_container_private_endpoint_names[pe_name]
-      resource_group_name             = pe.resource_group_name
-      location                        = var.locations[var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].location_name]
-      subnet_resource_id              = local.network_resource_ids[pe.network_name].subnets[pe.subnet_name].resource_id
-      private_connection_resource_id  = module.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].resource_id
+      resource_group_key             = pe.resource_group_key
+      location                        = var.locations[var.storage_accounts[var.blob_containers[pe.container_key].storage_account_key].location_key]
+      subnet_resource_id              = local.network_resource_ids[pe.network_key].subnets[pe.subnet_key].resource_id
+      private_connection_resource_id  = module.storage_accounts[var.blob_containers[pe.container_key].storage_account_key].resource_id
       private_service_connection_name = "${local.blob_container_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.blob_container_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["blob"]
@@ -123,7 +123,7 @@ locals {
               compact([pe.dns_zone_group.private_dns_zone_name]),
               try(pe.dns_zone_group.private_dns_zone_names, [])
             ) :
-            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+            module.private_dns_zones[zone_name].resource_id
         ]))
       }
     ) if(pe.dns_zone_group != null)
@@ -133,10 +133,10 @@ locals {
     for pe_name, pe in try(var.private_endpoints.file_shares, {})
     : pe_name => {
       name                            = local.file_share_private_endpoint_names[pe_name]
-      resource_group_name             = pe.resource_group_name
-      location                        = var.locations[var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].location_name]
-      subnet_resource_id              = local.network_resource_ids[pe.network_name].subnets[pe.subnet_name].resource_id
-      private_connection_resource_id  = module.storage_accounts[var.file_shares[pe.share_name].storage_account_name].resource_id
+      resource_group_key             = pe.resource_group_key
+      location                        = var.locations[var.storage_accounts[var.file_shares[pe.share_key].storage_account_key].location_key]
+      subnet_resource_id              = local.network_resource_ids[pe.network_key].subnets[pe.subnet_key].resource_id
+      private_connection_resource_id  = module.storage_accounts[var.file_shares[pe.share_key].storage_account_key].resource_id
       private_service_connection_name = "${local.file_share_private_endpoint_names[pe_name]}-psc"
       network_interface_name          = "${local.file_share_private_endpoint_names[pe_name]}-nic"
       subresource_names               = ["file"]
@@ -177,7 +177,7 @@ locals {
               compact([pe.dns_zone_group.private_dns_zone_name]),
               try(pe.dns_zone_group.private_dns_zone_names, [])
             ) :
-            azurerm_private_dns_zone.private_dns_zones[zone_name].id
+            module.private_dns_zones[zone_name].resource_id
         ]))
       }
     ) if(pe.dns_zone_group != null)

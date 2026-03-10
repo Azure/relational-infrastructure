@@ -1,13 +1,13 @@
 locals {
   network_tags = {
-    for network_name, network in local.networks :
-    network_name => merge(
+    for network_key, network in local.networks :
+    network_key => merge(
       var.tags,
       network.tags,
       var.include_label_tags ? {
-        "network_label"        = network_name,
-        "location_label"       = network.location_name,
-        "resource_group_label" = network.resource_group_name
+        "network_label"        = network_key,
+        "location_label"       = network.location_key,
+        "resource_group_label" = network.resource_group_key
       } : {}
     )
   }
@@ -20,7 +20,7 @@ locals {
       var.include_label_tags ? {
         "location_label"       = group.location_ref,
         "network_label"        = group.network_ref,
-        "resource_group_label" = group.resource_group_name,
+        "resource_group_label" = group.resource_group_key,
         "subnet_label"         = group.subnet_ref
       } : {}
     )
@@ -32,8 +32,8 @@ locals {
       var.tags,
       account.tags,
       var.include_label_tags ? {
-        "location_label"        = account.location_name,
-        "resource_group_label"  = account.resource_group_name,
+        "location_label"        = account.location_key,
+        "resource_group_label"  = account.resource_group_key,
         "storage_account_label" = account_name
       } : {}
     )
@@ -47,7 +47,7 @@ locals {
       var.include_label_tags ? {
         "location_label"       = table.location_ref,
         "network_label"        = table.network_ref,
-        "resource_group_label" = table.resource_group_name,
+        "resource_group_label" = table.resource_group_key,
         "subnet_label"         = table.subnet_ref
       } : {}
     )
@@ -59,21 +59,21 @@ locals {
       var.tags,
       group.tags,
       var.include_label_tags ? {
-        "location_label"       = group.location_name
+        "location_label"       = group.location_key
         "resource_group_label" = group_name
       } : {}
     )
   }
 
   key_vault_tags = {
-    for key_vault_name, key_vault in var.key_vaults :
-    key_vault_name => merge(
+    for key_vault_key, key_vault in var.key_vaults :
+    key_vault_key => merge(
       var.tags,
       key_vault.tags,
       var.include_label_tags ? {
-        "key_vault_label"      = key_vault_name
-        "location_label"       = key_vault.location_name
-        "resource_group_label" = key_vault.resource_group_name
+        "key_vault_label"      = key_vault_key
+        "location_label"       = key_vault.location_key
+        "resource_group_label" = key_vault.resource_group_key
       } : {}
     )
   }
@@ -83,10 +83,10 @@ locals {
     endpoint_name => merge(
       var.tags,
       var.include_label_tags ? {
-        "key_vault_label"      = endpoint.key_vault_name
-        "network_label"        = endpoint.network_name
-        "subnet_label"         = endpoint.subnet_name
-        "resource_group_label" = endpoint.resource_group_name
+        "key_vault_label"      = endpoint.key_vault_key
+        "network_label"        = endpoint.network_key
+        "subnet_label"         = endpoint.subnet_key
+        "resource_group_label" = endpoint.resource_group_key
       } : {}
     )
   }
@@ -96,12 +96,12 @@ locals {
     pe_name => merge(
       var.tags,
       var.include_label_tags ? {
-        "container_label"       = pe.container_name
-        "storage_account_label" = var.blob_containers[pe.container_name].storage_account_name
-        "location_label"        = var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].location_name
-        "network_label"         = pe.network_name
-        "subnet_label"          = pe.subnet_name
-        "resource_group_label"  = pe.resource_group_name
+        "container_label"       = pe.container_key
+        "storage_account_label" = var.blob_containers[pe.container_key].storage_account_key
+        "location_label"        = var.storage_accounts[var.blob_containers[pe.container_key].storage_account_key].location_key
+        "network_label"         = pe.network_key
+        "subnet_label"          = pe.subnet_key
+        "resource_group_label"  = pe.resource_group_key
       } : {}
     )
   }
@@ -111,12 +111,12 @@ locals {
     pe_name => merge(
       var.tags,
       var.include_label_tags ? {
-        "share_label"           = pe.share_name
-        "storage_account_label" = var.file_shares[pe.share_name].storage_account_name
-        "location_label"        = var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].location_name
-        "network_label"         = pe.network_name
-        "subnet_label"          = pe.subnet_name
-        "resource_group_label"  = pe.resource_group_name
+        "share_label"           = pe.share_key
+        "storage_account_label" = var.file_shares[pe.share_key].storage_account_key
+        "location_label"        = var.storage_accounts[var.file_shares[pe.share_key].storage_account_key].location_key
+        "network_label"         = pe.network_key
+        "subnet_label"          = pe.subnet_key
+        "resource_group_label"  = pe.resource_group_key
       } : {}
     )
   }
@@ -132,17 +132,17 @@ locals {
     vm_set_name => merge(
       var.tags,
       vm_set.tags,
-      var.include_label_tags && try(vm_set.maintenance.schedule_name, null) != null ? {
-        "maintenance_schedule_label" = vm_set.maintenance.schedule_name
+      var.include_label_tags && try(vm_set.maintenance.schedule_key, null) != null ? {
+        "maintenance_schedule_label" = vm_set.maintenance.schedule_key
       } : {},
-      var.include_label_tags && try(vm_set.shutdown_schedule_name, null) != null ? {
-        "shutdown_schedule_label" = vm_set.shutdown_schedule_name
+      var.include_label_tags && try(vm_set.shutdown_schedule_key, null) != null ? {
+        "shutdown_schedule_label" = vm_set.shutdown_schedule_key
       } : {},
       var.include_label_tags ? {
-        "image_label"          = vm_set.image_name
-        "key_vault_label"      = vm_set.key_vault_name
-        "location_label"       = vm_set.location_name
-        "resource_group_label" = vm_set.resource_group_name
+        "image_label"          = vm_set.image_key
+        "key_vault_label"      = vm_set.key_vault_key
+        "location_label"       = vm_set.location_key
+        "resource_group_label" = vm_set.resource_group_key
         "vm_set_label"         = vm_set_name
       } : {}
     )
@@ -154,8 +154,8 @@ locals {
       var.tags,
       vm_set.tags,
       var.include_label_tags ? {
-        "location_label"       = vm_set.location_name
-        "resource_group_label" = vm_set.resource_group_name
+        "location_label"       = vm_set.location_key
+        "resource_group_label" = vm_set.resource_group_key
         "vm_set_label"         = vm_set_name
       } : {}
     )
@@ -166,10 +166,10 @@ locals {
     config_name => merge(
       var.tags,
       var.include_label_tags ? {
-        "location_label"             = config.location_name
-        "resource_group_label"       = config.resource_group_name
+        "location_label"             = config.location_key
+        "resource_group_label"       = config.resource_group_key
         "vm_set_label"               = config.vm_set_name
-        "maintenance_schedule_label" = config.schedule_name
+        "maintenance_schedule_label" = config.schedule_key
       } : {}
     )
   }

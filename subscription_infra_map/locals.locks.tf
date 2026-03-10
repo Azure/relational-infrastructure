@@ -33,8 +33,8 @@ locals {
   }
 
   network_locked = {
-    for network_name, network in var.networks :
-    network_name => (
+    for network_key, network in var.networks :
+    network_key => (
       (length(network.lock_groups) > 0) &&
       (anytrue([
         for group in network.lock_groups :
@@ -59,8 +59,8 @@ locals {
   }
 
   resource_group_locked = {
-    for resource_group_name, resource_group in var.resource_groups :
-    resource_group_name => (
+    for resource_group_key, resource_group in var.resource_groups :
+    resource_group_key => (
       (length(resource_group.lock_groups) > 0) &&
       (anytrue([
         for lock_group in resource_group.lock_groups :
@@ -136,9 +136,9 @@ locals {
   }
 
   network_locks = {
-    for network_name, network in var.networks :
-    network_name => (
-      local.network_locked[network_name]
+    for network_key, network in var.networks :
+    network_key => (
+      local.network_locked[network_key]
       ? (
         anytrue(([
           for group_name in network.lock_groups :
@@ -172,9 +172,9 @@ locals {
   }
 
   resource_group_locks = {
-    for resource_group_name, resource_group in var.resource_groups :
-    resource_group_name => (
-      local.resource_group_locked[resource_group_name]
+    for resource_group_key, resource_group in var.resource_groups :
+    resource_group_key => (
+      local.resource_group_locked[resource_group_key]
       ? (
         anytrue(([
           for lock_group_name in resource_group.lock_groups :

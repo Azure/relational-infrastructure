@@ -30,34 +30,34 @@ These tags can be used to map physical resources deployed in Azure to logical re
 DESCRIPTION
 }
 
-variable "default_resource_group_name" {
+variable "default_resource_group_key" {
   type        = string
   nullable    = false
   description = "The name of this subscription's default resource group as defined in var.resource_groups."
 
   validation {
-    condition     = contains(keys(var.resource_groups), var.default_resource_group_name)
-    error_message = "The default_resource_group_name must exist as a key in var.resource_groups."
+    condition     = contains(keys(var.resource_groups), var.default_resource_group_key)
+    error_message = "The default_resource_group_key must exist as a key in var.resource_groups."
   }
 }
 
-variable "private_link_resource_group_name" {
+variable "private_link_resource_group_key" {
   type     = string
   default  = null
   nullable = true
 
   description = <<DESCRIPTION
 The name of this subscription's shared private link resource group as defined in var.resource_groups.
-If not provided, var.default_resource_group_name will be used.
+If not provided, var.default_resource_group_key will be used.
 DESCRIPTION
 
   validation {
     condition = (
-      var.private_link_resource_group_name == null ||
-      try(contains(keys(var.resource_groups), var.private_link_resource_group_name), false)
+      var.private_link_resource_group_key == null ||
+      try(contains(keys(var.resource_groups), var.private_link_resource_group_key), false)
     )
 
-    error_message = "If provided, the private_link_resource_group_name must exist as a key in var.resource_groups."
+    error_message = "If provided, the private_link_resource_group_key must exist as a key in var.resource_groups."
   }
 }
 
@@ -144,7 +144,7 @@ variable "maintenance_schedules" {
 variable "resource_groups" {
   type = map(object({
     name                              = optional(string, null)
-    location_name                     = optional(string, null)
+    location_key                     = optional(string, null)
     lock_groups                       = optional(list(string), [])
     tags                              = optional(map(string), {})
     include_deployment_prefix_in_name = optional(bool, true)
@@ -156,10 +156,10 @@ variable "resource_groups" {
 
   validation {
     condition = alltrue([
-      for group in values(var.resource_groups) : contains(keys(var.locations), group.location_name)
+      for group in values(var.resource_groups) : contains(keys(var.locations), group.location_key)
     ])
 
-    error_message = "All resource groups must have a location_name that exists as a key in var.locations."
+    error_message = "All resource groups must have a location_key that exists as a key in var.locations."
   }
 
   validation {
@@ -276,7 +276,7 @@ variable "external_networks" {
 variable "network_security_rules" {
   type = map(object({
     protocol   = optional(string, "*")
-    port_names = optional(set(string), null)
+    port_keys = optional(set(string), null)
 
     allow = optional(object({
       in = optional(object({
@@ -286,22 +286,22 @@ variable "network_security_rules" {
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
           }), null)
         }), null)
         from = optional(object({
-          port_names    = optional(set(string), null)
+          port_keys    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
@@ -316,22 +316,22 @@ variable "network_security_rules" {
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
           }), null)
         }), null)
         from = optional(object({
-          port_names    = optional(set(string), null)
+          port_keys    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
@@ -348,22 +348,22 @@ variable "network_security_rules" {
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
           }), null)
         }), null)
         from = optional(object({
-          port_names    = optional(set(string), null)
+          port_keys    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
@@ -378,22 +378,22 @@ variable "network_security_rules" {
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
           }), null)
         }), null)
         from = optional(object({
-          port_names    = optional(set(string), null)
+          port_keys    = optional(set(string), null)
           address_space = optional(string, null)
           network = optional(object({
             name = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
           vm_set = optional(object({
             name = string
@@ -409,8 +409,8 @@ variable "network_security_rules" {
 
 variable "networks" {
   type = map(object({
-    location_name                     = string
-    resource_group_name               = string
+    location_key                     = string
+    resource_group_key               = string
     address_space                     = optional(string, null)
     address_spaces                    = optional(set(string), null)
     lock_groups                       = optional(list(string), [])
@@ -438,11 +438,11 @@ variable "networks" {
         destined_for = object({
           address_space = optional(string, null)
           network = optional(object({
-            network_name = string
+            network_key = string
           }), null)
           subnet = optional(object({
-            network_name = string
-            subnet_name  = string
+            network_key = string
+            subnet_key  = string
           }), null)
         })
         route_name  = optional(string, null)
@@ -463,18 +463,18 @@ variable "networks" {
 
   validation {
     condition = alltrue([
-      for network in values(var.networks) : contains(keys(var.locations), network.location_name)
+      for network in values(var.networks) : contains(keys(var.locations), network.location_key)
     ])
 
-    error_message = "All networks must have a location_name that exists as a key in var.locations."
+    error_message = "All networks must have a location_key that exists as a key in var.locations."
   }
 
   validation {
     condition = alltrue([
-      for network in values(var.networks) : contains(keys(var.resource_groups), network.resource_group_name)
+      for network in values(var.networks) : contains(keys(var.resource_groups), network.resource_group_key)
     ])
 
-    error_message = "All networks must have a resource_group_name that exists as a key in var.resource_groups."
+    error_message = "All networks must have a resource_group_key that exists as a key in var.resource_groups."
   }
 
   validation {
@@ -490,9 +490,9 @@ variable "networks" {
   validation {
     condition = alltrue([
       for network in values(var.networks) : alltrue([
-        for peer_to_network_name in network.peered_to : (
-          contains(keys(var.networks), peer_to_network_name) ||
-          contains(keys(var.external_networks), peer_to_network_name)
+        for peer_to_network_key in network.peered_to : (
+          contains(keys(var.networks), peer_to_network_key) ||
+          contains(keys(var.external_networks), peer_to_network_key)
         )
       ])
     ])
@@ -504,7 +504,7 @@ variable "networks" {
 variable "private_dns_zones" {
   type = map(object({
     domain_name         = string
-    resource_group_name = string
+    resource_group_key = string
   }))
 
   default     = {}
@@ -549,18 +549,18 @@ variable "virtual_machine_shutdown_schedules" {
 
 variable "virtual_machine_sets" {
   type = map(object({
-    image_name                        = string
-    key_vault_name                    = string
-    location_name                     = string
-    resource_group_name               = string
-    subscription_name                 = string
+    image_key                        = string
+    key_vault_key                    = string
+    location_key                     = string
+    resource_group_key               = string
+    subscription_key                 = string
     deploy_scale_set                  = optional(bool, true)
     lock_groups                       = optional(list(string), [])
     name                              = string
     include_deployment_prefix_in_name = optional(bool, true)
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
-    shutdown_schedule_name            = optional(string, null)
+    shutdown_schedule_key            = optional(string, null)
     os_type                           = optional(string, "Windows")
     disk_controller_type              = optional(string, null)
     enable_boot_diagnostics           = optional(bool, false)
@@ -592,8 +592,8 @@ variable "virtual_machine_sets" {
     })))
 
     network_interfaces = map(object({
-      network_name                  = string
-      subnet_name                   = string
+      network_key                  = string
+      subnet_key                   = string
       lock_groups                   = optional(list(string), [])
       private_ip                    = optional(string, null)
       private_ip_allocation         = optional(string, "Dynamic")
@@ -601,7 +601,7 @@ variable "virtual_machine_sets" {
     }))
 
     maintenance = optional(object({
-      schedule_name = optional(string, null)
+      schedule_key = optional(string, null)
     }), {})
   }))
 
@@ -645,8 +645,8 @@ variable "virtual_machine_set_specs" {
 
 variable "storage_accounts" {
   type = map(object({
-    location_name                     = string
-    resource_group_name               = string
+    location_key                     = string
+    resource_group_key               = string
     name                              = optional(string, null)
     access_tier                       = optional(string, "Hot")
     account_tier                      = optional(string, "Standard")
@@ -665,7 +665,7 @@ variable "storage_accounts" {
 
 variable "blob_containers" {
   type = map(object({
-    storage_account_name         = string
+    storage_account_key         = string
     name                         = string
     enable_public_network_access = optional(bool, false)
   }))
@@ -677,7 +677,7 @@ variable "blob_containers" {
 
 variable "file_shares" {
   type = map(object({
-    storage_account_name = string
+    storage_account_key = string
     name                 = string
     quota_gb             = number
     access_tier          = optional(string, "Hot")
@@ -691,9 +691,9 @@ variable "file_shares" {
 
 variable "key_vaults" {
   type = map(object({
-    location_name                     = string
+    location_key                     = string
     name                              = optional(string, null)
-    resource_group_name               = string
+    resource_group_key               = string
     lock_groups                       = optional(list(string), [])
     include_deployment_prefix_in_name = optional(bool, true)
     sku_name                          = optional(string, "standard")
@@ -813,7 +813,7 @@ variable "key_vaults" {
       private_service_connection_name         = optional(string, null)
       network_interface_name                  = optional(string, null)
       location                                = optional(string, null)
-      resource_group_name                     = optional(string, null)
+      resource_group_key                     = optional(string, null)
       ip_configurations = optional(map(object({
         name               = string
         private_ip_address = string
@@ -866,10 +866,10 @@ variable "key_vaults" {
 variable "private_endpoints" {
   type = object({
     key_vaults = optional(map(object({
-      network_name                      = string
-      subnet_name                       = string
-      key_vault_name                    = string
-      resource_group_name               = string
+      network_key                      = string
+      subnet_key                       = string
+      key_vault_key                    = string
+      resource_group_key               = string
       lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)
@@ -884,10 +884,10 @@ variable "private_endpoints" {
     })), {})
 
     blob_containers = optional(map(object({
-      container_name                    = string
-      network_name                      = string
-      subnet_name                       = string
-      resource_group_name               = string
+      container_key                    = string
+      network_key                      = string
+      subnet_key                       = string
+      resource_group_key               = string
       lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)
@@ -903,10 +903,10 @@ variable "private_endpoints" {
     })), {})
 
     file_shares = optional(map(object({
-      share_name                        = string
-      network_name                      = string
-      subnet_name                       = string
-      resource_group_name               = string
+      share_key                        = string
+      network_key                      = string
+      subnet_key                       = string
+      resource_group_key               = string
       lock_groups                       = optional(list(string), [])
       private_ip                        = optional(string, null)
       name                              = optional(string, null)

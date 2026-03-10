@@ -1,10 +1,10 @@
 locals {
   network_names = {
-    for network_name, network in var.networks
-    : network_name => (
+    for network_key, network in var.networks
+    : network_key => (
       replace(
         network.name == null
-        ? "${var.deployment_prefix}-${network_name}-vnet"
+        ? "${var.deployment_prefix}-${network_key}-vnet"
         : (
           network.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${network.name}"
@@ -35,13 +35,13 @@ locals {
   }
 
   security_group_names = {
-    for network_name, network in var.networks
-    : network_name => {
-      for subnet_name, subnet in network.subnets
-      : subnet_name => (
+    for network_key, network in var.networks
+    : network_key => {
+      for subnet_key, subnet in network.subnets
+      : subnet_key => (
         replace(
           subnet.security_group_name == null
-          ? "${var.deployment_prefix}-${network_name}-${subnet_name}-nsg"
+          ? "${var.deployment_prefix}-${network_key}-${subnet_key}-nsg"
           : (
             network.include_deployment_prefix_in_name
             ? "${var.deployment_prefix}-${subnet.security_group_name}"
@@ -54,13 +54,13 @@ locals {
   }
 
   route_table_names = {
-    for network_name, network in var.networks
-    : network_name => {
-      for subnet_name, subnet in network.subnets
-      : subnet_name => (
+    for network_key, network in var.networks
+    : network_key => {
+      for subnet_key, subnet in network.subnets
+      : subnet_key => (
         replace(
           subnet.route_table_name == null
-          ? "${var.deployment_prefix}-${network_name}-${subnet_name}-rt"
+          ? "${var.deployment_prefix}-${network_key}-${subnet_key}-rt"
           : (
             network.include_deployment_prefix_in_name
             ? "${var.deployment_prefix}-${subnet.route_table_name}"
@@ -109,11 +109,11 @@ locals {
   }
 
   blob_storage_private_link_names = {
-    for network_name, network in var.networks
-    : network_name => (
+    for network_key, network in var.networks
+    : network_key => (
       replace(
         network.name == null
-        ? "${var.deployment_prefix}-${network_name}-st-blob-pl"
+        ? "${var.deployment_prefix}-${network_key}-st-blob-pl"
         : (
           network.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${network.name}-st-blob-pl"
@@ -125,11 +125,11 @@ locals {
   }
 
   file_share_private_link_names = {
-    for network_name, network in var.networks
-    : network_name => (
+    for network_key, network in var.networks
+    : network_key => (
       replace(
         network.name == null
-        ? "${var.deployment_prefix}-${network_name}-st-share-pl"
+        ? "${var.deployment_prefix}-${network_key}-st-share-pl"
         : (
           network.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${network.name}-st-share-pl"
@@ -141,11 +141,11 @@ locals {
   }
 
   key_vault_private_link_names = {
-    for network_name, network in var.networks
-    : network_name => (
+    for network_key, network in var.networks
+    : network_key => (
       replace(
         network.name == null
-        ? "${var.deployment_prefix}-${network_name}-kv-pl"
+        ? "${var.deployment_prefix}-${network_key}-kv-pl"
         : (
           network.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${network.name}-kv-pl"

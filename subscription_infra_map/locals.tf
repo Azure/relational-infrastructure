@@ -4,9 +4,9 @@ locals {
 
   default_location = values(var.locations)[0]
 
-  private_link_resource_group_name = coalesce(
-    var.private_link_resource_group_name,
-    var.default_resource_group_name
+  private_link_resource_group_key = coalesce(
+    var.private_link_resource_group_key,
+    var.default_resource_group_key
   )
 
   locked_groups = {

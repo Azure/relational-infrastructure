@@ -32,19 +32,19 @@ module "az_subscription_2_infra_map" {
     } : {}
   )
 
-  default_resource_group_name      = local.subscriptions_by_slot[local._s2].default_resource_group_name
-  private_link_resource_group_name = local.subscriptions_by_slot[local._s2].private_link_resource_group_name
+  default_resource_group_key      = local.subscriptions_by_slot[local._s2].default_resource_group_key
+  private_link_resource_group_key = local.subscriptions_by_slot[local._s2].private_link_resource_group_key
 
   external_networks = {
-    for network_name, network in var.external_networks
-    : network_name => {
+    for network_key, network in var.external_networks
+    : network_key => {
       address_space  = network.address_space
       address_spaces = network.address_spaces
       resource_id    = network.resource_id
 
       subnets = {
-        for subnet_name, subnet in network.subnets
-        : subnet_name => {
+        for subnet_key, subnet in network.subnets
+        : subnet_key => {
           address_space = subnet.address_space
         }
       }
@@ -52,10 +52,10 @@ module "az_subscription_2_infra_map" {
   }
 
   networks = {
-    for network_name, network in var.networks
-    : network_name => {
-      location_name                     = network.location_name
-      resource_group_name               = network.resource_group_name
+    for network_key, network in var.networks
+    : network_key => {
+      location_key                     = network.location_key
+      resource_group_key               = network.resource_group_key
       address_space                     = network.address_space
       address_spaces                    = network.address_spaces
       name                              = network.name
@@ -66,76 +66,76 @@ module "az_subscription_2_infra_map" {
       include_deployment_prefix_in_name = network.include_deployment_prefix_in_name
       private_dns_zones                 = network.private_dns_zones
     }
-    if local.subscription_slots[network.subscription_name] == local._s2
+    if local.subscription_slots[network.subscription_key] == local._s2
   }
 
   private_dns_zones = {
     for dns_zone_name, dns_zone in var.private_dns_zones : dns_zone_name => dns_zone
-    if local.subscription_slots[dns_zone.subscription_name] == local._s2
+    if local.subscription_slots[dns_zone.subscription_key] == local._s2
   }
 
   resource_groups = {
     for group_name, group in var.resource_groups
     : group_name => group
-    if local.subscription_slots[group.subscription_name] == local._s2
+    if local.subscription_slots[group.subscription_key] == local._s2
   }
 
   storage_accounts = {
     for account_name, account in var.storage_accounts
     : account_name => account
-    if local.subscription_slots[account.subscription_name] == local._s2
+    if local.subscription_slots[account.subscription_key] == local._s2
   }
 
   blob_containers = {
-    for container_name, container in var.blob_containers
-    : container_name => container
-    if local.subscription_slots[var.storage_accounts[container.storage_account_name].subscription_name] == local._s2
+    for container_key, container in var.blob_containers
+    : container_key => container
+    if local.subscription_slots[var.storage_accounts[container.storage_account_key].subscription_key] == local._s2
   }
 
   file_shares = {
-    for share_name, share in var.file_shares
-    : share_name => share
-    if local.subscription_slots[var.storage_accounts[share.storage_account_name].subscription_name] == local._s2
+    for share_key, share in var.file_shares
+    : share_key => share
+    if local.subscription_slots[var.storage_accounts[share.storage_account_key].subscription_key] == local._s2
   }
 
   virtual_machine_sets = {
     for vm_set_name, vm_set in var.virtual_machine_sets
     : vm_set_name => vm_set
-    if local.subscription_slots[vm_set.subscription_name] == local._s2
+    if local.subscription_slots[vm_set.subscription_key] == local._s2
   }
 
   virtual_machine_set_specs = {
     for vm_set_name, vm_set_specs in var.virtual_machine_set_specs
     : vm_set_name => vm_set_specs
-    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s2
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_key], null) == local._s2
   }
 
   virtual_machine_set_zone_distribution = {
     for vm_set_name, vm_set_zones in var.virtual_machine_set_zone_distribution
     : vm_set_name => vm_set_zones
-    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_name], null) == local._s2
+    if try(local.subscription_slots[var.virtual_machine_sets[vm_set_name].subscription_key], null) == local._s2
   }
 
   key_vaults = {
-    for key_vault_name, key_vault in var.key_vaults
-    : key_vault_name => key_vault
-    if local.subscription_slots[key_vault.subscription_name] == local._s2
+    for key_vault_key, key_vault in var.key_vaults
+    : key_vault_key => key_vault
+    if local.subscription_slots[key_vault.subscription_key] == local._s2
   }
 
   private_endpoints = {
     key_vaults = {
       for pe_name, pe in var.private_endpoints.key_vaults : pe_name => pe
-      if local.subscription_slots[var.key_vaults[pe.key_vault_name].subscription_name] == local._s2
+      if local.subscription_slots[var.key_vaults[pe.key_vault_key].subscription_key] == local._s2
     }
 
     blob_containers = {
       for pe_name, pe in var.private_endpoints.blob_containers : pe_name => pe
-      if local.subscription_slots[var.storage_accounts[var.blob_containers[pe.container_name].storage_account_name].subscription_name] == local._s2
+      if local.subscription_slots[var.storage_accounts[var.blob_containers[pe.container_key].storage_account_key].subscription_key] == local._s2
     }
 
     file_shares = {
       for pe_name, pe in var.private_endpoints.file_shares : pe_name => pe
-      if local.subscription_slots[var.storage_accounts[var.file_shares[pe.share_name].storage_account_name].subscription_name] == local._s2
+      if local.subscription_slots[var.storage_accounts[var.file_shares[pe.share_key].storage_account_key].subscription_key] == local._s2
     }
   }
 }
@@ -148,16 +148,16 @@ resource "azurerm_virtual_network_peering" "az_subscription_2_peerings" {
           key                    = "peer-${from_name}-to-${to_name}"
           from_name              = from_name
           to_name                = to_name
-          from_subscription_name = from_network.subscription_name
+          from_subscription_name = from_network.subscription_key
         }
-        if from_network.subscription_name == try(local.subscription_names_by_slot[local._s2], null)
+        if from_network.subscription_key == try(local.subscription_names_by_slot[local._s2], null)
       ]
     ]) : pair.key => pair
   }
 
   provider             = azurerm.az_subscription_2
   name                 = each.key
-  resource_group_name  = try(module.az_subscription_2_infra_map[0].resource_groups[var.networks[each.value.from_name].resource_group_name].resource_name, null)
+  resource_group_key  = try(module.az_subscription_2_infra_map[0].resource_groups[var.networks[each.value.from_name].resource_group_key].resource_name, null)
   virtual_network_name = try(module.az_subscription_2_infra_map[0].networks[each.value.from_name].resource_name, null)
 
   remote_virtual_network_id = try(

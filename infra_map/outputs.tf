@@ -18,7 +18,7 @@ output "resource_groups" {
 
 output "networks" {
   value = {
-    for network_name, network in merge(
+    for network_key, network in merge(
       try(module.az_subscription_1_infra_map[0].networks, {}),
       try(module.az_subscription_2_infra_map[0].networks, {}),
       try(module.az_subscription_3_infra_map[0].networks, {}),
@@ -30,14 +30,14 @@ output "networks" {
       try(module.az_subscription_9_infra_map[0].networks, {}),
       try(module.az_subscription_10_infra_map[0].networks, {})
     ) :
-    network_name => network
+    network_key => network
   }
 }
 
 output "ddos_protection_plans" {
   value = {
-    for subscription_name, subscription in var.subscriptions :
-    subscription_name => local.ddos_protection_plans_by_subscription[local.subscription_slots[subscription_name]]
+    for subscription_key, subscription in var.subscriptions :
+    subscription_key => local.ddos_protection_plans_by_subscription[local.subscription_slots[subscription_key]]
   }
 }
 

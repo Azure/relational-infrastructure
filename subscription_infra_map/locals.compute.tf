@@ -47,8 +47,8 @@ locals {
   }
 
   maintenance_schedule_recurrence = {
-    for schedule_name, schedule in var.maintenance_schedules :
-    schedule_name => (
+    for schedule_key, schedule in var.maintenance_schedules :
+    schedule_key => (
       schedule.repeat_every.day
       ? "Day"
       : (
@@ -72,10 +72,10 @@ locals {
   }
 
   maintenance_schedules = {
-    for schedule_name, schedule in var.maintenance_schedules :
-    schedule_name => {
+    for schedule_key, schedule in var.maintenance_schedules :
+    schedule_key => {
       duration        = schedule.duration
-      recur_every     = local.maintenance_schedule_recurrence[schedule_name]
+      recur_every     = local.maintenance_schedule_recurrence[schedule_key]
       start_date_time = schedule.start_date_time_utc
       time_zone       = "UTC"
 
@@ -90,13 +90,13 @@ locals {
   vm_set_maintenance_configurations = {
     for vm_set_name, vm_set in var.virtual_machine_sets :
     vm_set_name => {
-      schedule            = local.maintenance_schedules[vm_set.maintenance.schedule_name]
+      schedule            = local.maintenance_schedules[vm_set.maintenance.schedule_key]
       scope               = "InGuestPatch"
-      location_name       = vm_set.location_name
-      resource_group_name = vm_set.resource_group_name
-      schedule_name       = vm_set.maintenance.schedule_name
+      location_key       = vm_set.location_key
+      resource_group_key = vm_set.resource_group_key
+      schedule_key       = vm_set.maintenance.schedule_key
       vm_set_name         = vm_set_name
-    } if try(vm_set.maintenance.schedule_name, null) != null
+    } if try(vm_set.maintenance.schedule_key, null) != null
   }
 
   vm_set_shutdown_schedules = {
@@ -108,6 +108,6 @@ locals {
         timezone              = sched_config.timezone
         notification_settings = sched_config.notification_settings
       }
-    } if try(vm_set.shutdown_schedule_name, null) != null
+    } if try(vm_set.shutdown_schedule_key, null) != null
   }
 }

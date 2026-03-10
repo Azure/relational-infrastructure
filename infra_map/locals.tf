@@ -4,8 +4,8 @@ locals {
   # by Terraform's requirement that module provider configuration be static.
 
   subscriptions_by_slot = {
-    for subscription_name, subscription in var.subscriptions :
-    local.subscription_slots[subscription_name] => subscription
+    for subscription_key, subscription in var.subscriptions :
+    local.subscription_slots[subscription_key] => subscription
   }
 
   default_subscription_id = values(var.subscriptions)[0].subscription_id
@@ -63,13 +63,13 @@ locals {
   }
 
   external_networks = {
-    for network_name, network in merge(var.networks, var.external_networks)
-    : network_name => {
+    for network_key, network in merge(var.networks, var.external_networks)
+    : network_key => {
       address_space = network.address_space
 
       subnets = {
-        for subnet_name, subnet in network.subnets
-        : subnet_name => {
+        for subnet_key, subnet in network.subnets
+        : subnet_key => {
           address_space = subnet.address_space
         }
       }

@@ -3,11 +3,11 @@ locals {
     for table in flatten([
       for network_ref, network in local.networks : [
         for subnet_ref, subnet in network.subnets : {
-          location_ref        = network.location_name
+          location_ref        = network.location_key
           network_ref         = network_ref
           subnet_ref          = subnet_ref
           name                = local.route_table_names[network_ref][subnet_ref]
-          resource_group_name = network.resource_group_name
+          resource_group_key = network.resource_group_key
           tags                = network.tags
           lock                = network.lock
 
@@ -19,8 +19,8 @@ locals {
                 route.destined_for.address_space != null ?
                 route.destined_for.address_space : (
                   route.destined_for.network != null ?
-                  local.network_address_spaces[route.destined_for.network.network_name].address_space :
-                  local.network_address_spaces[route.destined_for.subnet.network_name].subnets[route.destined_for.subnet.subnet_name].address_space
+                  local.network_address_spaces[route.destined_for.network.network_key].address_space :
+                  local.network_address_spaces[route.destined_for.subnet.network_key].subnets[route.destined_for.subnet.subnet_key].address_space
                 )
               )
 

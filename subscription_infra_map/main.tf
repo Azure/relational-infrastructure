@@ -1,11 +1,12 @@
 module "resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version  = "0.2.2"
   for_each = var.resource_groups
 
   location = (
-    each.value.location_name == null
+    each.value.location_key == null
     ? values(var.locations)[0]
-    : var.locations[each.value.location_name]
+    : var.locations[each.value.location_key]
   )
 
   name = local.resource_group_names[each.key]
@@ -35,27 +36,30 @@ module "resource_groups" {
 }
 
 module "ddos_protection_plan" {
-  source = "Azure/avm-res-network-ddosprotectionplan/azurerm"
-  count  = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
+  source  = "Azure/avm-res-network-ddosprotectionplan/azurerm"
+  version = "0.3.0"
+  count   = anytrue(values(var.networks)[*].enable_ddos_protection) ? 1 : 0
 
   location            = values(var.locations)[0]
   name                = "${var.deployment_prefix}-ddosplan"
-  resource_group_name = module.resource_groups[var.default_resource_group_name].name
+  resource_group_name = module.resource_groups[var.default_resource_group_key].name
 }
 
 data "azurerm_client_config" "current" {}
 
 module "naming" {
-  source = "Azure/naming/azurerm"
+  source  = "Azure/naming/azurerm"
+  version = "0.4.3"
 }
 
 module "storage_accounts" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
+  version  = "0.6.7"
   for_each = var.storage_accounts
 
-  location                   = var.locations[each.value.location_name]
+  location                   = var.locations[each.value.location_key]
   name                       = local.storage_account_names[each.key]
-  resource_group_name        = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name        = module.resource_groups[each.value.resource_group_key].name
   tags                       = local.storage_account_tags[each.key]
   access_tier                = each.value.access_tier
   account_tier               = each.value.account_tier
@@ -85,36 +89,36 @@ module "storage_accounts" {
   )
 
   containers = {
-    for container_name, container in var.blob_containers :
-    container_name => {
+    for container_key, container in var.blob_containers :
+    container_key => {
       name = container.name
 
       public_access = (
         container.enable_public_network_access
         ? "Blob" : "None"
       )
-    } if container.storage_account_name == each.key
+    } if container.storage_account_key == each.key
   }
 
   shares = {
-    for share_name, share in var.file_shares :
-    share_name => {
+    for share_key, share in var.file_shares :
+    share_key => {
       name             = share.name
       quota            = share.quota_gb
       access_tier      = share.access_tier
       enabled_protocol = share.protocol
-    } if share.storage_account_name == each.key
+    } if share.storage_account_key == each.key
   }
 }
 
 #Create the Keyvaults
 module "key_vaults" {
-  source = "Azure/avm-res-keyvault-vault/azurerm"
-  # version = "0.10.0"
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.2"
   for_each = { for name, kv in var.key_vaults : name => kv if kv != null }
 
-  location            = var.locations[each.value.location_name]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  location            = var.locations[each.value.location_key]
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
 
   name = local.key_vault_names[each.key]
 
@@ -186,126 +190,35 @@ module "key_vaults" {
   tags = local.key_vault_tags[each.key]
 }
 
-resource "azurerm_private_dns_zone" "private_dns_zones" {
+# Private DNS Zones using AVM module
+module "private_dns_zones" {
+  source   = "Azure/avm-res-network-privatednszone/azurerm"
+  version  = "0.5.0"
   for_each = var.private_dns_zones
 
-  name                = each.value.domain_name
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  tags                = merge(var.tags, { "zone_name" = each.key })
+  domain_name = each.value.domain_name
+  parent_id   = module.resource_groups[each.value.resource_group_key].resource_id
+  tags        = merge(var.tags, { "zone_name" = each.key })
+
+  # Virtual network links (both registration and resolution)
+  virtual_network_links = {
+    for link_key, link in local.dns_zone_virtual_network_links[each.key] :
+    link_key => {
+      name                 = link.name
+      virtual_network_id   = link.virtual_network_id
+      registration_enabled = link.registration_enabled
+    }
+  }
 }
-
-resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_registration_zone_vnet_links" {
-  for_each = local.registration_dns_zones
-
-  name                  = "${each.key}_registration_link_to_${each.value.zone_config.domain_name}"
-  resource_group_name   = module.resource_groups[each.value.zone_config.resource_group_name].name
-  private_dns_zone_name = each.value.zone_config.domain_name
-  virtual_network_id    = module.networks[each.key].resource_id
-  registration_enabled  = true
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_resolution_zone_vnet_links" {
-  for_each = local.resolution_dns_zones
-
-  name                  = "${each.value.network_name}_resolution_link_to_${each.value.zone_config.domain_name}"
-  resource_group_name   = module.resource_groups[each.value.zone_config.resource_group_name].name
-  private_dns_zone_name = each.value.zone_config.domain_name
-  virtual_network_id    = module.networks[each.value.network_name].resource_id
-  registration_enabled  = false
-}
-
-# resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_registration_zone_vnet_links" {
-#   for_each = {
-#     for network_name, network in var.networks : network_name => name
-#     if try(local.network_private_dns_registration_zone_names[network_name], null) != null
-#   }
-
-#   name                  = "baloney"
-#   resource_group_name   = module.resource_groups[local.network_private_dns_registration_zones[each.key].resource_group_name].name
-#   private_dns_zone_name = local.network_private_dns_registration_zones[each.key].domain_name
-#   virtual_network_id    = module.networks[network_name].resource_id
-#   registration_enabled  = true
-# }
-
-
-# for group in flatten([
-#       for network_ref, network in local.networks : [
-#         for subnet_ref, subnet in network.subnets : {
-#           location_ref        = network.location_name
-#           network_ref         = network_ref
-#           subnet_ref          = subnet_ref
-#           subnet_name         = subnet.name
-#           name                = local.security_group_names[network_ref][subnet_ref]
-#           resource_group_name = network.resource_group_name
-#           tags                = network.tags
-#           lock                = network.lock
-
-#           security_rules = {
-#             for rule_index, rule_name in subnet.security_rules : rule_name => {
-#               priority = (100 + rule_index)
-#               config   = local.security_rules[rule_name]
-#             }
-#           }
-
-#         } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-#       ] if network != null
-#     ]) : "${group.network_ref}_${group.subnet_ref}" => group
-#   })
-
-# resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_resolution_zone_vnet_links" {
-#   for_each = {
-#     for pair in flatten([
-#       for network_name, network in var.networks : [
-#         for zone_name in concat(
-#           compact([try(network.private_dns_zones.resolution.zone_name, null)]),
-#           try(network.private_dns_zones.resolution.zone_names, [])
-#         ) : {
-#           network_name = network_name
-#           zone_name = zone_name
-#         }
-#       ]
-#     ])
-#   }
-
-#   name = "baloney"
-#   resource_group_name = module.resource_groups[var.private_dns_zones]
-# }
-
-# resource "azurerm_virtual_network_peering" "az_subscription_1_peerings" {
-#   for_each = {
-#     for pair in flatten([
-#       for from_name, from_network in var.networks : [
-#         for to_name in from_network.peered_to : {
-#           key                    = "peer-${from_name}-to-${to_name}"
-#           from_name              = from_name
-#           to_name                = to_name
-#           from_subscription_name = from_network.subscription_name
-#         }
-#         if from_network.subscription_name == try(local.subscription_names_by_slot[local._s1], null)
-#       ]
-#     ]) : pair.key => pair
-#   }
-
-
-# Create Virtual Network Links for all networks that need to resolve the private endpoint
-# resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_vnet_links" {
-#   for_each = local.networks
-
-#   name                  = local.key_vault_private_link_names[each.key]
-#   resource_group_name   = module.resource_groups[local.private_link_resource_group_name].name
-#   private_dns_zone_name = azurerm_private_dns_zone.keyvault_dns_zone.name
-#   virtual_network_id    = module.networks[each.key].resource_id
-#   registration_enabled  = false
-#   tags                  = merge(var.tags, { network_name = each.value.name })
-# }
 
 # Private Endpoints for Azure services
 module "private_endpoints" {
   source   = "Azure/avm-res-network-privateendpoint/azurerm"
+  version  = "0.2.0"
   for_each = local.all_private_endpoints
 
   name                           = local.all_private_endpoint_names[each.key]
-  resource_group_name            = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name            = module.resource_groups[each.value.resource_group_key].name
   location                       = each.value.location
   subnet_resource_id             = each.value.subnet_resource_id
   private_connection_resource_id = each.value.private_connection_resource_id
@@ -331,12 +244,13 @@ module "private_endpoints" {
 
 module "networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version  = "0.17.1"
   for_each = local.networks
 
   name                = each.value.name
-  location            = var.locations[each.value.location_name]
+  location            = var.locations[each.value.location_key]
   address_space       = each.value.address_spaces
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  parent_id = module.resource_groups[each.value.resource_group_key].resource_id
   tags                = local.network_tags[each.key]
 
   ddos_protection_plan = (
@@ -355,20 +269,20 @@ module "networks" {
   }
 
   subnets = {
-    for subnet_name, subnet in each.value.subnets :
-    subnet_name => {
-      name             = coalesce(subnet.name, subnet_name)
+    for subnet_key, subnet in each.value.subnets :
+    subnet_key => {
+      name             = coalesce(subnet.name, subnet_key)
       address_prefixes = [subnet.address_space]
 
       network_security_group = (
-        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
-        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
+        contains(keys(local.network_security_groups), "${each.key}_${subnet_key}")
+        ? { id = module.network_security_groups["${each.key}_${subnet_key}"].resource_id }
         : null
       )
 
       route_table = (
-        contains(keys(local.route_tables), "${each.key}_${subnet_name}")
-        ? { id = module.route_tables["${each.key}_${subnet_name}"].resource_id }
+        contains(keys(local.route_tables), "${each.key}_${subnet_key}")
+        ? { id = module.route_tables["${each.key}_${subnet_key}"].resource_id }
         : null
       )
     }
@@ -377,11 +291,12 @@ module "networks" {
 
 module "route_tables" {
   source   = "Azure/avm-res-network-routetable/azurerm"
+  version  = "0.5.0"
   for_each = local.route_tables
 
   location            = var.locations[each.value.location_ref]
   name                = local.route_table_names[each.value.network_ref][each.value.subnet_ref]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
   lock                = each.value.lock
   tags                = local.network_tags[each.value.network_ref]
 
@@ -399,7 +314,7 @@ resource "azurerm_monitor_activity_log_alert" "route_table_activity_log_alerts" 
   for_each = local.route_tables
 
   name                = "${local.route_table_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
   location            = "global"
   scopes              = [module.route_tables[each.key].resource_id]
   tags                = local.network_tags[each.value.network_ref]
@@ -414,11 +329,12 @@ resource "azurerm_monitor_activity_log_alert" "route_table_activity_log_alerts" 
 
 module "network_security_groups" {
   source   = "Azure/avm-res-network-networksecuritygroup/azurerm"
+  version  = "0.5.1"
   for_each = local.network_security_groups
 
   location            = var.locations[each.value.location_ref]
   name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
   lock                = each.value.lock
   tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
 
@@ -472,7 +388,7 @@ resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_l
   for_each = local.network_security_groups
 
   name                = "${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
   location            = "global"
   scopes              = [module.network_security_groups[each.key].resource_id]
   tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
@@ -485,32 +401,36 @@ resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_l
   }
 }
 
-# Disabled temporarily due to https://github.com/Azure/terraform-azurerm-avm-ptn-hubnetworking/issues/109.
+# VNet Peering using AVM submodule
+module "vnet_peerings" {
+  source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
+  version  = "0.17.1"
+  for_each = local.vnet_peerings
 
-# resource "azurerm_virtual_network_peering" "peerings" {
-#  for_each = tomap({
-#    for peering in flatten([
-#      for from_network_name, from_network in var.networks : [
-#        for to_network_name in from_network.peered_to : {
-#          peer_from_network_name = from_network_name
-#          peer_to_network_name   = to_network_name
-#        }
-#      ]
-#    ]) : "peer-${peering.peer_from_network_name}-to-${peering.peer_to_network_name}" => peering
-#  })
-#
-#  name                      = each.key
-#  resource_group_name       = local.networks[each.value.peer_from_network_name].resource_group_name
-#  virtual_network_name      = module.networks.virtual_networks[each.value.peer_from_network_name].name
-#  remote_virtual_network_id = module.networks.virtual_networks[each.value.peer_to_network_name].id
-# }
+  name                      = each.value.name
+  parent_id                 = each.value.local_vnet_id
+  remote_virtual_network_id = each.value.remote_vnet_id
+
+  allow_forwarded_traffic      = each.value.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.allow_gateway_transit
+  allow_virtual_network_access = each.value.allow_virtual_network_access
+  use_remote_gateways          = each.value.use_remote_gateways
+
+  # Create reverse peering only for internal-to-internal peerings
+  create_reverse_peering               = each.value.create_reverse_peering
+  reverse_name                         = each.value.reverse_name
+  reverse_allow_forwarded_traffic      = each.value.reverse_allow_forwarded_traffic
+  reverse_allow_gateway_transit        = each.value.reverse_allow_gateway_transit
+  reverse_allow_virtual_network_access = each.value.reverse_allow_virtual_network_access
+  reverse_use_remote_gateways          = each.value.reverse_use_remote_gateways
+}
 
 resource "azurerm_application_security_group" "application_security_group" {
   for_each = { for name, vm_set in var.virtual_machine_sets : name => vm_set if vm_set != null }
 
   name                = local.virtual_machine_set_asg_names[each.key]
-  location            = var.locations[each.value.location_name]
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  location            = var.locations[each.value.location_key]
+  resource_group_name = module.resource_groups[each.value.resource_group_key].name
   tags                = local.virtual_machine_set_asg_tags[each.key]
 }
 
@@ -524,9 +444,9 @@ module "virtual_machine_sets" {
     azurerm_application_security_group.application_security_group
   ]
 
-  location                                      = var.locations[each.value.location_name]
-  resource_group_name                           = module.resource_groups[each.value.resource_group_name].name
-  resource_group_id                             = module.resource_groups[each.value.resource_group_name].resource_id
+  location                                      = var.locations[each.value.location_key]
+  resource_group_name                           = module.resource_groups[each.value.resource_group_key].name
+  resource_group_id                             = module.resource_groups[each.value.resource_group_key].resource_id
   resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
   deploy_scale_set                              = each.value.deploy_scale_set
@@ -536,7 +456,7 @@ module "virtual_machine_sets" {
   enable_vm_system_assigned_identity            = var.enable_vm_system_assigned_identity
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
-  virtual_machine_image                         = var.virtual_machine_images[each.value.image_name]
+  virtual_machine_image                         = var.virtual_machine_images[each.value.image_key]
   virtual_machine_os_type                       = each.value.os_type
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
@@ -550,12 +470,12 @@ module "virtual_machine_sets" {
   )
 
   maintenance_configuration = (
-    try(each.value.maintenance.schedule_name, null) == null ? null
+    try(each.value.maintenance.schedule_key, null) == null ? null
     : local.vm_set_maintenance_configurations[each.key]
   )
 
   virtual_machine_shutdown_schedule = (
-    try(each.value.shutdown_schedule_name, null) == null ? null
+    try(each.value.shutdown_schedule_key, null) == null ? null
     : local.vm_set_shutdown_schedules[each.key]
   )
 
@@ -585,7 +505,7 @@ module "virtual_machine_sets" {
   generated_secrets_key_vault_secret_config = {
     key_vault_resource_id = coalesce(
       each.value.secrets_key_vault_resource_id,
-      module.key_vaults[each.value.key_vault_name].resource_id
+      module.key_vaults[each.value.key_vault_key].resource_id
     )
 
     name                           = "vm-${replace(each.key, "/[^a-zA-Z0-9-]/", "")}-creds"
@@ -639,7 +559,7 @@ module "virtual_machine_sets" {
     for nic_name, nic in each.value.network_interfaces : nic_name => {
       private_ip                    = nic.private_ip
       enable_accelerated_networking = nic.enable_accelerated_networking
-      subnet_id                     = local.network_resource_ids[nic.network_name].subnets[nic.subnet_name].resource_id
+      subnet_id                     = local.network_resource_ids[nic.network_key].subnets[nic.subnet_key].resource_id
 
       lock_mode = (
         length([
