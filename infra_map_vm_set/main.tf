@@ -86,8 +86,9 @@ resource "azapi_update_resource" "disable_os_disk_public_network_access" {
 }
 
 module "virtual_machine_maintenance_configuration" {
-  count  = var.maintenance_configuration == null ? 0 : 1
-  source = "Azure/avm-res-maintenance-maintenanceconfiguration/azurerm"
+  count   = var.maintenance_configuration == null ? 0 : 1
+  source  = "Azure/avm-res-maintenance-maintenanceconfiguration/azurerm"
+  version = "0.1.0"
 
   location            = var.location
   name                = local.maintenance_configuration_name
