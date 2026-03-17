@@ -62,7 +62,7 @@ locals {
           : "${sa_key}-${pe.subresource_name}-pe"
         )
 
-        subresource_names  = [pe.subresource_name]
+        subresource_name  = pe.subresource_name
         subnet_resource_id = local.network_resource_ids[pe.network_key_reference].subnets[pe.subnet_key_reference].resource_id
 
         private_dns_zone_group_name = pe.private_dns_zone_group_name

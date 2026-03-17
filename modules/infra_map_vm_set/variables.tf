@@ -332,6 +332,9 @@ variable "virtual_machine_network_interfaces" {
     enable_accelerated_networking = optional(bool, true)
     lock_mode                     = optional(string, null)
     subnet_id                     = string
+
+    # Load balancer backend pool resource IDs
+    load_balancer_backend_pool_resource_ids = optional(list(string), [])
   }))
 
   description = "A map of network interfaces to create for each virtual machine."

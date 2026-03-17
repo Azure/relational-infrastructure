@@ -22,6 +22,7 @@ variable "virtual_networks" {
       name                                 = optional(string, null)
       route_table_key_reference            = optional(string, null)
       network_security_group_key_reference = optional(string, null)
+      nat_gateway_key_reference            = optional(string, null)
     }))
   }))
 
@@ -91,6 +92,19 @@ variable "virtual_networks" {
     ])
 
     error_message = "All subnets must have a network_security_group_key_reference that exists as a key in var.network_security_groups or is null."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in values(var.virtual_networks) : alltrue([
+        for subnet in values(network.subnets) : (
+          subnet.nat_gateway_key_reference == null ||
+          contains(keys(var.nat_gateways), subnet.nat_gateway_key_reference)
+        )
+      ])
+    ])
+
+    error_message = "All subnets must have a nat_gateway_key_reference that exists as a key in var.nat_gateways or is null."
   }
 }
 

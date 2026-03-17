@@ -69,6 +69,7 @@ locals {
           name                                 = lower(coalesce(subnet.name, subnet_ref))
           route_table_key_reference            = subnet.route_table_key_reference
           network_security_group_key_reference = subnet.network_security_group_key_reference
+          nat_gateway_key_reference            = subnet.nat_gateway_key_reference
         }
       }
     } if network != null
@@ -105,10 +106,10 @@ locals {
 
   # Step 2: Deduplicate internal peerings - only keep one direction per pair
   # For internal targets (both VNets managed by this module), the AVM module creates reverse peering automatically
-  # So we only need one entry per pair - keep the one where from < to alphabetically
+  # So we only need one entry per pair - keep the one where from_network_key is alphabetically first
   vnet_peering_pairs = [
     for pair in local.vnet_peering_pairs_raw : pair
-    if !pair.is_internal_target || pair.from_network_key < pair.to_network_key
+    if !pair.is_internal_target || (sort([pair.from_network_key, pair.to_network_key])[0] == pair.from_network_key)
   ]
 
   # Step 3: Build peering configurations from the deduplicated pairs
@@ -178,6 +179,12 @@ locals {
           route_table = (
             subnet.route_table_key_reference != null
             ? { id = module.route_tables[subnet.route_table_key_reference].resource_id }
+            : null
+          )
+
+          nat_gateway = (
+            subnet.nat_gateway_key_reference != null
+            ? { id = module.nat_gateways[subnet.nat_gateway_key_reference].resource_id }
             : null
           )
         }
