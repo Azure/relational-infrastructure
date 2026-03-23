@@ -42,6 +42,11 @@ output "virtual_networks" {
             resource_id   = try(module.route_tables[subnet.route_table_key_reference].resource_id, null)
             resource_name = try(module.route_tables[subnet.route_table_key_reference].name, null)
           }
+
+          nat_gateway = {
+            resource_id   = try(module.nat_gateways[subnet.nat_gateway_key_reference].resource_id, null)
+            resource_name = try(local.nat_gateway_names[subnet.nat_gateway_key_reference], null)
+          }
         }
       }
     } if network != null
@@ -125,6 +130,74 @@ output "virtual_machine_sets" {
         resource_group = vm_set.resource_group_key_reference
         key_vault      = vm_set.key_vault_key_reference
         vm_set         = vm_set_name
+      }
+    }
+  }
+}
+
+output "load_balancers" {
+  value = {
+    for lb_key, lb in var.load_balancers :
+    lb_key => {
+      resource_id   = module.load_balancers[lb_key].resource_id
+      resource_name = local.load_balancer_names[lb_key]
+      type          = lb.type
+
+      labels = {
+        load_balancer  = lb_key
+        location       = lb.location_key_reference
+        resource_group = lb.resource_group_key_reference
+      }
+
+      frontend_ip_configurations = {
+        for fe_key, fe in lb.frontend_ip_configurations :
+        fe_key => {
+          name = local.load_balancer_frontend_configs[lb_key][fe_key].name
+          public_ip = (
+            lb.type == "external"
+            ? {
+              resource_id = module.load_balancers[lb_key].azurerm_public_ip[fe_key].id
+              ip_address  = module.load_balancers[lb_key].azurerm_public_ip[fe_key].ip_address
+              fqdn        = module.load_balancers[lb_key].azurerm_public_ip[fe_key].fqdn
+            }
+            : null
+          )
+          private_ip_address = lb.type == "internal" ? fe.private_ip_address : null
+        }
+      }
+
+      backend_pools = {
+        for pool_key, pool in lb.backend_pools :
+        pool_key => {
+          resource_id = module.load_balancers[lb_key].azurerm_lb_backend_address_pool[pool_key].id
+          name        = local.load_balancer_backend_pools[lb_key][pool_key].name
+        }
+      }
+    }
+  }
+}
+
+output "nat_gateways" {
+  value = {
+    for nat_key, nat in var.nat_gateways :
+    nat_key => {
+      resource_id   = module.nat_gateways[nat_key].resource_id
+      resource_name = local.nat_gateway_names[nat_key]
+      sku_name      = nat.sku_name
+
+      labels = {
+        nat_gateway    = nat_key
+        location       = nat.location_key_reference
+        resource_group = nat.resource_group_key_reference
+      }
+
+      public_ips = {
+        for pip_key, pip in nat.public_ips :
+        pip_key => {
+          resource_id = module.nat_gateways[nat_key].public_ip_resource[pip_key].id
+          ip_address  = try(module.nat_gateways[nat_key].public_ip_resource[pip_key].ip_address, module.nat_gateways[nat_key].public_ip_resource[pip_key].properties.ipAddress, null)
+          fqdn        = try(module.nat_gateways[nat_key].public_ip_resource[pip_key].fqdn, null)
+        }
       }
     }
   }

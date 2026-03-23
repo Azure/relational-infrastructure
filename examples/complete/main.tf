@@ -5,7 +5,7 @@ module "infrastructure" {
   # Core Configuration
   # =============================================================================
   deployment_prefix              = "prod"
-  subscription_id                = "00000000-0000-0000-0000-000000000000"
+  subscription_id                = "d6a7c15c-738d-4770-84c4-5f3b4952e35f"
   default_location_key_reference = "eastus"
   default_resource_group_key_reference = "shared"
 
@@ -89,6 +89,31 @@ module "infrastructure" {
     http  = "80"
     rdp   = "3389"
     ssh   = "22"
+  }
+
+  # =============================================================================
+  # Health Probes (referenced by health_probe_key_reference in load_balancer_rules)
+  # =============================================================================
+  health_probes = {
+    https_health = {
+      protocol     = "Https"
+      port_key     = "https"
+      request_path = "/health"
+    }
+    http_health = {
+      protocol     = "Http"
+      port_key     = "http"
+      request_path = "/health"
+    }
+    https_api_health = {
+      protocol     = "Https"
+      port_key     = "https"
+      request_path = "/api/health"
+    }
+    tcp_https = {
+      protocol = "Tcp"
+      port_key = "https"
+    }
   }
 
   # =============================================================================
@@ -222,10 +247,12 @@ module "infrastructure" {
           address_space                        = "10.1.2.0/24"
           route_table_key_reference            = "default"
           network_security_group_key_reference = "app_tier"
+          nat_gateway_key_reference            = "app_natgw"
         }
         data = {
-          address_space             = "10.1.3.0/24"
-          route_table_key_reference = "default"
+          address_space                 = "10.1.3.0/24"
+          route_table_key_reference     = "default"
+          nat_gateway_key_reference     = "app_natgw"
         }
         private_endpoints = {
           address_space             = "10.1.4.0/24"
@@ -412,6 +439,14 @@ module "infrastructure" {
           network_key_reference         = "spoke_app"
           subnet_key_reference          = "web"
           enable_accelerated_networking = true
+
+          # Join web servers to external load balancer backend pool
+          load_balancer_backend_pools = [
+            {
+              load_balancer_key_reference = "web_external_lb"
+              backend_pool_key_reference  = "web_pool"
+            }
+          ]
         }
       }
 
@@ -438,6 +473,141 @@ module "infrastructure" {
           network_key_reference         = "spoke_app"
           subnet_key_reference          = "app"
           enable_accelerated_networking = true
+
+          # Join app servers to internal load balancer backend pool
+          load_balancer_backend_pools = [
+            {
+              load_balancer_key_reference = "app_internal_lb"
+              backend_pool_key_reference  = "app_pool"
+            }
+          ]
+        }
+      }
+    }
+  }
+
+  # =============================================================================
+  # Public IP Configurations (referenced by public_ip_key_reference)
+  # =============================================================================
+  public_ip_configurations = {
+    # For load balancers - DDoS protection auto-determined, uses Standard SKU
+    standard_zone_redundant = {
+      allocation_method = "Static"
+      sku               = "Standard"
+      sku_tier          = "Regional"
+      zones             = ["1", "2", "3"]
+    }
+
+    # For NAT Gateways - DDoS protection must be disabled/inherited, requires StandardV2 for NAT Gateway StandardV2
+    natgw_pip_v2 = {
+      allocation_method    = "Static"
+      ddos_protection_mode = "VirtualNetworkInherited" # NAT Gateway does not support DDoS protection
+      sku                  = "StandardV2"              # Required for NAT Gateway StandardV2 SKU
+      sku_tier             = "Regional"
+      zones                = ["1", "2", "3"]
+    }
+  }
+
+  # =============================================================================
+  # Load Balancers
+  # =============================================================================
+  load_balancers = {
+    # External load balancer for web tier
+    web_external_lb = {
+      location_key_reference       = "eastus"
+      resource_group_key_reference = "network"
+      lock_groups_key_reference    = ["production"]
+      type                         = "external"
+
+      frontend_ip_configurations = {
+        web_frontend = {
+          public_ip_key_reference = "standard_zone_redundant"
+        }
+      }
+
+      backend_pools = {
+        web_pool = {}
+      }
+    }
+
+    # Internal load balancer for app tier
+    app_internal_lb = {
+      location_key_reference       = "eastus"
+      resource_group_key_reference = "network"
+      lock_groups_key_reference    = ["production"]
+      type                         = "internal"
+
+      frontend_ip_configurations = {
+        app_frontend = {
+          network_key_reference = "spoke_app"
+          subnet_key_reference  = "app"
+          private_ip_allocation = "Dynamic"
+          zones                 = ["1", "2", "3"]
+        }
+      }
+
+      backend_pools = {
+        app_pool = {}
+      }
+    }
+  }
+
+  # =============================================================================
+  # Load Balancer Rules (uses network_ports and health_probes references)
+  # =============================================================================
+  load_balancer_rules = {
+    # HTTPS rule for web load balancer
+    web_https_rule = {
+      load_balancer_key_reference = "web_external_lb"
+      frontend_key_reference      = "web_frontend"
+      backend_pool_key_reference  = "web_pool"
+      protocol                    = "Tcp"
+      frontend_port_key           = "https"
+      backend_port_key            = "https"
+      health_probe_key_reference  = "https_health"
+    }
+
+    # HTTP rule for web load balancer
+    web_http_rule = {
+      load_balancer_key_reference = "web_external_lb"
+      frontend_key_reference      = "web_frontend"
+      backend_pool_key_reference  = "web_pool"
+      protocol                    = "Tcp"
+      frontend_port_key           = "http"
+      backend_port_key            = "http"
+      health_probe_key_reference  = "http_health"
+    }
+
+    # HTTPS rule for app load balancer
+    app_https_rule = {
+      load_balancer_key_reference = "app_internal_lb"
+      frontend_key_reference      = "app_frontend"
+      backend_pool_key_reference  = "app_pool"
+      protocol                    = "Tcp"
+      frontend_port_key           = "https"
+      backend_port_key            = "https"
+      health_probe_key_reference  = "https_api_health"
+    }
+  }
+
+  # =============================================================================
+  # NAT Gateways
+  # Provides outbound connectivity for private subnets
+  # Public IPs use public_ip_configurations (must have DDoS protection disabled)
+  # =============================================================================
+  nat_gateways = {
+    # NAT Gateway v2 for app tier outbound connectivity
+    app_natgw = {
+      location_key_reference       = "eastus"
+      resource_group_key_reference = "network"
+      lock_groups_key_reference    = ["production"]
+      sku_name                     = "StandardV2"
+      idle_timeout_in_minutes      = 10
+
+      # Create public IPs for this NAT Gateway
+      public_ips = {
+        pip1 = {
+          public_ip_key_reference = "natgw_pip_v2"
         }
       }
     }

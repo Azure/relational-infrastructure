@@ -4,6 +4,7 @@ module "virtual_machine_sets" {
 
   depends_on = [
     module.resource_groups,
+    module.load_balancers,
     azurerm_application_security_group.application_security_group
   ]
 

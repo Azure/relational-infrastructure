@@ -64,7 +64,21 @@ locals {
         disk_iops_read_write         = disk.disk_iops_read_write
         disk_encryption_set_id       = disk.disk_encryption_set_id
         tags                         = disk.tags
-        lock_mode                    = local.lock_modes[disk.lock_groups_key_reference]
+        lock_level = (
+          length([
+            for group in disk.lock_groups_key_reference :
+            group if contains(keys(local.locked_groups), group)
+          ]) > 0
+          ? (
+            anytrue([
+              for group in disk.lock_groups_key_reference :
+              contains(keys(local.locked_groups), group) && try(local.locked_groups[group].read_only, false)
+            ])
+            ? local.lock_modes.read_only
+            : local.lock_modes.no_delete
+          )
+          : null
+        )
       }
     }
   }
@@ -79,7 +93,27 @@ locals {
         private_ip                    = nic.private_ip
         enable_accelerated_networking = nic.enable_accelerated_networking
         subnet_id                     = local.network_resource_ids[nic.network_key_reference].subnets[nic.subnet_key_reference].resource_id
-        lock_mode                     = local.lock_modes[nic.lock_groups_key_reference]
+        lock_mode = (
+          length([
+            for group in nic.lock_groups_key_reference :
+            group if contains(keys(local.locked_groups), group)
+          ]) > 0
+          ? (
+            anytrue([
+              for group in nic.lock_groups_key_reference :
+              contains(keys(local.locked_groups), group) && try(local.locked_groups[group].read_only, false)
+            ])
+            ? local.lock_modes.read_only
+            : local.lock_modes.no_delete
+          )
+          : null
+        )
+
+        # Load balancer backend pool assignments
+        load_balancer_backend_pool_resource_ids = [
+          for pool in nic.load_balancer_backend_pools :
+          module.load_balancers[pool.load_balancer_key_reference].azurerm_lb_backend_address_pool[pool.backend_pool_key_reference].id
+        ]
       }
     }
   }
@@ -161,10 +195,7 @@ locals {
     vm_set_name => {
       schedule            = local.maintenance_schedules[vm_set.maintenance.schedule_key_reference]
       scope               = "InGuestPatch"
-      location_key       = vm_set.location_key_reference
-      resource_group_key = vm_set.resource_group_key_reference
-      schedule_key       = vm_set.maintenance.schedule_key_reference
-      vm_set_name         = vm_set_name
+      schedule_name       = "${vm_set_name}-maintenance"
     } if try(vm_set.maintenance.schedule_key_reference, null) != null
   }
 
@@ -177,7 +208,7 @@ locals {
         timezone              = sched_config.timezone
         notification_settings = sched_config.notification_settings
       }
-    } if try(vm_set.shutdown_schedule_key, null) != null
+    } if try(vm_set.shutdown_schedule_key_reference, null) != null
   }
 
   # =============================================================================
@@ -229,7 +260,21 @@ locals {
       )
 
       # Lock mode
-      lock_mode = local.lock_modes[vm_set.lock_groups_key_reference]
+      lock_mode = (
+        length([
+          for group in vm_set.lock_groups_key_reference :
+          group if contains(keys(local.locked_groups), group)
+        ]) > 0
+        ? (
+          anytrue([
+            for group in vm_set.lock_groups_key_reference :
+            contains(keys(local.locked_groups), group) && try(local.locked_groups[group].read_only, false)
+          ])
+          ? local.lock_modes.read_only
+          : local.lock_modes.no_delete
+        )
+        : null
+      )
 
       # Key Vault configuration for generated secrets
       key_vault_configuration = local.virtual_machine_key_vault_configs[vm_set_name]

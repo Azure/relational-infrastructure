@@ -64,6 +64,12 @@ variable "virtual_machine_sets" {
       private_ip                    = optional(string, null)
       private_ip_allocation         = optional(string, "Dynamic")
       enable_accelerated_networking = optional(bool, true)
+
+      # Load balancer backend pool memberships
+      load_balancer_backend_pools = optional(list(object({
+        load_balancer_key_reference  = string
+        backend_pool_key_reference   = string
+      })), [])
     }))
 
     maintenance = optional(object({

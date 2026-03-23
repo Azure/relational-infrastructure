@@ -1,22 +1,24 @@
 locals {
   lock_modes = {
-    no_delete = "CanNotDelete"
-    read_only = "ReadOnly"
+    no_delete   = "CanNotDelete"
+    read_only   = "ReadOnly"
+    CanNotDelete = "CanNotDelete"
+    ReadOnly     = "ReadOnly"
   }
 
   vm_lock = (
     var.lock_mode == null ? null
-    : { kind = lookup(local.lock_modes, var.lock_mode, null) }
+    : { kind = lookup(local.lock_modes, var.lock_mode, var.lock_mode) }
   )
 
   vmss_lock = (
     var.lock_mode == null ? null
-    : { kind = lookup(local.lock_modes, var.lock_mode, null) }
+    : { kind = lookup(local.lock_modes, var.lock_mode, var.lock_mode) }
   )
 
   asg_lock = (
     var.lock_mode == null ? null
-    : { kind = lookup(local.lock_modes, var.lock_mode, null) }
+    : { kind = lookup(local.lock_modes, var.lock_mode, var.lock_mode) }
   )
 
   maintenance_configuration_name = "${var.resource_prefix}-mc"
@@ -71,7 +73,7 @@ locals {
 
         lock_level = (
           var.lock_mode == null ? null
-          : { kind = lookup(local.lock_modes, var.lock_mode, null) }
+          : lookup(local.lock_modes, var.lock_mode, var.lock_mode)
         )
       }
     }
@@ -103,6 +105,14 @@ locals {
             private_ip_subnet_resource_id = nic_config.subnet_id
             private_ip_address_allocation = lookup(nic_config, "private_ip", null) == null ? "Dynamic" : "Static"
             private_ip_address            = lookup(nic_config, "private_ip", null)
+
+            # Load balancer backend pool assignments
+            load_balancer_backend_pools = {
+              for idx, pool_id in coalesce(nic_config.load_balancer_backend_pool_resource_ids, []) :
+              "pool_${idx}" => {
+                load_balancer_backend_pool_resource_id = pool_id
+              }
+            }
           }
         }
 

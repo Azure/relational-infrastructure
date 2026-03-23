@@ -25,10 +25,10 @@ locals {
     for vault_name, key_vault in var.key_vaults :
     vault_name => (
       (length(key_vault.lock_groups_key_reference) > 0) &&
-      (anytrue([
+      (length([
         for group in key_vault.lock_groups_key_reference :
         group if !contains(keys(local.unlocked_groups), group)
-      ]))
+      ]) > 0)
     )
   }
 
@@ -36,10 +36,10 @@ locals {
     for network_key, network in var.virtual_networks :
     network_key => (
       (length(network.lock_groups_key_reference) > 0) &&
-      (anytrue([
+      (length([
         for group in network.lock_groups_key_reference :
         group if !contains(keys(local.unlocked_groups), group)
-      ]))
+      ]) > 0)
     )
   }
 
@@ -47,10 +47,10 @@ locals {
     for resource_group_key, resource_group in var.resource_groups :
     resource_group_key => (
       (length(resource_group.lock_groups_key_reference) > 0) &&
-      (anytrue([
+      (length([
         for lock_group in resource_group.lock_groups_key_reference :
         lock_group if !contains(keys(local.unlocked_groups), lock_group)
-      ]))
+      ]) > 0)
     )
   }
 
@@ -58,10 +58,10 @@ locals {
     for account_name, account in var.storage_accounts :
     account_name => (
       (length(account.lock_groups_key_reference) > 0) &&
-      (anytrue([
+      (length([
         for group in account.lock_groups_key_reference :
         group if !contains(keys(local.unlocked_groups), group)
-      ]))
+      ]) > 0)
     )
   }
 
@@ -85,10 +85,10 @@ locals {
       for nic_name, nic in vm_set.network_interfaces :
       nic_name => (
         (length(nic.lock_groups_key_reference) > 0) &&
-        (anytrue([
+        (length([
           for group in nic.lock_groups_key_reference :
           group if !contains(keys(local.unlocked_groups), group)
-        ]))
+        ]) > 0)
       )
     }
   }
@@ -97,10 +97,10 @@ locals {
     for vm_set_name, vm_set in var.virtual_machine_sets :
     vm_set_name => (
       (length(vm_set.lock_groups_key_reference) > 0) &&
-      (anytrue([
+      (length([
         for group in vm_set.lock_groups_key_reference :
         group if !contains(keys(local.unlocked_groups), group)
-      ]))
+      ]) > 0)
     )
   }
 
