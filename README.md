@@ -14,12 +14,6 @@ erDiagram
   Locations ||--o{ "Role-Based VM Sets" : ""
   Locations ||--o{ "Key Vaults" : ""
   Locations ||--o{ "Storage Accounts" : ""
-  Subscriptions ||--o{ "Key Vaults" : ""
-  Subscriptions ||--o{ "Resource Groups" : ""
-  Subscriptions ||--o{ "Networks" : ""
-  Subscriptions ||--o{ "Role-Based VM Sets" : ""
-  Subscriptions ||--o{ "Storage Accounts" : ""
-  Subscriptions ||--o{ "Private DNS Zones" : ""
   "Shutdown Schedules" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Role-Based VM Sets" : ""
   "Resource Groups" ||--o{ "Key Vaults" : ""
@@ -27,11 +21,6 @@ erDiagram
   "Resource Groups" ||--o{ "Private DNS Zones" : ""
   "Private Endpoints" }o--o{ "Private DNS Zones" : ""
   "Networks" }o--o{ "Private DNS Zones" : ""
-  "Subscriptions" ||..|| "Resource Groups" : "has a default"
-  "Subscriptions" ||..|| "Resource Groups" : "has a dedicated private link"
-  "Subscriptions" ||--o{ "Networks" : ""
-  "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
-  "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
   "Subnets" }o--o{ "Security Rules" : "have"
@@ -105,36 +94,6 @@ locations = {
 > az account list-locations --query "[].name" -o tsv
 > ```
 
-### Subscriptions
-
-> Terraform variable: `var.subscriptions`
-
-> [!IMPORTANT]
-> Up to ten (10) subscriptions are supported.
-
-The `subscriptions` table organizes your [Azure subscriptions](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy), acting as a control center for grouping resources across your environment. Each subscription connects to [resource groups](#resource-groups) and Terraform providers, setting the scope for your infrastructure. In the entity-relationship diagram (ERD), `subscriptions` serves as a central hub, with one-to-many links to tables like [`resource_groups`](#resource-groups) and [`networks`](#networks), ensuring resources stay aligned.
-
-```hcl
-subscriptions = { 
-  production = {                                                  # 🔑 "production" subscription
-    default_resource_group_name      = "production"               # 🔗 Links to var.resource_groups
-    private_link_resource_group_name = "production_networks"      # 🔗 Optional; links to var.resource_groups
-    subscription_id                  = "00000000-0000..."         # Azure subscription ID (must be a GUID)
-  }
-  non_production = {                                              # 🔑 "non_production" subscription
-    default_resource_group_name      = "non_production"           # 🔗 Links to var.resource_groups    
-    private_link_resource_group_name = "non_production_networks"  # 🔗 Optional; Links to var.resource_groups
-    subscription_id                  = "10000000-0000..."         # Azure subscription ID (must be a GUID)
-  }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `default_resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups). Defines the primary resource group for the subscription. |
-| `private_link_resource_group_name` | Optional; if set, links to a key in [`var.resource_groups`](#resource-groups) for private link resources. Defaults to `default_resource_group_name` if unset. |
-| `subscription_id` | References a specific Azure subscription ID. Must be a GUID. |
-
 ### Lock Groups
 
 > Terraform variable: `var.lock_groups`
@@ -175,26 +134,24 @@ lock_groups = {
 
 > Terraform variable: `var.resource_groups`
 
-The `resource_groups` table defines the [Azure resource groups](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy) that bundle related resources together in your environment. Each resource group ties to a subscription and, optionally, a location, organizing assets like networks or VMs. In the entity-relationship diagram (ERD), `resource_groups` links one-to-one with `subscriptions` and optionally to `locations`, acting as a container for other resources.
+The `resource_groups` table defines the [Azure resource groups](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-setup-guide/organize-resources#management-levels-and-hierarchy) that bundle related resources together in your environment.
 
 ```hcl
 resource_groups = {
-  production = {                         # 🔑 "production" resource group
-    subscription_name = "production"     # 🔗 Links to var.subscriptions
-    location_name     = "primary"        # 🔗 Optional; links to var.locations
-    name              = "production"     # Resource group name in Azure
+  production = {                               # 🔑 "production" resource group
+    location_key_reference = "primary"         # 🔗 Optional; links to var.locations
+    name                   = "production"      # Resource group name in Azure
 
-    lock_groups = [
-      "production_lock"                  # 🔗 Optional; links to var.lock_groups
+    lock_groups_key_reference = [
+      "production_lock"                        # 🔗 Optional; links to var.lock_groups
     ]
   }
-  non_production = {                     # 🔑 "non_production" resource group
-    subscription_name = "non_production" # 🔗 Links to var.subscriptions
-    location_name     = "alt"            # 🔗 Optional; links to var.locations
-    name              = "non-production" # Resource group name in Azure
+  non_production = {                           # 🔑 "non_production" resource group
+    location_key_reference = "alt"             # 🔗 Optional; links to var.locations
+    name                   = "non-production"  # Resource group name in Azure
 
-    lock_groups = [
-      "non_production_lock"              # 🔗 Optional; links to var.lock_groups
+    lock_groups_key_reference = [
+      "non_production_lock"                    # 🔗 Optional; links to var.lock_groups
     ]
   }
 }
@@ -202,9 +159,8 @@ resource_groups = {
 
 | Field | Description |
 |-------|-------------|
-| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions). Defines the subscription this resource group belongs to. |
-| `location_name` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
-| `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this resource group belongs to. |
+| `location_key_reference` | Optional; if set, links to a key in [`var.locations`](#locations). Specifies the Azure region for the resource group. Defaults to the first location in `var.locations` if unset. |
+| `lock_groups_key_reference` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this resource group belongs to. |
 | `name` | The name of the resource group as it appears in Azure, used to identify it. |
 
 ### Maintenance Schedules
