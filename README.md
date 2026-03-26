@@ -283,10 +283,9 @@ The `private_dns_zones` table provisions [Azure Private DNS Zones](https://learn
 
 ```hcl
 private_dns_zones = {
-  key_vault_private_endpoints = {                            # 🔑 "key_vault_private_endpoints" DNS zone
-    domain_name         = "privatelink.vaultcore.azure.net"  # Must be a valid domain name
-    resource_group_name = "production"                       # 🔗 Links to var.resource_groups
-    subscription_name   = "production"                       # 🔗 Links to var.subscriptions
+  key_vault_private_endpoints = {                                     # 🔑 "key_vault_private_endpoints" DNS zone
+    domain_name                  = "privatelink.vaultcore.azure.net"  # Must be a valid domain name
+    resource_group_key_reference = "production"                       # 🔗 Links to var.resource_groups
   }
 }
 ```
