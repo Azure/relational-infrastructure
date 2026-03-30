@@ -2,7 +2,7 @@
 
 ## The Diagram
 
-![Hand-drawn architecture diagram](crude_network_2.png)
+![Hand-drawn architecture diagram](diagram.png)
 
 A hand-drawn sketch showing a single VNet with three subnets, VMs distributed across two explicit availability zones, port-specific NSG annotations, and a peered DR mirror deployment.
 
@@ -160,7 +160,7 @@ This example teaches a critical distinction in how gaps should be handled:
 
 ## The Output
 
-See [az_app.tfvars](../az_app.tfvars) for the complete generated file.
+See [az_app.tfvars](output.tfvars) for the complete generated file.
 
 ## What I Learned
 
