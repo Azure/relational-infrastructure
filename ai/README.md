@@ -1,8 +1,55 @@
-# Diagram to TFVARS: How-To Guide
+# From Whiteboard to Infrastructure
+
+## The Vision
+
+Picture a group of architects in a conference room. They're sketching infrastructure on a whiteboard — VNets, subnets, VMs, peering arrows, NSG rules. The ideas are flowing fast. Nobody stops to open Terraform. Nobody translates boxes into 500 lines of HCL. Nobody breaks the creative momentum to argue about resource block syntax.
+
+Instead, someone takes a picture of the whiteboard. That image is handed to an AI agent. Minutes later, there's a TFVARS file — a compact, readable, reviewable declaration of everything on that whiteboard, ready to deploy.
+
+**Sketch. Capture. Generate. Review. Deploy. Tear down. Repeat.**
+
+That's the loop. Fifteen minutes or less from whiteboard to running infrastructure. Not because the AI is perfect — it won't be — but because the relational model makes AI output *reviewable*. An architect can hold the photo in one hand and the TFVARS in the other and verify it in minutes. When the AI guesses wrong on a value, there's a `# REVIEW:` comment marking exactly where. When the AI makes a structural decision, there's an `# EXPLAIN` comment showing its reasoning.
+
+## Why This Works
+
+### The relational model changes what AI has to do
+
+Without AzRI, asking an AI to convert a diagram to Terraform means generating hundreds of lines of individual resource blocks — `azurerm_virtual_network`, `azurerm_subnet`, `azurerm_network_interface`, `azurerm_network_security_group` — each with hardcoded cross-references. That's an engineering task. It's easy to get wrong and nearly impossible for a human to review against the original diagram.
+
+With AzRI, the AI's job is reduced from **engineering** to **comprehension**. It doesn't generate resource blocks. It maps boxes and arrows to relational keys. The module handles the explosion from a handful of map entries into dozens of real Azure resources. That's a dramatically easier task for an AI to get right — and more importantly, easier for a human to catch when it's wrong.
+
+### The abstraction mirrors how architects think
+
+Architecture diagrams are relationships: "these VMs sit in this subnet," "this VNet peers to that one," "only SQL traffic enters here." AzRI's TFVARS express exactly that — nothing more. The output reads like the diagram. This is the same shift that SQL introduced for data: declare relationships, and the engine figures out the rest.
+
+### Incomplete input is a feature, not a failure
+
+Whiteboard sketches are never complete. They have no subscription IDs, no SKU sizes, no disk specs, no specific port numbers. In raw Terraform, every one of those gaps is a landmine. In AzRI, the relational model has sensible defaults, and the `# REVIEW:` / `# EXPLAIN` pattern turns gaps into a structured checklist. The diagram doesn't need to be complete — it just needs to capture *intent*.
+
+### Two types of ambiguity, two different responses
+
+Not all gaps are equal. Through testing, we found a critical distinction:
+
+| Signal in the Diagram | Type | AI Response |
+|----------------------|------|-------------|
+| Missing CIDR, port, SKU, subscription ID | **Leaf value** | Best guess + `# REVIEW:` comment |
+| "Mirror this," unclear topology, ambiguous boundaries | **Structural** | **Stop and ask the architect** |
+
+Leaf-value gaps are easy to fix — edit one line. Structural gaps cascade through the entire file. Getting them wrong means regenerating, not editing. The AI must know the difference.
+
+### The creative loop stays intact
+
+Traditional IaC workflow is hostile to flow states: diagram → stop → translate → stop → debug → stop → fix references → stop → deploy. Every transition is a rupture. By the time you've translated the whiteboard to working Terraform, the insight that drove the diagram is gone.
+
+This workflow eliminates the translation tax. The whiteboard *is* the input. The relational model *is* the interface. The AI handles the mechanical work. The architects stay in the room, stay in the zone, and review output that looks like what they just drew.
+
+---
+
+# How To: Diagram to TFVARS
 
 Turn architecture diagrams — hand-drawn, Visio, draw.io, whatever — into AzRI TFVARS files using AI. This guide covers two methods: **Visual Studio Code** (local) and **GitHub.com** (web).
 
-## How It Works
+## The Process
 
 1. You provide a diagram image (PNG, JPEG, photo of a whiteboard).
 2. AI analyzes the diagram and maps it to AzRI's relational model.
@@ -206,11 +253,11 @@ terraform plan -var-file="your_file.tfvars"
 
 Review the plan. If the topology is right but values are wrong, edit the TFVARS directly. If the topology is wrong, go back to the AI and explain what needs to change.
 
-## Example Walkthrough
+## Examples
 
 For worked examples showing the full diagram-to-TFVARS translation with detailed commentary, see:
 
-- [01_two_vnet_peered.md](01_two_vnet_peered.md) — Two peered VNets, three VM roles, broad NSG rules
-- [02_az_distributed_dr.md](02_az_distributed_dr.md) — Availability zone distribution, port-specific NSGs, DR peering
+- [examples/01_peered_vnets](examples/01_peered_vnets/) — Two peered VNets, three VM roles, broad NSG rules
+- [examples/02_distributed_app](examples/02_distributed_app/) — Availability zone distribution, port-specific NSGs, DR peering
 
-Each example includes the original hand-drawn diagram, a step-by-step explanation of how the AI interpreted it, and the final TFVARS output.
+Each example includes the original hand-drawn diagram, a step-by-step explanation of how the AI interpreted it, and the generated TFVARS output.
