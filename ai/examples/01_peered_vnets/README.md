@@ -2,7 +2,7 @@
 
 ## The Diagram
 
-![Hand-drawn architecture diagram](crude_network.png)
+![Hand-drawn architecture diagram](diagram.png)
 
 A hand-drawn sketch on paper. No tooling, no structured format — just boxes, labels, and arrows.
 
@@ -118,7 +118,7 @@ Every gap became either a `# REVIEW:` comment (for leaf values the user should c
 
 ## The Output
 
-See [app01.tfvars](../app01.tfvars) for the complete generated file.
+See [app01.tfvars](output.tfvars) for the complete generated file.
 
 ## What I Learned
 
