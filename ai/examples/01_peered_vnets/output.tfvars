@@ -8,13 +8,15 @@
 # REVIEW: Set this to your environment's deployment prefix (e.g., "app01", "dev", "prod")
 deployment_prefix = "app01"
 
+include_label_tags = true
+
 # --------------------------------------------------------------------------
 # Locations
 # --------------------------------------------------------------------------
 # EXPLAIN: The diagram doesn't specify a region. Both VNets are in the same
 # resource group, suggesting a single-region deployment. Defaulting to eastus.
 locations = {
-  primary = "eastus" # REVIEW: Change to your target Azure region
+  primary = "francecentral" # REVIEW: Change to your target Azure region
 }
 
 # --------------------------------------------------------------------------
@@ -25,7 +27,7 @@ locations = {
 subscriptions = {
   main = {
     default_resource_group_name = "app01"
-    subscription_id             = "00000000-0000-0000-0000-000000000000" # REVIEW: Replace with your Azure subscription ID
+    subscription_id             = "00363a64-55c1-4807-92a4-7dfe011d5222" # REVIEW: Replace with your Azure subscription ID
   }
 }
 

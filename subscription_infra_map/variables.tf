@@ -712,7 +712,7 @@ variable "key_vaults" {
       default_action             = optional(string, "Deny")
       ip_rules                   = optional(list(string), [])
       virtual_network_subnet_ids = optional(list(string), [])
-    }), {})
+    }), null)
 
     contacts = optional(map(object({
       email = string
