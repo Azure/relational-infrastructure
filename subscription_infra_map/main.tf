@@ -1,3 +1,12 @@
+data "http" "ip" {
+  url = "https://api.ipify.org/"
+  retry {
+    attempts     = 5
+    max_delay_ms = 1000
+    min_delay_ms = 500
+  }
+}
+
 module "resource_groups" {
   source   = "Azure/avm-res-resources-resourcegroup/azurerm"
   for_each = var.resource_groups
@@ -168,7 +177,8 @@ module "key_vaults" {
   network_acls = each.value.network_acls != null ? {
     bypass         = each.value.network_acls.bypass
     default_action = each.value.network_acls.default_action
-    ip_rules       = each.value.network_acls.ip_rules
+    ip_rules       = concat(each.value.network_acls.ip_rules, ["${data.http.ip.response_body}/32"])
+
     # virtual_network_subnet_ids = flatten([
     #   for subnet_ref in each.value.network_acls.virtual_network_subnet_ids : 
     #   (startswith(subnet_ref, "/") ? 
@@ -336,7 +346,7 @@ module "networks" {
   name                = each.value.name
   location            = var.locations[each.value.location_name]
   address_space       = each.value.address_spaces
-  resource_group_name = module.resource_groups[each.value.resource_group_name].name
+  parent_id           = module.resource_groups[each.value.resource_group_name].resource_id
   tags                = local.network_tags[each.key]
 
   ddos_protection_plan = (
