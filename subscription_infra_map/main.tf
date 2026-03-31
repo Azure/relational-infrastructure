@@ -678,6 +678,16 @@ module "virtual_machine_sets" {
     disk_size_gb         = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
     storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
   }
+
+  load_balancer = each.value.load_balancer == null ? null : merge(
+    each.value.load_balancer,
+    {
+      internal_frontend = each.value.load_balancer.internal_frontend == null ? null : {
+        subnet_id          = local.network_resource_ids[each.value.load_balancer.internal_frontend.network_name].subnets[each.value.load_balancer.internal_frontend.subnet_name].resource_id
+        private_ip_address = each.value.load_balancer.internal_frontend.private_ip_address
+      }
+    }
+  )
 }
 
 resource "azurerm_network_interface_application_security_group_association" "asg_associations" {
