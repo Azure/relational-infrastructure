@@ -10,9 +10,9 @@ output "resources" {
     )
 
     load_balancer = var.load_balancer == null ? null : {
-      resource_id   = module.load_balancer[0].resource_id
-      resource_name = local.load_balancer_name
-      backend_pool_id = module.load_balancer[0].azurerm_lb_backend_address_pool[local.load_balancer_backend_pool_name].id
+      resource_id     = module.load_balancer[0].resource_id
+      resource_name   = local.load_balancer_name
+      backend_pool_id = module.load_balancer[0].azurerm_lb_backend_address_pool["backend"].id
 
       # Populated for internal LBs; null for public
       frontend_private_ip_address = try(

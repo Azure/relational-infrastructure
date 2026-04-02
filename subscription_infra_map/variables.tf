@@ -593,7 +593,6 @@ variable "virtual_machine_sets" {
 
     load_balancer = optional(object({
       nic_name              = string
-      ip_configuration_name = string
       sku                   = optional(string, "Standard")
       tags                  = optional(map(string), {})
 

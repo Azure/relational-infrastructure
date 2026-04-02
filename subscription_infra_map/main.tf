@@ -343,11 +343,11 @@ module "networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
   for_each = local.networks
 
-  name                = each.value.name
-  location            = var.locations[each.value.location_name]
-  address_space       = each.value.address_spaces
-  parent_id           = module.resource_groups[each.value.resource_group_name].resource_id
-  tags                = local.network_tags[each.key]
+  name          = each.value.name
+  location      = var.locations[each.value.location_name]
+  address_space = each.value.address_spaces
+  parent_id     = module.resource_groups[each.value.resource_group_name].resource_id
+  tags          = local.network_tags[each.key]
 
   ddos_protection_plan = (
     each.value.enable_ddos_protection
@@ -435,15 +435,15 @@ module "network_security_groups" {
   security_rules = {
     for rule_name, rule in each.value.security_rules :
     rule_name => {
-      access                                     = rule.config.access
-      direction                                  = rule.config.direction
-      priority                                   = rule.priority
-      protocol                                   = rule.config.protocol
-      name                                       = rule_name
-      destination_address_prefix                 = rule.config.destination_address_prefix
-      destination_port_range                     = rule.config.destination_port_range
-      source_address_prefix                      = rule.config.source_address_prefix
-      source_port_range                          = rule.config.source_port_range
+      access                     = rule.config.access
+      direction                  = rule.config.direction
+      priority                   = rule.priority
+      protocol                   = rule.config.protocol
+      name                       = rule_name
+      destination_address_prefix = rule.config.destination_address_prefix
+      destination_port_range     = rule.config.destination_port_range
+      source_address_prefix      = rule.config.source_address_prefix
+      source_port_range          = rule.config.source_port_range
 
       destination_application_security_group_ids = (
         length(rule.config.destination_application_security_group_ids) == 0
@@ -679,6 +679,8 @@ module "virtual_machine_sets" {
     storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
   }
 
+  # Resolve network_name + subnet_name to a subnet_id for the internal frontend,
+  # using the same local that NIC subnet lookups already use.
   load_balancer = each.value.load_balancer == null ? null : merge(
     each.value.load_balancer,
     {

@@ -114,5 +114,4 @@ locals {
       }
     } if network != null
   }
-
 }

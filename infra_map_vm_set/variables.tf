@@ -518,9 +518,8 @@ DESCRIPTION
 
 variable "load_balancer" {
   type = object({
-    nic_name              = string
-    ip_configuration_name = string
-    sku                   = optional(string, "Standard")
+    nic_name = string
+    sku      = optional(string, "Standard")
     tags                  = optional(map(string), {})
 
     internal_frontend = optional(object({
@@ -558,7 +557,6 @@ variable "load_balancer" {
 When provided, a load balancer is provisioned and associated with all VMs in this set via the Azure Verified Module.
 
 - `nic_name`: Must match a key in [virtual_machine_network_interfaces]. Selects which NIC on each VM is registered with the backend pool.
-- `ip_configuration_name`: The name of the IP configuration on that NIC to register with the backend pool.
 - `sku`: Defaults to 'Standard'. Basic SKU was retired September 2025.
 - `tags`: Additional tags to merge onto the load balancer resources.
 - `internal_frontend`: Provide this for an internal (private) load balancer. Requires a subnet ID; private IP is dynamic if omitted.

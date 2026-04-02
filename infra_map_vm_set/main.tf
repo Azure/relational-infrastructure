@@ -30,8 +30,8 @@ resource "azurerm_public_ip" "load_balancer_frontend" {
 }
 
 module "load_balancer" {
-  source  = "Azure/avm-res-network-loadbalancer/azurerm"
-  count   = var.load_balancer != null ? 1 : 0
+  source = "Azure/avm-res-network-loadbalancer/azurerm"
+  count  = var.load_balancer != null ? 1 : 0
 
   name                = local.load_balancer_name
   location            = var.location
@@ -78,7 +78,7 @@ module "load_balancer" {
       protocol                          = rule.protocol
       frontend_port                     = rule.frontend_port
       backend_port                      = rule.backend_port
-      backend_address_pool_object_names = [local.load_balancer_backend_pool_name]
+      backend_address_pool_object_names = ["backend"]
       probe_object_name                 = "health"
       idle_timeout_in_minutes           = rule.idle_timeout_in_minutes
       enable_floating_ip                = rule.enable_floating_ip
@@ -88,8 +88,8 @@ module "load_balancer" {
   backend_address_pool_network_interfaces = {
     for i, vm in module.virtual_machines :
     "vm${i}" => {
-      backend_address_pool_object_name = local.load_balancer_backend_pool_name
-      ip_configuration_name            = var.load_balancer.ip_configuration_name
+      backend_address_pool_object_name = "backend"
+      ip_configuration_name            = lower("${local.virtual_machine_names[i]}-${var.load_balancer.nic_name}-ipcfg01")
       network_interface_resource_id    = vm.network_interfaces[var.load_balancer.nic_name].id
     }
   }
