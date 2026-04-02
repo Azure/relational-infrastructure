@@ -93,7 +93,6 @@ locals {
           address_space       = subnet.address_space
           name                = lower(coalesce(subnet.name, subnet_ref))
           security_group_name = subnet.security_group_name
-          security_rules      = subnet.security_rules
           route_table_name    = subnet.route_table_name
           routes              = subnet.route_traffic
         }

@@ -1,4 +1,4 @@
-deployment_prefix = "lbt01"
+deployment_prefix = "lbt02"
 
 locations = {
   main = "francecentral"
@@ -13,7 +13,7 @@ subscriptions = {
 
 resource_groups = {
   main = {
-    name              = "lbt01-main"
+    name              = "main"
     location_name     = "main"
     subscription_name = "main"
   }
@@ -30,6 +30,49 @@ external_networks = {
         address_space = "10.0.0.0/24"
       }
     }
+  }
+}
+
+networks = {
+  app_vnet = {
+    location_name       = "main"
+    subscription_name   = "main"
+    resource_group_name = "main"
+    name                = "AppVNet"
+    address_space       = "10.100.0.0/16"
+
+    subnets = {
+      web = {
+        name                = "WebSubnet"
+        address_space       = "10.100.0.0/24"
+        security_group_name = "main"
+      }
+
+    }
+  }
+}
+
+network_ports = {
+  https = "443"
+}
+
+network_security_rules = {
+  allow_https_in_to_main_vm_set = {
+    protocol   = "Tcp"
+    port_names = ["https"]
+    allow      = { in = { to = { vm_set = { name = "main" } } } }
+  }
+}
+
+network_security_groups = {
+  main = {
+    location_name       = "main"
+    subscription_name   = "main"
+    resource_group_name = "main"
+
+    security_rules = [
+      "allow_https_in_to_main_vm_set"
+    ]
   }
 }
 

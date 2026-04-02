@@ -371,8 +371,8 @@ module "networks" {
       address_prefixes = [subnet.address_space]
 
       network_security_group = (
-        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
-        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
+        try(contains(keys(local.network_security_groups_to_provision), subnet.security_group_name))
+        ? { id = module.network_security_groups[subnet.security_group_name].resource_id }
         : null
       )
 
@@ -424,13 +424,12 @@ resource "azurerm_monitor_activity_log_alert" "route_table_activity_log_alerts" 
 
 module "network_security_groups" {
   source   = "Azure/avm-res-network-networksecuritygroup/azurerm"
-  for_each = local.network_security_groups
+  for_each = local.network_security_groups_to_provision
 
-  location            = var.locations[each.value.location_ref]
-  name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
+  location            = var.locations[each.value.location_name]
+  name                = each.value.name
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  lock                = each.value.lock
-  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
+  tags                = each.value.tags
 
   security_rules = {
     for rule_name, rule in each.value.security_rules :
@@ -479,14 +478,14 @@ module "network_security_groups" {
 }
 
 resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_log_alerts" {
-  for_each = local.network_security_groups
+  for_each = local.network_security_groups_to_provision
 
-  name                = "${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
+  name                = "${local.network_security_group_names[each.key]}-changed-alert"
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   location            = "global"
   scopes              = [module.network_security_groups[each.key].resource_id]
-  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
-  description         = "This alert will monitor network security group [${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}] for any changes."
+  # tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
+  description         = "This alert will monitor network security group [${local.network_security_group_names[each.key]}] for any changes."
 
   criteria {
     category       = "Administrative"

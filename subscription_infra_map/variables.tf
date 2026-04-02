@@ -407,6 +407,19 @@ variable "network_security_rules" {
   nullable = false
 }
 
+variable "network_security_groups" {
+  type = map(object({
+    location_name       = string
+    resource_group_name = string
+    name                = optional(string, null)
+    security_rules      = optional(list(string), [])
+    tags                = optional(map(string), {})
+  }))
+
+  default  = {}
+  nullable = false
+}
+
 variable "networks" {
   type = map(object({
     location_name                     = string
@@ -453,8 +466,6 @@ variable "networks" {
           ip_address = string
         }), null)
       })), null)
-
-      security_rules = optional(list(string), [])
     }))
   }))
 
@@ -592,9 +603,9 @@ variable "virtual_machine_sets" {
     })))
 
     load_balancer = optional(object({
-      nic_name              = string
-      sku                   = optional(string, "Standard")
-      tags                  = optional(map(string), {})
+      nic_name = string
+      sku      = optional(string, "Standard")
+      tags     = optional(map(string), {})
 
       # Exactly one of internal_frontend or public_frontend must be set.
       # The subnet_id lookup from network_name + subnet_name happens in main.tf.

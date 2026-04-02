@@ -69,6 +69,11 @@ module "az_subscription_7_infra_map" {
     if local.subscription_slots[network.subscription_name] == local._s7
   }
 
+  network_security_groups = {
+    for nsg_name, nsg in var.network_security_groups : nsg_name => nsg
+    if local.subscription_slots[nsg.subscription_name] == local._s7
+  }
+
   private_dns_zones = {
     for dns_zone_name, dns_zone in var.private_dns_zones : dns_zone_name => dns_zone
     if local.subscription_slots[dns_zone.subscription_name] == local._s7
