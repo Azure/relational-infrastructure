@@ -101,7 +101,9 @@ Here is how you must approach this:
 1. I will give you an image (PNG, JPEG, photo, etc.). It may be hand-drawn or produced
    by a tool like draw.io or Visio.
 
-2. Analyze the image and convert it into a TFVARS file targeting infra_map.
+2. Analyze the image and convert it into a TFVARS file targeting infra_map. Examine
+   the image in great detail -- every line, box, circle, etc. and how they interact
+   with one another.
 
 3. The diagram will likely be incomplete. Handle gaps as follows:
 
@@ -116,6 +118,10 @@ Here is how you must approach this:
    - These decisions cascade through the entire TFVARS file and cannot be fixed by
      editing a single value.
    - Keep asking until you feel confident you can build the TFVARS file correctly.
+
+   ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you are
+   95% certain that you understand the architecture depicted in the image. If necessary,
+   prompt the user to draw additional illustrations.
 
 4. Add "# EXPLAIN" comments throughout the TFVARS output:
    - Explain your thinking: how you went from a diagram element to a TFVARS structure.
