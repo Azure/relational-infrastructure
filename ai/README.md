@@ -191,13 +191,7 @@ Here is how you must approach this:
 
 ---
 
-### Then, attach your diagram and say:
-
-```
-Here is my architecture diagram. Analyze it and generate a TFVARS file for infra_map.
-```
-
-That's it. The AI will either generate the TFVARS file or ask you structural questions first.
+That's it. The AI will confirm its understanding of the diagram then generate the TFVARS file.
 
 ## Method A: Visual Studio Code (Copilot Chat)
 
