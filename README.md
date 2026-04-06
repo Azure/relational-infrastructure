@@ -37,21 +37,25 @@ erDiagram
   "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
-  "Subnets" }o--o{ "Security Rules" : "have"
+  "Network Security Groups" ||--o{ "Network Security Rules" : "have"
+  "Networks" }o--o{ "Network Security Groups" : "via security_group_name"
   "External Networks" ||..o{ "External Subnets" : ""
   "Subnets" ||..o{ "Routes" : ""
   "Routes" ||--|| "Networks" : "to"
   "Routes" ||--|| "External Networks" : "to"
   "Routes" ||--|| "Subnets" : "to"
   "Routes" ||--|| "External Subnets" : "to"
-  "Ports" }o--o{ "Security Rules" : "to/from"
-  "Security Rules" ||--o{ "Networks" : "to/from"
-  "Security Rules" ||--o{ "Subnets" : "to/from"
-  "Security Rules" ||--o{ "External Networks" : "to/from"
-  "Security Rules" ||--o{ "External Subnets" : "to/from"
-  "Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
+  "Ports" }o--o{ "Network Security Rules" : "to/from"
+  "Network Security Rules" ||--o{ "Networks" : "to/from"
+  "Network Security Rules" ||--o{ "Subnets" : "to/from"
+  "Network Security Rules" ||--o{ "External Networks" : "to/from"
+  "Network Security Rules" ||--o{ "External Subnets" : "to/from"
+  "Network Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
   "Key Vaults" ||..o{ "Role-Based VM Sets" : "protect"
   "Role-Based VM Sets" ||..|{ "Network Interfaces" : "have"
+  "Role-Based VM Sets" ||--o| "Load Balancers" : "have"
+  "Load Balancers" ||--|| "Network Interfaces" : "frontend via"
+  "Load Balancers" }o--o{ "Subnets" : "internal frontend on"
   "Role-Based VM Sets" ||..|{ "Data Disk Groups" : "have"
   "Subnets" ||--o{ "Network Interfaces" : "contain"
   "Role-Based VM Sets" ||--o| "Availability Zone Distribution Strategy" : "uses"
@@ -362,7 +366,7 @@ network_ports = {
 
 > Terraform variable: `var.network_security_rules`
 
-The `network_security_rules` names layer 4 network security rules that can be applied to subnets defined in the [`networks`](#networks) table. These security rules can be applied to zero or more subnets. Each subnet can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each subnet defined in the [`networks`](#networks) table. 
+The `network_security_rules` table names layer 4 network security rules that are applied to [network security groups](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) defined in [`var.network_security_groups`](#network-security-groups). Security rules are associated with a network security group via its `security_rules` list, and the group is applied to subnets in [`var.networks`](#networks) using the `security_group_name` property.
 
 Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
 
@@ -447,6 +451,36 @@ network_security_rules = {
 }
 ```
 
+### Network Security Groups
+
+> Terraform variable: `var.network_security_groups`
+
+The `network_security_groups` table defines [Azure Network Security Groups (NSGs)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) that bundle one or more [security rules](#network-security-rules) together. An NSG is applied to a subnet by referencing it via the `security_group_name` property in [`var.networks`](#networks).
+
+```hcl
+network_security_groups = {
+  main = {                           # 🔑 "main" network security group
+    location_name       = "main"     # 🔗 Links to var.locations
+    subscription_name   = "main"     # 🔗 Links to var.subscriptions
+    resource_group_name = "main"     # 🔗 Links to var.resource_groups
+
+    security_rules = [               # 🔗 Optional; links to var.network_security_rules
+      "allow_from_on_prem_to_apps",  # Rules are applied in the order they're defined here
+      "deny_all_to_network"
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the NSG. |
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the NSG to a subscription. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the NSG. |
+| `name` | Optional; names the NSG in Azure. Defaults to the map key if not set. |
+| `security_rules` | Optional; an ordered list of keys from [`var.network_security_rules`](#network-security-rules). Rules are applied in the order listed. Defaults to `[]`. |
+| `tags` | Optional; applies key-value tags to the NSG. Defaults to `{}`. |
+
 ### Networks
 
 > Terraform variable: `var.networks`
@@ -475,19 +509,15 @@ networks = {
     }
 
     subnets = {
-      subnet_a = {                       # 🔑 "subnet_a" subnet
-        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
-        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
-
-        security_rules = [               # 🔗 Optional; links to var.network_security_rules
-          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
-          "deny_all_to_subnet_a"         # network security group in the order they're defined here
-        ]
+      subnet_a = {                                 # 🔑 "subnet_a" subnet
+        name                = "subnet-a"           # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space       = "10.0.0.0/24"        # Defines "subnet_a" address space in CIDR format
+        security_group_name = "main"               # 🔗 Optional; links to var.network_security_groups
       }
 
       subnet_b = {                                 # 🔑 "subnet_b" subnet
-        name            = "subnet-b"               # Optional, defaults to key 🔑 "subnet_b" if unset
-        address_space   = "10.0.1.0/24"            # Defines "subnet_a" address space in CIDR format
+        name                = "subnet-b"           # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space       = "10.0.1.0/24"        # Defines "subnet_a" address space in CIDR format
       }
     }
   }
@@ -503,7 +533,7 @@ networks = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
-| `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
+| `subnets` | A nested map of subnets, each with a name (optional, defaults to key), `address_space` for its IP range, and an optional `security_group_name` linking to [var.network_security_groups](#network-security-groups) to apply an NSG to the subnet. |
 
 #### Peerings
 
