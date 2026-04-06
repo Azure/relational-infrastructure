@@ -506,19 +506,15 @@ networks = {
     }
 
     subnets = {
-      subnet_a = {                       # 🔑 "subnet_a" subnet
-        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
-        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
-
-        security_rules = [               # 🔗 Optional; links to var.network_security_rules
-          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
-          "deny_all_to_subnet_a"         # network security group in the order they're defined here
-        ]
+      subnet_a = {                                 # 🔑 "subnet_a" subnet
+        name                = "subnet-a"           # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space       = "10.0.0.0/24"        # Defines "subnet_a" address space in CIDR format
+        security_group_name = "main"               # 🔗 Optional; links to var.network_security_groups
       }
 
       subnet_b = {                                 # 🔑 "subnet_b" subnet
-        name            = "subnet-b"               # Optional, defaults to key 🔑 "subnet_b" if unset
-        address_space   = "10.0.1.0/24"            # Defines "subnet_a" address space in CIDR format
+        name                = "subnet-b"           # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space       = "10.0.1.0/24"        # Defines "subnet_a" address space in CIDR format
       }
     }
   }
@@ -534,7 +530,7 @@ networks = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
-| `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
+| `subnets` | A nested map of subnets, each with a name (optional, defaults to key), `address_space` for its IP range, and an optional `security_group_name` linking to [var.network_security_groups](#network-security-groups) to apply an NSG to the subnet. |
 
 #### Peerings
 
