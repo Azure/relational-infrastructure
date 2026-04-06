@@ -343,11 +343,11 @@ module "networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
   for_each = local.networks
 
-  name                = each.value.name
-  location            = var.locations[each.value.location_name]
-  address_space       = each.value.address_spaces
-  parent_id           = module.resource_groups[each.value.resource_group_name].resource_id
-  tags                = local.network_tags[each.key]
+  name          = each.value.name
+  location      = var.locations[each.value.location_name]
+  address_space = each.value.address_spaces
+  parent_id     = module.resource_groups[each.value.resource_group_name].resource_id
+  tags          = local.network_tags[each.key]
 
   ddos_protection_plan = (
     each.value.enable_ddos_protection
@@ -371,8 +371,8 @@ module "networks" {
       address_prefixes = [subnet.address_space]
 
       network_security_group = (
-        contains(keys(local.network_security_groups), "${each.key}_${subnet_name}")
-        ? { id = module.network_security_groups["${each.key}_${subnet_name}"].resource_id }
+        try(contains(keys(local.network_security_groups_to_provision), subnet.security_group_name))
+        ? { id = module.network_security_groups[subnet.security_group_name].resource_id }
         : null
       )
 
@@ -424,26 +424,25 @@ resource "azurerm_monitor_activity_log_alert" "route_table_activity_log_alerts" 
 
 module "network_security_groups" {
   source   = "Azure/avm-res-network-networksecuritygroup/azurerm"
-  for_each = local.network_security_groups
+  for_each = local.network_security_groups_to_provision
 
-  location            = var.locations[each.value.location_ref]
-  name                = local.security_group_names[each.value.network_ref][each.value.subnet_ref]
+  location            = var.locations[each.value.location_name]
+  name                = each.value.name
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
-  lock                = each.value.lock
-  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
+  tags                = each.value.tags
 
   security_rules = {
     for rule_name, rule in each.value.security_rules :
     rule_name => {
-      access                                     = rule.config.access
-      direction                                  = rule.config.direction
-      priority                                   = rule.priority
-      protocol                                   = rule.config.protocol
-      name                                       = rule_name
-      destination_address_prefix                 = rule.config.destination_address_prefix
-      destination_port_range                     = rule.config.destination_port_range
-      source_address_prefix                      = rule.config.source_address_prefix
-      source_port_range                          = rule.config.source_port_range
+      access                     = rule.config.access
+      direction                  = rule.config.direction
+      priority                   = rule.priority
+      protocol                   = rule.config.protocol
+      name                       = rule_name
+      destination_address_prefix = rule.config.destination_address_prefix
+      destination_port_range     = rule.config.destination_port_range
+      source_address_prefix      = rule.config.source_address_prefix
+      source_port_range          = rule.config.source_port_range
 
       destination_application_security_group_ids = (
         length(rule.config.destination_application_security_group_ids) == 0
@@ -479,14 +478,14 @@ module "network_security_groups" {
 }
 
 resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_log_alerts" {
-  for_each = local.network_security_groups
+  for_each = local.network_security_groups_to_provision
 
-  name                = "${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}-changed-alert"
+  name                = "${local.network_security_group_names[each.key]}-changed-alert"
   resource_group_name = module.resource_groups[each.value.resource_group_name].name
   location            = "global"
   scopes              = [module.network_security_groups[each.key].resource_id]
-  tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
-  description         = "This alert will monitor network security group [${local.security_group_names[each.value.network_ref][each.value.subnet_ref]}] for any changes."
+  # tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
+  description = "This alert will monitor network security group [${local.network_security_group_names[each.key]}] for any changes."
 
   criteria {
     category       = "Administrative"
@@ -543,6 +542,7 @@ module "virtual_machine_sets" {
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   user_assigned_identity_ids                    = var.user_assigned_identity_ids
+  network_ports                                 = var.network_ports
   enable_vm_system_assigned_identity            = var.enable_vm_system_assigned_identity
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
@@ -678,6 +678,18 @@ module "virtual_machine_sets" {
     disk_size_gb         = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
     storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
   }
+
+  # Resolve network_name + subnet_name to a subnet_id for the internal frontend,
+  # using the same local that NIC subnet lookups already use.
+  load_balancer = each.value.load_balancer == null ? null : merge(
+    each.value.load_balancer,
+    {
+      internal_frontend = each.value.load_balancer.internal_frontend == null ? null : {
+        subnet_id          = local.network_resource_ids[each.value.load_balancer.internal_frontend.network_name].subnets[each.value.load_balancer.internal_frontend.subnet_name].resource_id
+        private_ip_address = each.value.load_balancer.internal_frontend.private_ip_address
+      }
+    }
+  )
 }
 
 resource "azurerm_network_interface_application_security_group_association" "asg_associations" {

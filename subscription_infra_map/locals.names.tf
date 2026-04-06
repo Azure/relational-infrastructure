@@ -34,23 +34,20 @@ locals {
     )
   }
 
-  security_group_names = {
-    for network_name, network in var.networks
-    : network_name => {
-      for subnet_name, subnet in network.subnets
-      : subnet_name => (
-        replace(
-          subnet.security_group_name == null
-          ? "${var.deployment_prefix}-${network_name}-${subnet_name}-nsg"
-          : (
-            network.include_deployment_prefix_in_name
-            ? "${var.deployment_prefix}-${subnet.security_group_name}"
-            : subnet.security_group_name
-          ),
-          "_", "-"
-        )
+  network_security_group_names = {
+    for nsg_name, nsg in var.network_security_groups :
+    nsg_name => (
+      replace(
+        nsg.name == null
+        ? "${var.deployment_prefix}-${nsg_name}-nsg"
+        : (
+          nsg.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${nsg.name}"
+          : nsg.name
+        ),
+        "_", "-"
       )
-    }
+    )
   }
 
   route_table_names = {

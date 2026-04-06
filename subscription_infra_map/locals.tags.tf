@@ -12,19 +12,19 @@ locals {
     )
   }
 
-  security_group_tags = {
-    for group_name, group in local.network_security_groups :
-    group_name => merge(
-      var.tags,
-      group.tags,
-      var.include_label_tags ? {
-        "location_label"       = group.location_ref,
-        "network_label"        = group.network_ref,
-        "resource_group_label" = group.resource_group_name,
-        "subnet_label"         = group.subnet_ref
-      } : {}
-    )
-  }
+  # security_group_tags = {
+  #   for group_name, group in local.network_security_groups_to_provision :
+  #   group_name => merge(
+  #     var.tags,
+  #     group.tags,
+  #     var.include_label_tags ? {
+  #       "location_label"       = group.location_ref,
+  #       "network_label"        = group.network_ref,
+  #       "resource_group_label" = group.resource_group_name,
+  #       "subnet_label"         = group.subnet_ref
+  #     } : {}
+  #   )
+  # }
 
   storage_account_tags = {
     for account_name, account in var.storage_accounts :

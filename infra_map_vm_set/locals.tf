@@ -19,8 +19,16 @@ locals {
     : { kind = lookup(local.lock_modes, var.lock_mode, null) }
   )
 
-  maintenance_configuration_name = "${var.resource_prefix}-mc"
-  virtual_machine_scale_set_name = "${var.resource_prefix}-vmss"
+  maintenance_configuration_name  = "${var.resource_prefix}-mc"
+  virtual_machine_scale_set_name  = "${var.resource_prefix}-vmss"
+  
+  load_balancer_type_prefix       = var.load_balancer == null ? null : (var.load_balancer.internal_frontend != null ? "ilb" : "plb")
+  load_balancer_name              = "${var.resource_prefix}-${local.load_balancer_type_prefix}"
+  load_balancer_frontend_ip_name  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-feip"
+  load_balancer_backend_pool_name = "${var.resource_prefix}-${local.load_balancer_type_prefix}-bepool"
+  load_balancer_probe_name        = "${var.resource_prefix}-${local.load_balancer_type_prefix}-probe"
+  load_balancer_rule_name_prefix  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-rule"
+  load_balancer_public_ip_name    = "${var.resource_prefix}-${local.load_balancer_type_prefix}-pip"
 
   virtual_machines_by_zone = {
     for zone in distinct(local.virtual_machine_zones) :

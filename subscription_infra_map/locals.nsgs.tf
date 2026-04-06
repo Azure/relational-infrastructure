@@ -240,34 +240,20 @@ locals {
   #   port_ranges           = toset([])
   # }
 
-  network_security_groups = tomap({
-    for group in flatten([
-      for network_ref, network in local.networks : [
-        for subnet_ref, subnet in network.subnets : {
-          location_ref        = network.location_name
-          network_ref         = network_ref
-          subnet_ref          = subnet_ref
-          subnet_name         = subnet.name
-          name                = local.security_group_names[network_ref][subnet_ref]
-          resource_group_name = network.resource_group_name
-          tags                = network.tags
-          lock                = network.lock
+  network_security_groups_to_provision = tomap({
+    for nsg_name, nsg in var.network_security_groups :
+    nsg_name => {
+      location_name       = nsg.location_name
+      resource_group_name = nsg.resource_group_name
+      name                = local.network_security_group_names[nsg_name]
+      tags                = nsg.tags
 
-          security_rules = {
-            for rule_index, rule_name in subnet.security_rules : rule_name => {
-              priority = (100 + rule_index)
-              config   = local.security_rules[rule_name]
-            }
-          }
-
-        } if !contains(local.no_network_security_group_subnets, lower(subnet.name))
-      ] if network != null
-    ]) : "${group.network_ref}_${group.subnet_ref}" => group
+      security_rules = {
+        for rule_index, rule_name in nsg.security_rules : rule_name => {
+          priority = (100 + rule_index)
+          config   = local.security_rules[rule_name]
+        }
+      }
+    }
   })
-
-  no_network_security_group_subnets = [
-    "gatewaysubnet",
-    "azurebastionsubnet",
-    "azurefirewallsubnet"
-  ]
 }

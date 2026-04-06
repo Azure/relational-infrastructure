@@ -65,6 +65,13 @@ Azure Powershell: Get-AzLocation | Select-Object Location
   }
 }
 
+variable "network_ports" {
+  type        = map(string)
+  default     = {}
+  nullable    = false
+  description = "Defines this model's network ports."
+}
+
 variable "enable_automatic_updates" {
   type    = bool
   default = false
@@ -514,4 +521,105 @@ For simplicity this module provides the option to use an auto-generated admin us
 - `not_before_date` - (Optional) - The UTC datetime (Y-m-d'T'H:M:S'Z) date before which this key is not valid.  Defaults to null.
 - `tags` - (Optional) - Specific tags to assign to this secret resource
 DESCRIPTION
+}
+
+variable "load_balancer" {
+  type = object({
+    nic_name = string
+    sku      = optional(string, "Standard")
+    tags     = optional(map(string), {})
+
+    internal_frontend = optional(object({
+      subnet_id          = string
+      private_ip_address = optional(string, null)
+    }), null)
+
+    public_frontend = optional(object({
+      public_ip_name          = optional(string, null)
+      public_ip_zones         = optional(list(string), ["1", "2", "3"])
+      idle_timeout_in_minutes = optional(number, 4)
+      ddos_protection_mode    = optional(string, "VirtualNetworkInherited")
+    }), null)
+
+    health_probe = object({
+      protocol            = string
+      port_name           = string
+      interval_in_seconds = optional(number, 15)
+      probe_threshold     = optional(number, 2)
+      request_path        = optional(string, null)
+    })
+
+    rules = map(object({
+      protocol                = string
+      frontend_port_name      = string
+      backend_port_name       = string
+      idle_timeout_in_minutes = optional(number, 4)
+      enable_floating_ip      = optional(bool, false)
+    }))
+  })
+
+  default     = null
+  nullable    = true
+  description = <<DESCRIPTION
+When provided, a load balancer is provisioned and associated with all VMs in this set via the Azure Verified Module.
+
+- `nic_name`: Must match a key in [virtual_machine_network_interfaces]. Selects which NIC on each VM is registered with the backend pool.
+- `sku`: Defaults to 'Standard'. Basic SKU was retired September 2025.
+- `tags`: Additional tags to merge onto the load balancer resources.
+- `internal_frontend`: Provide this for an internal (private) load balancer. Requires a subnet ID; private IP is dynamic if omitted.
+- `public_frontend`: Provide this for a public-facing load balancer. A zone-redundant public IP is created automatically.
+- `health_probe`: Protocol, port, and optional HTTP path used to determine backend instance health.
+- `rules`: One or more load balancing rules. Each rule shares the single probe and backend pool created by this variable.
+
+Exactly one of [internal_frontend] or [public_frontend] must be set.
+DESCRIPTION
+
+  validation {
+    condition = var.load_balancer == null ? true : (
+      (var.load_balancer.internal_frontend != null) != (var.load_balancer.public_frontend != null)
+    )
+    error_message = "Exactly one of [load_balancer.internal_frontend] or [load_balancer.public_frontend] must be set."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      keys(var.virtual_machine_network_interfaces),
+      var.load_balancer.nic_name
+    )
+    error_message = "[load_balancer.nic_name] must match a key defined in [virtual_machine_network_interfaces]."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      ["Standard", "Gateway"],
+      var.load_balancer.sku
+    )
+    error_message = "[load_balancer.sku] must be 'Standard' or 'Gateway'. Basic SKU was retired September 2025."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      ["tcp", "http", "https"],
+      lower(var.load_balancer.health_probe.protocol)
+    )
+    error_message = "[load_balancer.health_probe.protocol] must be 'Tcp', 'Http', or 'Https'."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : (
+      lower(var.load_balancer.health_probe.protocol) == "tcp"
+      || var.load_balancer.health_probe.request_path != null
+    )
+    error_message = "[load_balancer.health_probe.request_path] is required when protocol is 'Http' or 'Https'."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : alltrue([
+      for rule in values(var.load_balancer.rules) : contains(
+        ["tcp", "udp", "all"],
+        lower(rule.protocol)
+      )
+    ])
+    error_message = "[load_balancer.rules[*].protocol] must be 'Tcp', 'Udp', or 'All'."
+  }
 }

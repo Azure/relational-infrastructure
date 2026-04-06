@@ -433,9 +433,21 @@ variable "networks" {
           ip_address = string
         }), null)
       })), {})
-
-      security_rules = optional(list(string), [])
     }))
+  }))
+
+  default  = {}
+  nullable = false
+}
+
+variable "network_security_groups" {
+  type = map(object({
+    location_name       = string
+    subscription_name   = string
+    resource_group_name = string
+    name                = optional(string, null)
+    security_rules      = optional(list(string), [])
+    tags                = optional(map(string), {})
   }))
 
   default  = {}
@@ -521,6 +533,43 @@ variable "virtual_machine_sets" {
       }), null)
     })), {})
 
+    load_balancer = optional(object({
+      nic_name = string
+      sku      = optional(string, "Standard")
+      tags     = optional(map(string), {})
+
+      # Exactly one of internal_frontend or public_frontend must be set.
+      # The subnet_id lookup from network_name + subnet_name happens in main.tf.
+      internal_frontend = optional(object({
+        network_name       = string
+        subnet_name        = string
+        private_ip_address = optional(string, null)
+      }), null)
+
+      public_frontend = optional(object({
+        public_ip_name          = optional(string, null)
+        public_ip_zones         = optional(list(string), ["1", "2", "3"])
+        idle_timeout_in_minutes = optional(number, 4)
+        ddos_protection_mode    = optional(string, "VirtualNetworkInherited")
+      }), null)
+
+      health_probe = object({
+        protocol            = string
+        port_name           = string
+        interval_in_seconds = optional(number, 15)
+        probe_threshold     = optional(number, 2)
+        request_path        = optional(string, null)
+      })
+
+      rules = map(object({
+        protocol                = string
+        frontend_port_name      = string
+        backend_port_name       = string
+        idle_timeout_in_minutes = optional(number, 4)
+        enable_floating_ip      = optional(bool, false)
+      }))
+    }), null)
+
     network_interfaces = map(object({
       network_name                  = string
       subnet_name                   = string
@@ -560,12 +609,12 @@ variable "virtual_machine_set_specs" {
       disk_iops_read_only  = optional(number, null)
       disk_iops_read_write = optional(number, null)
       disk_size_gb         = number
-      storage_account_type = optional(string, "PremiumV2_LRS")
+      storage_account_type = optional(string, "Premium_LRS")
     })), {})
 
     os_disk = object({
       disk_size_gb         = number
-      storage_account_type = optional(string, "PremiumV2_LRS")
+      storage_account_type = optional(string, "Premium_LRS")
     })
   }))
 
