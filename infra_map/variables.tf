@@ -555,7 +555,7 @@ variable "virtual_machine_sets" {
 
       health_probe = object({
         protocol            = string
-        port                = number
+        port_name           = string
         interval_in_seconds = optional(number, 15)
         probe_threshold     = optional(number, 2)
         request_path        = optional(string, null)
@@ -563,8 +563,8 @@ variable "virtual_machine_sets" {
 
       rules = map(object({
         protocol                = string
-        frontend_port           = number
-        backend_port            = number
+        frontend_port_name      = string
+        backend_port_name       = string
         idle_timeout_in_minutes = optional(number, 4)
         enable_floating_ip      = optional(bool, false)
       }))

@@ -64,7 +64,7 @@ module "load_balancer" {
     health = {
       name                = local.load_balancer_probe_name
       protocol            = var.load_balancer.health_probe.protocol
-      port                = var.load_balancer.health_probe.port
+      port                = var.network_ports[var.load_balancer.health_probe.port_name]
       interval_in_seconds = var.load_balancer.health_probe.interval_in_seconds
       number_of_probes    = var.load_balancer.health_probe.probe_threshold
       request_path        = var.load_balancer.health_probe.request_path
@@ -76,8 +76,8 @@ module "load_balancer" {
       name                              = "${local.load_balancer_rule_name_prefix}-${rule_name}"
       frontend_ip_configuration_name    = local.load_balancer_frontend_ip_name
       protocol                          = rule.protocol
-      frontend_port                     = rule.frontend_port
-      backend_port                      = rule.backend_port
+      frontend_port                     = var.network_ports[rule.frontend_port_name]
+      backend_port                      = var.network_ports[rule.backend_port_name]
       backend_address_pool_object_names = ["backend"]
       probe_object_name                 = "health"
       idle_timeout_in_minutes           = rule.idle_timeout_in_minutes

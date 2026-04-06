@@ -485,7 +485,7 @@ resource "azurerm_monitor_activity_log_alert" "network_security_group_activity_l
   location            = "global"
   scopes              = [module.network_security_groups[each.key].resource_id]
   # tags                = local.security_group_tags["${each.value.network_ref}_${each.value.subnet_ref}"]
-  description         = "This alert will monitor network security group [${local.network_security_group_names[each.key]}] for any changes."
+  description = "This alert will monitor network security group [${local.network_security_group_names[each.key]}] for any changes."
 
   criteria {
     category       = "Administrative"
@@ -542,6 +542,7 @@ module "virtual_machine_sets" {
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   user_assigned_identity_ids                    = var.user_assigned_identity_ids
+  network_ports                                 = var.network_ports
   enable_vm_system_assigned_identity            = var.enable_vm_system_assigned_identity
   virtual_machine_capacity_reservation_group_id = each.value.capacity_reservation_group_id
   virtual_machine_disk_controller_type          = each.value.disk_controller_type

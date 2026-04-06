@@ -65,6 +65,13 @@ Azure Powershell: Get-AzLocation | Select-Object Location
   }
 }
 
+variable "network_ports" {
+  type        = map(string)
+  default     = {}
+  nullable    = false
+  description = "Defines this model's network ports."
+}
+
 variable "enable_automatic_updates" {
   type    = bool
   default = false
@@ -520,7 +527,7 @@ variable "load_balancer" {
   type = object({
     nic_name = string
     sku      = optional(string, "Standard")
-    tags                  = optional(map(string), {})
+    tags     = optional(map(string), {})
 
     internal_frontend = optional(object({
       subnet_id          = string
@@ -536,7 +543,7 @@ variable "load_balancer" {
 
     health_probe = object({
       protocol            = string
-      port                = number
+      port_name           = string
       interval_in_seconds = optional(number, 15)
       probe_threshold     = optional(number, 2)
       request_path        = optional(string, null)
@@ -544,15 +551,15 @@ variable "load_balancer" {
 
     rules = map(object({
       protocol                = string
-      frontend_port           = number
-      backend_port            = number
+      frontend_port_name      = string
+      backend_port_name       = string
       idle_timeout_in_minutes = optional(number, 4)
       enable_floating_ip      = optional(bool, false)
     }))
   })
 
-  default  = null
-  nullable = true
+  default     = null
+  nullable    = true
   description = <<DESCRIPTION
 When provided, a load balancer is provisioned and associated with all VMs in this set via the Azure Verified Module.
 
