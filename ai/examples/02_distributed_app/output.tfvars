@@ -1,92 +1,162 @@
 # ============================================================================
-# EXPLAIN: This TFVARS file was generated from a hand-drawn architecture diagram
-# showing a single VNet ("Main VNet") with three subnets (Web, API, DB), each
-# containing 3 VMs distributed across two availability zones (AZ1 and AZ2) in
-# a 2:1 split. NSG rules restrict API to HTTPS (443) only and DB to SQL only.
-# A "DR Mirror Deployment" is peered to the main VNet as a separate environment.
+# EXPLAIN: This TFVARS file was generated from a hand-drawn architecture
+# diagram showing:
+#   - "Main VNet" with 3 subnets: Web, API, DB — each with 3 VMs
+#   - Availability zone distribution: AZ1 = 2 VMs, AZ2 = 1 VM per role
+#   - NSG: API Subnet allows only port 443; DB Subnet allows only SQL
+#   - "DR Mirror Deployment" peered to Main VNet — exact same architecture
+#     replicated in a second region
+#
+# The diagram was interpreted as a three-tier application with:
+#   - All 3 subnets in a single VNet (not separate VNets like the first diagram)
+#   - Port-specific NSGs on API and DB subnets
+#   - A full DR copy in another region, peered bidirectionally
+#
+# Traffic flow (applies identically to both primary and DR):
+#   Any → Web    (unrestricted — no NSG on Web Subnet)
+#   Any → API    (port 443 only)
+#   Any → DB     (SQL port only)
 # ============================================================================
 
 # REVIEW: Set this to your environment's deployment prefix
-deployment_prefix = "azapp"
+deployment_prefix = "app02"
 
-# --------------------------------------------------------------------------
-# Locations
-# --------------------------------------------------------------------------
-# EXPLAIN: The diagram doesn't specify a region. Single-region deployment
-# with a DR mirror peered externally. Defaulting to eastus.
+# --- Locations ---------------------------------------------------------------
+# EXPLAIN: Two regions required — one for primary, one for DR. The diagram
+# doesn't name either region.
 locations = {
-  primary = "eastus" # REVIEW: Change to your target Azure region
+  primary = "eastus"  # REVIEW: Change to your primary Azure region
+  dr      = "westus2" # REVIEW: Change to your DR Azure region
 }
 
-# --------------------------------------------------------------------------
-# Subscriptions
-# --------------------------------------------------------------------------
-# EXPLAIN: No subscription boundaries shown in the diagram. Modeling as one.
+# --- Subscriptions -----------------------------------------------------------
+# EXPLAIN: No subscription boundaries in the diagram. Single subscription
+# for both primary and DR.
 subscriptions = {
   main = {
-    default_resource_group_name = "app"
+    default_resource_group_name = "primary"
     subscription_id             = "00000000-0000-0000-0000-000000000000" # REVIEW: Replace with your Azure subscription ID
   }
 }
 
-# --------------------------------------------------------------------------
-# Resource Groups
-# --------------------------------------------------------------------------
-# EXPLAIN: No resource group is labeled in the diagram. Creating a default one.
+# --- Resource Groups ---------------------------------------------------------
+# EXPLAIN: No resource group labels in the diagram. Creating one per region
+# to keep primary and DR resources separated.
 resource_groups = {
-  app = {
+  primary = {
     subscription_name = "main"
     location_name     = "primary"
-    name              = "app-rg" # REVIEW: Adjust resource group name
+    name              = "primary"
+  }
+
+  dr = {
+    subscription_name = "main"
+    location_name     = "dr"
+    name              = "dr"
   }
 }
 
-# --------------------------------------------------------------------------
-# Network Ports
-# --------------------------------------------------------------------------
-# EXPLAIN: The diagram explicitly calls out two port-level restrictions:
-#   - "Allow only 443" on the API Subnet
-#   - "Allow only SQL" on the DB Subnet
-# SQL port defaults to 1433 (MSSQL). Change if using MySQL (3306) or
-# PostgreSQL (5432).
-network_ports = {
-  https = "443"
-  sql   = "1433" # REVIEW: Change to 3306 (MySQL) or 5432 (PostgreSQL) if applicable
-}
+# --- Networks ----------------------------------------------------------------
+# EXPLAIN: The diagram shows a single "Main VNet" containing all 3 subnets
+# (Web, API, DB) — unlike the first diagram which had separate VNets.
+# The DR side is an exact mirror. VNet CIDRs are not labeled in the diagram.
+#
+# Peering: dashed line labeled "Peered" between Main VNet and DR. Configured
+# bidirectionally so cross-region traffic flows in both directions (e.g., DB
+# replication, failover orchestration).
+networks = {
+  main_vnet = {
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "primary"
+    name                = "MainVNet"
+    address_space       = "10.0.0.0/16" # REVIEW: VNet CIDR not in diagram
 
-# --------------------------------------------------------------------------
-# Network Security Rules
-# --------------------------------------------------------------------------
-# EXPLAIN: The diagram has two NSG annotations at the bottom:
-#   1. "Allow only 443" with an arrow pointing up into the API Subnet
-#   2. "Allow only SQL" with an arrow pointing up into the DB Subnet
-# I interpret "allow only" as: deny all inbound by default, then permit
-# only the specified port. The source isn't specified in the diagram, so
-# I'm allowing from within the VNet (the web tier calls API, API calls DB).
-network_security_rules = {
-  deny_all_inbound_to_api = {
-    # EXPLAIN: Baseline deny-all for API subnet so "allow only 443" is enforced
-    deny = {
-      in = {
-        to = {
-          subnet = {
-            network_name = "main"
-            subnet_name  = "api"
-          }
-        }
+    peered_to = ["dr_vnet"] # EXPLAIN: Dashed "Peered" line to DR
+
+    subnets = {
+      web = {
+        name          = "WebSubnet"
+        address_space = "10.0.0.0/24" # REVIEW: Subnet CIDR not in diagram
+      }
+
+      api = {
+        name                = "APISubnet"
+        address_space       = "10.0.1.0/24" # REVIEW: Subnet CIDR not in diagram
+        security_group_name = "main_api_nsg" # EXPLAIN: "Allow only 443" annotation
+      }
+
+      db = {
+        name                = "DBSubnet"
+        address_space       = "10.0.2.0/24" # REVIEW: Subnet CIDR not in diagram
+        security_group_name = "main_db_nsg"  # EXPLAIN: "Allow only SQL" annotation
       }
     }
   }
 
-  allow_https_to_api = {
-    # EXPLAIN: "Allow only 443" — permits HTTPS inbound to API subnet
+  # EXPLAIN: Exact mirror of main_vnet in the DR region. Same subnets,
+  # same NSG structure, different address space to avoid overlap on peering.
+  dr_vnet = {
+    location_name       = "dr"
+    subscription_name   = "main"
+    resource_group_name = "dr"
+    name                = "DRVNet"
+    address_space       = "10.1.0.0/16" # REVIEW: DR VNet CIDR not in diagram
+
+    peered_to = ["main_vnet"] # EXPLAIN: Bidirectional peering with primary
+
+    subnets = {
+      web = {
+        name          = "WebSubnet"
+        address_space = "10.1.0.0/24" # REVIEW: Subnet CIDR not in diagram
+      }
+
+      api = {
+        name                = "APISubnet"
+        address_space       = "10.1.1.0/24" # REVIEW: Subnet CIDR not in diagram
+        security_group_name = "dr_api_nsg"   # EXPLAIN: Mirror of primary NSG
+      }
+
+      db = {
+        name                = "DBSubnet"
+        address_space       = "10.1.2.0/24" # REVIEW: Subnet CIDR not in diagram
+        security_group_name = "dr_db_nsg"    # EXPLAIN: Mirror of primary NSG
+      }
+    }
+  }
+}
+
+# --- Network Ports -----------------------------------------------------------
+# EXPLAIN: The diagram specifies two port restrictions by name:
+#   - "Allow only 443" → HTTPS
+#   - "Allow only SQL" → SQL Server (1433 assumed)
+network_ports = {
+  https = "443"
+  mssql = "1433" # REVIEW: Use "3306" for MySQL or "5432" for PostgreSQL
+}
+
+# --- Network Security Rules --------------------------------------------------
+# EXPLAIN: The diagram shows dashed brackets below API and DB subnets with
+# port-restriction annotations. These are "what traffic is allowed" rules,
+# not "where from" rules — the diagram does not specify a source.
+#
+# Rules are created in pairs: allow the named port, then deny everything else.
+# Each pair is duplicated for primary and DR (mirrored).
+#
+# REVIEW: To restrict traffic sources (e.g., only Web→API on 443, only
+# API→DB on SQL), add a "from" block to the allow rules below.
+
+# --- Primary API rules ---
+network_security_rules = {
+  allow_443_to_main_api = {
+    # EXPLAIN: "Allow only 443" annotation under API Subnet.
     port_names = ["https"]
     protocol   = "Tcp"
     allow = {
       in = {
         to = {
           subnet = {
-            network_name = "main"
+            network_name = "main_vnet"
             subnet_name  = "api"
           }
         }
@@ -94,37 +164,104 @@ network_security_rules = {
     }
   }
 
-  deny_all_inbound_to_db = {
-    # EXPLAIN: Baseline deny-all for DB subnet so "allow only SQL" is enforced
+  deny_all_to_main_api = {
+    # EXPLAIN: Baseline deny — only 443 gets through.
     deny = {
       in = {
         to = {
           subnet = {
-            network_name = "main"
-            subnet_name  = "db"
+            network_name = "main_vnet"
+            subnet_name  = "api"
           }
         }
       }
     }
   }
 
-  allow_sql_to_db = {
-    # EXPLAIN: "Allow only SQL" — permits SQL inbound to DB subnet.
-    # Source not specified in diagram; allowing from API subnet since that's
-    # the typical app→db flow. Adjust if web also needs direct DB access.
-    port_names = ["sql"]
+  # --- Primary DB rules ---
+  allow_sql_to_main_db = {
+    # EXPLAIN: "Allow only SQL" annotation under DB Subnet.
+    port_names = ["mssql"]
     protocol   = "Tcp"
     allow = {
       in = {
-        from = {
-          subnet = {
-            network_name = "main"
-            subnet_name  = "api" # REVIEW: Change if other subnets also need DB access
-          }
-        }
         to = {
           subnet = {
-            network_name = "main"
+            network_name = "main_vnet"
+            subnet_name  = "db"
+          }
+        }
+      }
+    }
+  }
+
+  deny_all_to_main_db = {
+    # EXPLAIN: Baseline deny — only SQL gets through.
+    deny = {
+      in = {
+        to = {
+          subnet = {
+            network_name = "main_vnet"
+            subnet_name  = "db"
+          }
+        }
+      }
+    }
+  }
+
+  # --- DR API rules (mirror) ---
+  allow_443_to_dr_api = {
+    # EXPLAIN: Mirror of primary — same "Allow only 443" rule for DR.
+    port_names = ["https"]
+    protocol   = "Tcp"
+    allow = {
+      in = {
+        to = {
+          subnet = {
+            network_name = "dr_vnet"
+            subnet_name  = "api"
+          }
+        }
+      }
+    }
+  }
+
+  deny_all_to_dr_api = {
+    deny = {
+      in = {
+        to = {
+          subnet = {
+            network_name = "dr_vnet"
+            subnet_name  = "api"
+          }
+        }
+      }
+    }
+  }
+
+  # --- DR DB rules (mirror) ---
+  allow_sql_to_dr_db = {
+    # EXPLAIN: Mirror of primary — same "Allow only SQL" rule for DR.
+    port_names = ["mssql"]
+    protocol   = "Tcp"
+    allow = {
+      in = {
+        to = {
+          subnet = {
+            network_name = "dr_vnet"
+            subnet_name  = "db"
+          }
+        }
+      }
+    }
+  }
+
+  deny_all_to_dr_db = {
+    deny = {
+      in = {
+        to = {
+          subnet = {
+            network_name = "dr_vnet"
             subnet_name  = "db"
           }
         }
@@ -133,89 +270,72 @@ network_security_rules = {
   }
 }
 
-# --------------------------------------------------------------------------
-# External Networks
-# --------------------------------------------------------------------------
-# EXPLAIN: The "DR Mirror Deployment" box on the right is peered to the main
-# VNet but drawn as a separate, opaque environment. I'm modeling it as an
-# external network since it's outside this deployment's scope. If the DR
-# environment is also managed by AzRI, this would be a separate infra_map
-# deployment instead.
-external_networks = {
-  dr_mirror = {
-    address_space = "10.200.0.0/16" # REVIEW: Set to the actual DR environment address space
-    resource_id   = null             # REVIEW: Set to the DR VNet's Azure resource ID to enable peering
-                                     # e.g., "/subscriptions/.../resourceGroups/.../providers/Microsoft.Network/virtualNetworks/..."
-    subnets = {}
-  }
-}
-
-# --------------------------------------------------------------------------
-# Networks
-# --------------------------------------------------------------------------
-# EXPLAIN: The diagram shows one VNet ("Main VNet") with three subnets
-# side by side: Web Subnet, API Subnet, DB Subnet. The VNet is peered to
-# the DR Mirror Deployment. No CIDR ranges are specified in the diagram.
-networks = {
-  main = {
+# --- Network Security Groups -------------------------------------------------
+# EXPLAIN: Four NSGs total — one per restricted subnet, mirrored across
+# primary and DR. Web Subnet has no NSG (no restriction shown in diagram).
+network_security_groups = {
+  main_api_nsg = {
     location_name       = "primary"
     subscription_name   = "main"
-    resource_group_name = "app"
-    name                = "main-vnet"
-    address_space       = "10.100.0.0/16" # REVIEW: Adjust VNet CIDR range
+    resource_group_name = "primary"
+    security_rules = [
+      "allow_443_to_main_api",
+      "deny_all_to_main_api"
+    ]
+  }
 
-    peered_to = ["dr_mirror"]
+  main_db_nsg = {
+    location_name       = "primary"
+    subscription_name   = "main"
+    resource_group_name = "primary"
+    security_rules = [
+      "allow_sql_to_main_db",
+      "deny_all_to_main_db"
+    ]
+  }
 
-    subnets = {
-      web = {
-        name          = "WebSubnet"
-        address_space = "10.100.0.0/24" # REVIEW: Adjust subnet CIDR
+  # EXPLAIN: DR mirror — identical rule structure, different region.
+  dr_api_nsg = {
+    location_name       = "dr"
+    subscription_name   = "main"
+    resource_group_name = "dr"
+    security_rules = [
+      "allow_443_to_dr_api",
+      "deny_all_to_dr_api"
+    ]
+  }
 
-        # EXPLAIN: No NSG annotations on Web Subnet in the diagram.
-        # Leaving open — add security_rules here if web should be restricted too.
-      }
-
-      api = {
-        name          = "APISubnet"
-        address_space = "10.100.1.0/24" # REVIEW: Adjust subnet CIDR
-
-        # EXPLAIN: "Allow only 443" — deny-all baseline then allow HTTPS
-        security_rules = [
-          "deny_all_inbound_to_api",
-          "allow_https_to_api"
-        ]
-      }
-
-      db = {
-        name          = "DBSubnet"
-        address_space = "10.100.2.0/24" # REVIEW: Adjust subnet CIDR
-
-        # EXPLAIN: "Allow only SQL" — deny-all baseline then allow SQL from API
-        security_rules = [
-          "deny_all_inbound_to_db",
-          "allow_sql_to_db"
-        ]
-      }
-    }
+  dr_db_nsg = {
+    location_name       = "dr"
+    subscription_name   = "main"
+    resource_group_name = "dr"
+    security_rules = [
+      "allow_sql_to_dr_db",
+      "deny_all_to_dr_db"
+    ]
   }
 }
 
-# --------------------------------------------------------------------------
-# Key Vaults
-# --------------------------------------------------------------------------
-# EXPLAIN: Required by VM sets but not in the diagram. One key vault for all roles.
+# --- Key Vaults --------------------------------------------------------------
+# EXPLAIN: Required by virtual_machine_sets but not in diagram. One per
+# region — key vaults cannot span regions.
 key_vaults = {
-  app = {
+  primary_kv = {
     location_name       = "primary"
     subscription_name   = "main"
-    resource_group_name = "app"
+    resource_group_name = "primary"
+    sku_name            = "standard"
+  }
+
+  dr_kv = {
+    location_name       = "dr"
+    subscription_name   = "main"
+    resource_group_name = "dr"
     sku_name            = "standard"
   }
 }
 
-# --------------------------------------------------------------------------
-# Virtual Machine Images
-# --------------------------------------------------------------------------
+# --- Virtual Machine Images --------------------------------------------------
 # EXPLAIN: OS not specified in diagram. Defaulting to Windows Server 2022.
 virtual_machine_images = {
   windows_2022 = {
@@ -228,24 +348,24 @@ virtual_machine_images = {
   }
 }
 
-# --------------------------------------------------------------------------
-# Virtual Machine Sets
-# --------------------------------------------------------------------------
-# EXPLAIN: Three roles, each with 3 VMs, all in Main VNet on their
-# respective subnets. Same structure as diagram: Web, API, DB.
+# --- Virtual Machine Sets (Primary) -----------------------------------------
+# EXPLAIN: 3 roles × 3 VMs each, all in Main VNet.
+#   Web 1–3 → Web Subnet
+#   API 1–3 → API Subnet
+#   DB 1–3  → DB Subnet
 virtual_machine_sets = {
   web = {
     image_name          = "windows_2022"
-    key_vault_name      = "app"
+    key_vault_name      = "primary_kv"
     location_name       = "primary"
-    resource_group_name = "app"
+    resource_group_name = "primary"
     subscription_name   = "main"
     name                = "web"
     os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
 
     network_interfaces = {
       primary = {
-        network_name = "main"
+        network_name = "main_vnet"
         subnet_name  = "web"
       }
     }
@@ -253,16 +373,16 @@ virtual_machine_sets = {
 
   api = {
     image_name          = "windows_2022"
-    key_vault_name      = "app"
+    key_vault_name      = "primary_kv"
     location_name       = "primary"
-    resource_group_name = "app"
+    resource_group_name = "primary"
     subscription_name   = "main"
     name                = "api"
     os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
 
     network_interfaces = {
       primary = {
-        network_name = "main"
+        network_name = "main_vnet"
         subnet_name  = "api"
       }
     }
@@ -270,34 +390,88 @@ virtual_machine_sets = {
 
   db = {
     image_name          = "windows_2022"
-    key_vault_name      = "app"
+    key_vault_name      = "primary_kv"
     location_name       = "primary"
-    resource_group_name = "app"
+    resource_group_name = "primary"
     subscription_name   = "main"
     name                = "db"
     os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
 
     network_interfaces = {
       primary = {
-        network_name = "main"
+        network_name = "main_vnet"
+        subnet_name  = "db"
+      }
+    }
+  }
+
+  # --- Virtual Machine Sets (DR Mirror) ------------------------------------
+  # EXPLAIN: Exact mirror of primary — same roles, same VM counts, same
+  # subnet placement, different region.
+  dr_web = {
+    image_name          = "windows_2022"
+    key_vault_name      = "dr_kv"
+    location_name       = "dr"
+    resource_group_name = "dr"
+    subscription_name   = "main"
+    name                = "web"
+    os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
+
+    network_interfaces = {
+      primary = {
+        network_name = "dr_vnet"
+        subnet_name  = "web"
+      }
+    }
+  }
+
+  dr_api = {
+    image_name          = "windows_2022"
+    key_vault_name      = "dr_kv"
+    location_name       = "dr"
+    resource_group_name = "dr"
+    subscription_name   = "main"
+    name                = "api"
+    os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
+
+    network_interfaces = {
+      primary = {
+        network_name = "dr_vnet"
+        subnet_name  = "api"
+      }
+    }
+  }
+
+  dr_db = {
+    image_name          = "windows_2022"
+    key_vault_name      = "dr_kv"
+    location_name       = "dr"
+    resource_group_name = "dr"
+    subscription_name   = "main"
+    name                = "db"
+    os_type             = "Windows" # REVIEW: Change to "Linux" if applicable
+
+    network_interfaces = {
+      primary = {
+        network_name = "dr_vnet"
         subnet_name  = "db"
       }
     }
   }
 }
 
-# --------------------------------------------------------------------------
-# Virtual Machine Set Specs
-# --------------------------------------------------------------------------
-# EXPLAIN: 3 VMs per role (visible count from diagram). SKUs and disk sizes
-# are not specified — using reasonable defaults per role.
+# --- Virtual Machine Set Specs -----------------------------------------------
+# EXPLAIN: 3 VMs per role (visible in diagram). SKU/disk not specified.
+#   Web/API: Standard_D4as_v5 (general purpose)
+#   DB:      Standard_E4as_v5 (memory-optimized)
+# DR specs are identical (mirror).
 virtual_machine_set_specs = {
   web = {
     vm_count = 3
     sku_size = "Standard_D4as_v5" # REVIEW: Adjust SKU to match workload
 
     os_disk = {
-      disk_size_gb         = 128
+      disk_size_gb         = 128           # REVIEW: Adjust OS disk size
       storage_account_type = "Premium_LRS"
     }
   }
@@ -307,7 +481,7 @@ virtual_machine_set_specs = {
     sku_size = "Standard_D4as_v5" # REVIEW: Adjust SKU to match workload
 
     os_disk = {
-      disk_size_gb         = 128
+      disk_size_gb         = 128           # REVIEW: Adjust OS disk size
       storage_account_type = "Premium_LRS"
     }
   }
@@ -317,40 +491,89 @@ virtual_machine_set_specs = {
     sku_size = "Standard_E4as_v5" # REVIEW: Memory-optimized for DB role
 
     os_disk = {
-      disk_size_gb         = 256
+      disk_size_gb         = 256           # REVIEW: Larger disk for DB workload
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  # DR mirror — identical specs
+  dr_web = {
+    vm_count = 3
+    sku_size = "Standard_D4as_v5" # REVIEW: Adjust SKU to match workload
+
+    os_disk = {
+      disk_size_gb         = 128           # REVIEW: Adjust OS disk size
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  dr_api = {
+    vm_count = 3
+    sku_size = "Standard_D4as_v5" # REVIEW: Adjust SKU to match workload
+
+    os_disk = {
+      disk_size_gb         = 128           # REVIEW: Adjust OS disk size
+      storage_account_type = "Premium_LRS"
+    }
+  }
+
+  dr_db = {
+    vm_count = 3
+    sku_size = "Standard_E4as_v5" # REVIEW: Memory-optimized for DB role
+
+    os_disk = {
+      disk_size_gb         = 256           # REVIEW: Larger disk for DB workload
       storage_account_type = "Premium_LRS"
     }
   }
 }
 
-# --------------------------------------------------------------------------
-# Virtual Machine Set Zone Distribution
-# --------------------------------------------------------------------------
-# EXPLAIN: The diagram explicitly shows two availability zones (AZ1 and AZ2)
-# on the left side, with a dashed line splitting VMs:
-#   - AZ1: Web1, Web2 | API1, API2 | DB1, DB2 (top two rows)
-#   - AZ2: Web3       | API3       | DB3       (bottom row)
-# This is a 2:1 custom distribution across 2 zones — NOT the default even
-# distribution across 3 zones. Applied identically to all three VM sets.
+# --- Virtual Machine Set Zone Distribution -----------------------------------
+# EXPLAIN: The diagram explicitly shows availability zone layout:
+#   AZ1 (dashed lines spanning rows 1–2): 2 VMs per role
+#   AZ2 (dashed lines spanning row 3):    1 VM per role
+# This custom distribution applies to all 6 VM sets (primary + DR mirror).
 virtual_machine_set_zone_distribution = {
   web = {
     custom = {
-      "1" = 2 # 2 VMs in AZ1
-      "2" = 1 # 1 VM in AZ2
+      "1" = 2 # EXPLAIN: Web 1, Web 2 in AZ1
+      "2" = 1 # EXPLAIN: Web 3 in AZ2
     }
   }
 
   api = {
     custom = {
-      "1" = 2 # 2 VMs in AZ1
-      "2" = 1 # 1 VM in AZ2
+      "1" = 2 # EXPLAIN: API 1, API 2 in AZ1
+      "2" = 1 # EXPLAIN: API 3 in AZ2
     }
   }
 
   db = {
     custom = {
-      "1" = 2 # 2 VMs in AZ1
-      "2" = 1 # 1 VM in AZ2
+      "1" = 2 # EXPLAIN: DB 1, DB 2 in AZ1
+      "2" = 1 # EXPLAIN: DB 3 in AZ2
+    }
+  }
+
+  # DR mirror — identical zone distribution
+  dr_web = {
+    custom = {
+      "1" = 2
+      "2" = 1
+    }
+  }
+
+  dr_api = {
+    custom = {
+      "1" = 2
+      "2" = 1
+    }
+  }
+
+  dr_db = {
+    custom = {
+      "1" = 2
+      "2" = 1
     }
   }
 }

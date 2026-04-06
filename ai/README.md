@@ -101,9 +101,60 @@ Here is how you must approach this:
 1. I will give you an image (PNG, JPEG, photo, etc.). It may be hand-drawn or produced
    by a tool like draw.io or Visio.
 
-2. Analyze the image and convert it into a TFVARS file targeting infra_map.
+2. Analyze the image and convert it into a TFVARS file targeting infra_map. Examine
+   the image in great detail — every line, box, circle, arrow, label, annotation,
+   grouping, color, dashed vs. solid border, and spatial relationship. Nothing in the
+   diagram is decorative; assume every visual element carries meaning until proven
+   otherwise.
 
-3. The diagram will likely be incomplete. Handle gaps as follows:
+   EXHAUSTIVE VISUAL INVENTORY. Before writing any TFVARS, build a complete inventory
+   of every element in the diagram:
+
+   a. Walk the image systematically — top to bottom, left to right. List every
+      distinct element you see: boxes, labels, groups, connections, annotations,
+      icons, and text.
+
+   b. For each element, note what it IS (a VM, a subnet, a VNet, a resource group,
+      a label, a line, an arrow, an annotation) and what it RELATES TO (which other
+      elements does it touch, contain, point to, or sit near).
+
+   c. Count everything. If the diagram shows three boxes labeled "Web 1", "Web 2",
+      "Web 3" — that's three VMs. If there are two arrows, that's two separate
+      relationships, even if they have the same label. If there are two subnets,
+      verify you've captured both — even if they look similar.
+
+   d. Pay special attention to RELATIONSHIPS — lines, arrows, dashed connectors,
+      and text annotations that sit between or near elements. Each one is a
+      potential infrastructure rule (peering, NSG access, routing, etc.). Trace each
+      relationship from its visual origin to its visual destination. A line touching
+      a subnet means "from/to that subnet," not the VNet in general.
+
+   e. After inventorying, cross-check: does every element in the diagram have a
+      corresponding structure in your planned TFVARS output? If anything is
+      unaccounted for, stop and resolve it before proceeding.
+
+3. Present your inventory to the user as a structured summary BEFORE generating the
+   TFVARS file. This summary acts as a contract. It must include:
+
+   a. ELEMENTS: Every entity you identified — resource groups, VNets, subnets, VMs,
+      and any other named objects.
+
+   b. RELATIONSHIPS: Every connection, arrow, annotation, or label that describes
+      how elements interact. For each one, state the source, destination, and what
+      it represents.
+
+   c. INFERRED ITEMS: Anything NOT in the diagram that you plan to create because
+      AzRI requires it (key vaults, default CIDRs, OS images, SKUs, etc.).
+
+   d. TRAFFIC FLOW: A summary of which elements can reach which, and why — whether
+      by explicit rule, shared network, or denial.
+
+   Then ask the user: "Does this match your intent? Should I proceed, or do you want
+   to correct anything or provide an additional diagram?"
+
+   Wait for confirmation before generating the TFVARS file.
+
+4. The diagram will likely be incomplete. Handle gaps as follows:
 
    LEAF-VALUE GAPS (missing CIDRs, ports, SKUs, subscription IDs, etc.):
    - Fill in a best-guess value.
@@ -111,21 +162,30 @@ Here is how you must approach this:
    - Use "# REVIEW:" specifically when a single value needs to be reviewed.
 
    STRUCTURAL GAPS (unclear topology, ambiguous "mirror"/"hub"/"replicate" labels,
-   uncertain subscription boundaries, unclear whether something is internal or external):
+   uncertain subscription boundaries, unclear whether something is internal or
+   external, any visual element whose meaning you are not confident about):
    - DO NOT GUESS. Ask me directly.
    - These decisions cascade through the entire TFVARS file and cannot be fixed by
      editing a single value.
    - Keep asking until you feel confident you can build the TFVARS file correctly.
+   - If a question is hard to answer in words, prompt me to draw an additional
+     sketch — e.g., "Can you sketch the traffic flow between these subnets with
+     arrows?" or "Can you draw a zoomed-in view of this area?"
 
-4. Add "# EXPLAIN" comments throughout the TFVARS output:
+   ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you
+   are 95% certain that you understand the architecture depicted in the image.
+
+5. Add "# EXPLAIN" comments throughout the TFVARS output:
    - Explain your thinking: how you went from a diagram element to a TFVARS structure.
    - Call out what was explicit in the diagram vs. what you inferred.
+   - Reference elements from your summary so the reviewer can trace each TFVARS
+     section back to a specific part of the diagram.
    - These comments help the reviewer understand and verify your translation.
 
-5. Organize the TFVARS file with clear section headers (e.g., "# --- Networks ---")
+6. Organize the TFVARS file with clear section headers (e.g., "# --- Networks ---")
    and group related tables together.
 
-6. For resources required by AzRI but not shown in the diagram (e.g., key vaults for
+7. For resources required by AzRI but not shown in the diagram (e.g., key vaults for
    VM sets), create them with sensible defaults and explain why with "# EXPLAIN".
 ````
 
