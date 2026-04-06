@@ -448,6 +448,36 @@ network_security_rules = {
 }
 ```
 
+### Network Security Groups
+
+> Terraform variable: `var.network_security_groups`
+
+The `network_security_groups` table defines [Azure Network Security Groups (NSGs)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) that bundle one or more [security rules](#network-security-rules) together. An NSG is applied to a subnet by referencing it via the `security_group_name` property in [`var.networks`](#networks).
+
+```hcl
+network_security_groups = {
+  main = {                           # 🔑 "main" network security group
+    location_name       = "main"     # 🔗 Links to var.locations
+    subscription_name   = "main"     # 🔗 Links to var.subscriptions
+    resource_group_name = "main"     # 🔗 Links to var.resource_groups
+
+    security_rules = [               # 🔗 Optional; links to var.network_security_rules
+      "allow_from_on_prem_to_apps",  # Rules are applied in the order they're defined here
+      "deny_all_to_network"
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the NSG. |
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the NSG to a subscription. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the NSG. |
+| `name` | Optional; names the NSG in Azure. Defaults to the map key if not set. |
+| `security_rules` | Optional; an ordered list of keys from [`var.network_security_rules`](#network-security-rules). Rules are applied in the order listed. Defaults to `[]`. |
+| `tags` | Optional; applies key-value tags to the NSG. Defaults to `{}`. |
+
 ### Networks
 
 > Terraform variable: `var.networks`
