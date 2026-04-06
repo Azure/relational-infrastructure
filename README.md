@@ -723,6 +723,7 @@ virtual_machine_sets = {
 | `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
+| `load_balancer` | Optional; if set, provisions an [Azure Load Balancer](https://learn.microsoft.com/azure/load-balancer/load-balancer-overview) for the VM set. See Virtual Machine Set Load Balancer for full configuration details. Defaults to `null` (no load balancer.) |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
 | `shutdown_schedule_name` | Optional; if set, links to keys in [`var.virtual_machine_shutdown_schedules`](#shutdown-schedules). Applies a shutdown schedule to the VM set. |
