@@ -966,6 +966,130 @@ virtual_machine_sets = {
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
 
+#### Virtual Machine Set Load Balancer
+
+> Terraform variable: `var.virtual_machine_sets.load_balancer`
+
+The `load_balancer` section within [`virtual_machine_sets`](#virtual-machine-sets) provisions an [Azure Load Balancer](https://learn.microsoft.com/azure/load-balancer/load-balancer-overview) for the VM set, distributing inbound traffic across all VMs in the set. It supports both internal (private) and public frontends, a health probe, and one or more load-balancing rules. Port names in the health probe and rules reference entries in [`var.network_ports`](#network-ports), keeping port definitions consistent across your model.
+
+> [!IMPORTANT]
+> Exactly one of `internal_frontend` or `public_frontend` must be set per load balancer.
+
+#### Example: Internal Load Balancer
+
+An internal load balancer distributes traffic within a VNet, using a private IP on a specified subnet as its frontend.
+
+```hcl
+network_ports = {
+  https = "443"  # 🔑 "https" port
+}
+
+virtual_machine_sets = {
+  app = {                                              # 🔑 "app" VM set
+                                                       # Other fields...
+    load_balancer = {
+      nic_name = "primary_nic"                         # 🔗 Links to a key in network_interfaces (below)
+      sku      = "Standard"                            # Optional; Standard (default) or Basic
+
+      internal_frontend = {                            # Private frontend on a VNet subnet
+        network_name       = "main"                    # 🔗 Links to var.networks
+        subnet_name        = "app_subnet"              # 🔗 Links to var.networks.main.subnets
+        private_ip_address = "10.0.0.100"              # Optional; static private IP. Dynamic if unset.
+      }
+
+      health_probe = {
+        protocol            = "Tcp"                    # Tcp, Http, or Https
+        port_name           = "https"                  # 🔗 Links to var.network_ports
+        interval_in_seconds = 15                       # Optional; seconds between probes
+        probe_threshold     = 2                        # Optional; consecutive failures before unhealthy
+      }
+
+      rules = {
+        https = {                                      # 🔑 "https" load-balancing rule
+          protocol           = "Tcp"                   # Tcp or Udp
+          frontend_port_name = "https"                 # 🔗 Links to var.network_ports
+          backend_port_name  = "https"                 # 🔗 Links to var.network_ports
+        }
+      }
+    }
+
+    network_interfaces = {
+      primary_nic = {                                  # 🔑 "primary_nic" — referenced by nic_name above
+        network_name = "main"                          # 🔗 Links to var.networks
+        subnet_name  = "app_subnet"                    # 🔗 Links to var.networks.main.subnets
+      }
+    }
+  }
+}
+```
+
+#### Example: Public Load Balancer
+
+A public load balancer exposes the VM set to the internet via a public IP address.
+
+```hcl
+network_ports = {
+  https = "443"  # 🔑 "https" port
+}
+
+virtual_machine_sets = {
+  web = {                                                    # 🔑 "web" VM set
+                                                             # Other fields...
+    load_balancer = {
+      nic_name = "primary_nic"                               # 🔗 Links to a key in network_interfaces (below)
+
+      public_frontend = {                                    # Public IP frontend
+        public_ip_name          = "web-pip"                  # Optional; name for the public IP resource
+        public_ip_zones         = ["1", "2", "3"]            # Optional; availability zones for the public IP
+        idle_timeout_in_minutes = 4                          # Optional; idle connection timeout in minutes
+        ddos_protection_mode    = "VirtualNetworkInherited"  # Optional; DDoS protection mode
+      }
+
+      health_probe = {
+        protocol     = "Https"                               # Tcp, Http, or Https
+        port_name    = "https"                               # 🔗 Links to var.network_ports
+        request_path = "/health"                             # Optional; required for Http/Https probes
+      }
+
+      rules = {
+        https = {                                            # 🔑 "https" load-balancing rule
+          protocol           = "Tcp"
+          frontend_port_name = "https"                       # 🔗 Links to var.network_ports
+          backend_port_name  = "https"                       # 🔗 Links to var.network_ports
+          enable_floating_ip = false                         # Optional; enable for SQL AlwaysOn, etc.
+        }
+      }
+    }
+
+    network_interfaces = {
+      primary_nic = {                                        # 🔑 "primary_nic" — referenced by nic_name above
+        network_name = "main"                                # 🔗 Links to var.networks
+        subnet_name  = "web_subnet"                          # 🔗 Links to var.networks.main.subnets
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `nic_name` | Required; links to a key in `network_interfaces` within this VM set. Specifies which NIC the load balancer backend pool attaches to. |
+| `sku` | Optional; sets the load balancer SKU: `Standard` or `Basic`. Defaults to `Standard`. |
+| `tags` | Optional; applies key-value tags to the load balancer resource. Defaults to `{}`. |
+| `internal_frontend` | Optional; configures a private frontend. Requires `network_name` (links to [`var.networks`](#networks)) and `subnet_name` (links to a subnet within that network). `private_ip_address` is optional; defaults to dynamic allocation if unset. |
+| `public_frontend` | Optional; configures a public IP frontend. `public_ip_name` (optional), `public_ip_zones` (optional; defaults to `["1", "2", "3"]`), `idle_timeout_in_minutes` (optional; defaults to `4`), and `ddos_protection_mode` (optional; defaults to `VirtualNetworkInherited`). |
+| `health_probe.protocol` | Required; the probe protocol: `Tcp`, `Http`, or `Https`. |
+| `health_probe.port_name` | Required; links to a key in [`var.network_ports`](#network-ports), specifying the port to probe. |
+| `health_probe.interval_in_seconds` | Optional; seconds between probes. Defaults to `15`. |
+| `health_probe.probe_threshold` | Optional; consecutive failures before a VM is marked unhealthy. Defaults to `2`. |
+| `health_probe.request_path` | Optional; the HTTP/HTTPS path to probe, e.g., `/health`. Required when `protocol` is `Http` or `Https`. |
+| `rules` | Required; a map of load-balancing rules. Each rule requires `protocol` (`Tcp` or `Udp`), `frontend_port_name` (links to [`var.network_ports`](#network-ports)), and `backend_port_name` (links to [`var.network_ports`](#network-ports)). |
+| `rules.idle_timeout_in_minutes` | Optional; idle connection timeout per rule. Defaults to `4`. |
+| `rules.enable_floating_ip` | Optional; enables floating IP (Direct Server Return) for the rule. Required for scenarios like SQL Server AlwaysOn Availability Groups. Defaults to `false`. |
+
+> [!NOTE]
+> Port names in `health_probe.port_name`, `rules.frontend_port_name`, and `rules.backend_port_name` all link to [`var.network_ports`](#network-ports). This keeps port numbers defined in one place and reused consistently across security rules, health probes, and load-balancing rules.
+
 ### Virtual Machine Set Specs
 
 > Terraform variable: `var.virtual_machine_set_specs`
