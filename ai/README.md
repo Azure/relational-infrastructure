@@ -2,29 +2,29 @@
 
 ## The Vision
 
-Picture a group of architects in a conference room. They're sketching infrastructure on a whiteboard — VNets, subnets, VMs, peering arrows, NSG rules. The ideas are flowing fast. Nobody stops to open Terraform. Nobody translates boxes into 500 lines of HCL. Nobody breaks the creative momentum to argue about resource block syntax.
+Picture a group of architects in a conference room. They're sketching infrastructure on a whiteboard — networks, compute roles, storage, security boundaries, traffic flows. The ideas are flowing fast. Nobody stops to open Terraform. Nobody translates boxes into 500 lines of HCL. Nobody breaks the creative momentum to argue about resource block syntax.
 
 Instead, someone takes a picture of the whiteboard. That image is handed to an AI agent. Minutes later, there's a TFVARS file — a compact, readable, reviewable declaration of everything on that whiteboard, ready to deploy.
 
 **Sketch. Capture. Generate. Review. Deploy. Tear down. Repeat.**
 
-That's the loop. Fifteen minutes or less from whiteboard to running infrastructure. Not because the AI is perfect — it won't be — but because the relational model makes AI output *reviewable*. An architect can hold the photo in one hand and the TFVARS in the other and verify it in minutes. When the AI guesses wrong on a value, there's a `# REVIEW:` comment marking exactly where. When the AI makes a structural decision, there's an `# EXPLAIN` comment showing its reasoning.
+That's the loop. Fifteen minutes or less from whiteboard to running infrastructure. Not because the AI is perfect — it won't be — but because the relational model makes AI output *reviewable*. An architect can hold the photo in one hand and the TFVARS in the other and verify it in minutes. When the AI guesses wrong on a value, there's a `# REVIEW` comment marking exactly where. When the AI makes a structural decision, there's an `# EXPLAIN` comment showing its reasoning.
 
 ## Why This Works
 
 ### The relational model changes what AI has to do
 
-Without AzRI, asking an AI to convert a diagram to Terraform means generating hundreds of lines of individual resource blocks — `azurerm_virtual_network`, `azurerm_subnet`, `azurerm_network_interface`, `azurerm_network_security_group` — each with hardcoded cross-references. That's an engineering task. It's easy to get wrong and nearly impossible for a human to review against the original diagram.
+Without AzRI, asking an AI to convert a diagram to Terraform means generating hundreds of lines of individual resource blocks — one for every network, subnet, VM, disk, NIC, NSG, key vault, storage account, load balancer, route table, and peering — each with hardcoded cross-references. That's an engineering task. It's easy to get wrong and nearly impossible for a human to review against the original diagram.
 
 With AzRI, the AI's job is reduced from **engineering** to **comprehension**. It doesn't generate resource blocks. It maps boxes and arrows to relational keys. The module handles the explosion from a handful of map entries into dozens of real Azure resources. That's a dramatically easier task for an AI to get right — and more importantly, easier for a human to catch when it's wrong.
 
 ### The abstraction mirrors how architects think
 
-Architecture diagrams are relationships: "these VMs sit in this subnet," "this VNet peers to that one," "only SQL traffic enters here." AzRI's TFVARS express exactly that — nothing more. The output reads like the diagram. This is the same shift that SQL introduced for data: declare relationships, and the engine figures out the rest.
+Architecture diagrams are relationships: "these compute roles sit in this subnet," "this network peers to that one," "only HTTPS traffic enters here," "this storage account is private-linked to that subnet." AzRI's TFVARS express exactly that — nothing more. The output reads like the diagram. This is the same shift that SQL introduced for data: declare relationships, and the engine figures out the rest.
 
 ### Incomplete input is a feature, not a failure
 
-Whiteboard sketches are never complete. They have no subscription IDs, no SKU sizes, no disk specs, no specific port numbers. In raw Terraform, every one of those gaps is a landmine. In AzRI, the relational model has sensible defaults, and the `# REVIEW:` / `# EXPLAIN` pattern turns gaps into a structured checklist. The diagram doesn't need to be complete — it just needs to capture *intent*.
+Whiteboard sketches are never complete. They have no subscription IDs, no SKU sizes, no disk specs, no specific port numbers, no storage replication types, no maintenance windows. In raw Terraform, every one of those gaps is a landmine. In AzRI, the relational model has sensible defaults, and the `# REVIEW:` / `# EXPLAIN` pattern turns gaps into a structured checklist. The diagram doesn't need to be complete — it just needs to capture *intent*.
 
 ### Two types of ambiguity, two different responses
 
@@ -32,8 +32,8 @@ Not all gaps are equal. Through testing, we found a critical distinction:
 
 | Signal in the Diagram | Type | AI Response |
 |----------------------|------|-------------|
-| Missing CIDR, port, SKU, subscription ID | **Leaf value** | Best guess + `# REVIEW:` comment |
-| "Mirror this," unclear topology, ambiguous boundaries | **Structural** | **Stop and ask the architect** |
+| Missing CIDR, port, SKU, subscription ID, replication type, access tier | **Leaf value** | Best guess + `# REVIEW` comment |
+| "Mirror this," unclear topology, ambiguous boundaries, internal vs. external | **Structural** | **Stop and ask the architect** |
 
 Leaf-value gaps are easy to fix — edit one line. Structural gaps cascade through the entire file. Getting them wrong means regenerating, not editing. The AI must know the difference.
 
@@ -51,73 +51,133 @@ Turn architecture diagrams — hand-drawn, Visio, draw.io, whatever — into AzR
 
 ## The Process
 
-1. You provide a diagram image (PNG, JPEG, photo of a whiteboard).
+1. You attach a diagram image and paste the prompt below — all in a single message.
 2. AI analyzes the diagram and maps it to AzRI's relational model.
 3. AI generates a `.tfvars` file with:
    - `# EXPLAIN` comments showing how each diagram element was translated
-   - `# REVIEW:` comments on values that were guessed and need human verification
-4. You search for `# REVIEW:` in the output, fill in the blanks, and deploy.
+   - `# REVIEW` comments on values that were guessed and need human verification
+4. You search for `# REVIEW` in the output, fill in the blanks, and deploy.
 
 ### What AI handles well
 
-- Counting VMs and mapping them to `virtual_machine_sets`
-- Reading CIDR ranges off diagrams and mapping to `address_space`
-- Interpreting arrows as peering, NSG rules, or routing
-- Carving subnets from VNet address spaces when not specified
-- Choosing sensible defaults for VM SKUs, OS images, and disk sizes
+- Mapping diagram elements to the AzRI relational model (networks, subnets, VM sets, storage accounts, key vaults, load balancers, etc.)
+- Reading CIDR ranges, port labels, and protocol annotations off diagrams
+- Interpreting arrows and lines as peering, security rules, routing, or private endpoint connections
+- Carving subnets from network address spaces when not specified
+- Creating required supporting resources (key vaults for VM sets, private DNS zones for private endpoints, network ports for security rules and load balancer probes)
+- Choosing sensible defaults for values not shown in the diagram
 
 ### What AI will ask you about
 
 - **Structural ambiguity**: "Mirror deployment," "Hub network," "Replicate this" — anything that changes the shape of the output rather than a single value
-- **Topology decisions**: Hub-spoke vs. mesh, single subscription vs. multi, same region vs. cross-region
+- **Topology decisions**: Hub-spoke vs. mesh, single subscription vs. multi, same region vs. cross-region, internal vs. external networks
 - **Unclear boundaries**: When it's not obvious whether two boxes are separate subscriptions, resource groups, or just visual grouping
+- **Resource identity**: Whether a drawn connection represents peering, routing, a security rule, or a private endpoint
 
 ### What AI marks for your review
 
 - Subscription IDs (always a placeholder GUID)
 - CIDR ranges when not labeled on the diagram
-- VM SKU sizes and disk configurations
-- OS image selection (Windows vs. Linux)
+- VM SKU sizes, OS images, and disk configurations
 - Port numbers when a protocol is named but not numbered (e.g., "SQL" → 1433 or 3306?)
+- Storage account replication types and access tiers
+- Key vault SKUs and network ACL settings
+- Maintenance and shutdown schedule details
+- Any value the model requires that wasn't drawn
 
 ## The Prompt
 
-Use this prompt **exactly as written**. It contains all the instructions the AI needs. Paste it as your first message, then attach your diagram image in the follow-up.
+**Attach your diagram image** (PNG, JPEG, photo of a whiteboard) and **paste this prompt** in a single message. That's all that's required — one message to kick off the entire workflow.
 
 ---
-
-### System Prompt (provide once at the start of the conversation)
 
 ````
 Read and internalize the root README.md of this repository completely. This repo expresses
 Terraform as a relational model so that architectural diagrams can be mapped directly to
 TFVARS files.
 
-Your role is to analyze architecture diagram images and convert them into TFVARS files
-that can be plugged directly into infra_map.
+Your role is to analyze the attached architecture diagram image and convert it into a
+TFVARS file that can be plugged directly into infra_map.
 
 Here is how you must approach this:
 
-1. I will give you an image (PNG, JPEG, photo, etc.). It may be hand-drawn or produced
-   by a tool like draw.io or Visio.
+1. Analyze the attached image. It may be hand-drawn or produced by a tool like draw.io
+   or Visio. Examine it in great detail — every line, box, circle, arrow, label,
+   annotation, grouping, color, dashed vs. solid border, and spatial relationship.
+   Nothing in the diagram is decorative; assume every visual element carries meaning
+   until proven otherwise.
 
-2. Analyze the image and convert it into a TFVARS file targeting infra_map. Examine
-   the image in great detail -- every line, box, circle, etc. and how they interact
-   with one another.
+   EXHAUSTIVE VISUAL INVENTORY. Before writing any TFVARS, build a complete inventory
+   of every element in the diagram:
+
+   a. Walk the image systematically — top to bottom, left to right. List every
+      distinct element you see: boxes, labels, groups, connections, annotations,
+      icons, and text.
+
+   b. For each element, note what it IS (a VM, a subnet, a network, a resource group,
+      a storage account, a key vault, a load balancer, a label, a line, an arrow, an
+      annotation) and what it RELATES TO (which other elements does it touch, contain,
+      point to, or sit near).
+
+   c. Count everything. If the diagram shows three boxes labeled "Web 1", "Web 2",
+      "Web 3" — that's three VMs. If there are two arrows, that's two separate
+      relationships, even if they have the same label. If there are two subnets,
+      verify you've captured both — even if they look similar.
+
+   d. Pay special attention to RELATIONSHIPS — lines, arrows, dashed connectors,
+      and text annotations that sit between or near elements. Each one is a
+      potential infrastructure rule (peering, NSG access, routing, etc.). Trace each
+      relationship from its visual origin to its visual destination. A line touching
+      a subnet means "from/to that subnet," not the VNet in general.
+
+   e. After inventorying, cross-check: does every element in the diagram have a
+      corresponding structure in your planned TFVARS output? If anything is
+      unaccounted for, stop and resolve it before proceeding.
+
+2. Present your inventory to the user as a structured summary BEFORE generating the
+   TFVARS file. This summary acts as a contract. It must include:
+
+   a. ELEMENTS: Every entity you identified — resource groups, networks, subnets,
+      VM sets, storage accounts, key vaults, load balancers, and any other named
+      objects.
+
+   b. RELATIONSHIPS: Every connection, arrow, annotation, or label that describes
+      how elements interact. For each one, state the source, destination, and what
+      it represents.
+
+   c. INFERRED ITEMS: Anything NOT in the diagram that you plan to create because
+      AzRI requires it (key vaults for VM sets, network ports for security rules
+      and load balancers, private DNS zones for private endpoints, VM specs,
+      default CIDRs, etc.).
+
+   d. TRAFFIC FLOW: A summary of which elements can reach which, and why — whether
+      by explicit rule, shared network, or denial.
+
+   Then ask the user: "Does this match your intent? Should I proceed, or do you want
+   to correct anything or provide an additional diagram?"
+
+   Wait for confirmation before generating the TFVARS file.
 
 3. The diagram will likely be incomplete. Handle gaps as follows:
 
    LEAF-VALUE GAPS (missing CIDRs, ports, SKUs, subscription IDs, etc.):
    - Fill in a best-guess value.
-   - Add a "# REVIEW:" comment on the same line so the user can find and verify it.
-   - Use "# REVIEW:" specifically when a single value needs to be reviewed.
+   - Add a "# REVIEW" comment on the same line so the user can find and verify it.
+   - Use "# REVIEW" specifically when a single value needs to be reviewed.
 
    STRUCTURAL GAPS (unclear topology, ambiguous "mirror"/"hub"/"replicate" labels,
-   uncertain subscription boundaries, unclear whether something is internal or external):
+   uncertain subscription boundaries, unclear whether something is internal or
+   external, any visual element whose meaning you are not confident about):
    - DO NOT GUESS. Ask me directly.
    - These decisions cascade through the entire TFVARS file and cannot be fixed by
      editing a single value.
    - Keep asking until you feel confident you can build the TFVARS file correctly.
+   - If a question is hard to answer in words, prompt me to draw an additional
+     sketch — e.g., "Can you sketch the traffic flow between these subnets with
+     arrows?" or "Can you draw a zoomed-in view of this area?"
+
+   ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you
+   are 95% certain that you understand the architecture depicted in the image.
 
    ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you are
    95% certain that you understand the architecture depicted in the image. If necessary,
@@ -126,24 +186,22 @@ Here is how you must approach this:
 4. Add "# EXPLAIN" comments throughout the TFVARS output:
    - Explain your thinking: how you went from a diagram element to a TFVARS structure.
    - Call out what was explicit in the diagram vs. what you inferred.
+   - Reference elements from your summary so the reviewer can trace each TFVARS
+     section back to a specific part of the diagram.
    - These comments help the reviewer understand and verify your translation.
 
 5. Organize the TFVARS file with clear section headers (e.g., "# --- Networks ---")
    and group related tables together.
 
-6. For resources required by AzRI but not shown in the diagram (e.g., key vaults for
-   VM sets), create them with sensible defaults and explain why with "# EXPLAIN".
+6. For resources required by AzRI but not shown in the diagram (e.g., key vaults
+   for VM sets, network ports for security rules and load balancers, private DNS
+   zones for private endpoints, VM set specs), create them with sensible defaults
+   and explain why with "# EXPLAIN".
 ````
 
 ---
 
-### Then, attach your diagram and say:
-
-```
-Here is my architecture diagram. Analyze it and generate a TFVARS file for infra_map.
-```
-
-That's it. The AI will either generate the TFVARS file or ask you structural questions first.
+That's it. Attach your diagram, paste the prompt, and the AI will confirm its understanding of the diagram then generate the TFVARS file.
 
 ## Method A: Visual Studio Code (Copilot Chat)
 
@@ -161,20 +219,14 @@ That's it. The AI will either generate the TFVARS file or ask you structural que
 
 3. **Select Agent Mode** — at the top of the chat panel, switch from "Ask" or "Edit" to **"Agent"** mode. This gives the AI access to your workspace files so it can read the README and model reference.
 
-4. **Paste the system prompt** from above as your first message. Send it.
+4. **Attach your diagram and paste the prompt** — click the paperclip icon (📎) in the chat input to attach your image file, then paste the prompt from above into the same message. Send it as a single message.
 
-5. **Attach your diagram** — in your next message, click the paperclip icon (📎) in the chat input to attach an image file. Type:
+5. **Answer any structural questions** the AI asks. These are about topology — not values.
 
-   ```
-   Here is my architecture diagram. Analyze it and generate a TFVARS file for infra_map.
-   ```
-
-6. **Answer any structural questions** the AI asks. These are about topology — not values.
-
-7. **Review the generated TFVARS file.** The AI will create a `.tfvars` file in your workspace. Search for `# REVIEW:` to find every value that needs verification:
+6. **Review the generated TFVARS file.** The AI will create a `.tfvars` file in your workspace. Search for `# REVIEW` to find every value that needs verification:
    - In VS Code: `Ctrl+Shift+F` → search `# REVIEW:`
 
-8. **Iterate if needed.** You can paste updated diagrams or ask for changes in the same conversation. The AI maintains context.
+7. **Iterate if needed.** You can paste updated diagrams or ask for changes in the same conversation. The AI maintains context.
 
 ### Tips for VS Code
 
@@ -202,19 +254,13 @@ That's it. The AI will either generate the TFVARS file or ask you structural que
    I'm working with the relational-infrastructure repository.
    ```
 
-4. **Paste the system prompt** from above as your first message.
+4. **Attach your diagram and paste the prompt** — use the attachment button or drag and drop your image, then paste the prompt from above into the same message. Send it together.
 
-5. **Attach your diagram** — drag and drop an image or use the attachment button to include your architecture diagram. Then type:
+5. **Answer any structural questions** the AI asks.
 
-   ```
-   Here is my architecture diagram. Analyze it and generate a TFVARS file for infra_map.
-   ```
+6. **Copy the generated TFVARS** from the chat output into a `.tfvars` file in your local clone of the repository.
 
-6. **Answer any structural questions** the AI asks.
-
-7. **Copy the generated TFVARS** from the chat output into a `.tfvars` file in your local clone of the repository.
-
-8. **Search for `# REVIEW:`** to find all values that need human verification.
+7. **Search for `# REVIEW`** to find all values that need human verification.
 
 ### Tips for GitHub.com
 
@@ -226,9 +272,9 @@ That's it. The AI will either generate the TFVARS file or ask you structural que
 
 After generating a TFVARS file, follow this process:
 
-### 1. Search for `# REVIEW:`
+### 1. Search for `# REVIEW`
 
-Every `# REVIEW:` comment marks a value the AI guessed. These are always leaf values — subscription IDs, CIDR ranges, SKUs, ports, region names.
+Every `# REVIEW` comment marks a value the AI guessed. These are always leaf values — subscription IDs, CIDR ranges, SKUs, ports, region names, replication types, access tiers, schedule times, and similar configuration details.
 
 ```
 # In VS Code
@@ -245,10 +291,14 @@ These tell you *why* the AI made each structural decision. They're your audit tr
 ### 3. Validate the topology
 
 Check that:
-- VNet peering directions match your intent (one-way vs. bidirectional)
-- NSG rules have the correct source → destination flow
-- VM sets are in the correct subnets
+- Network peering directions match your intent (one-way vs. bidirectional)
+- Security rules have the correct source → destination flow and port references
+- VM sets are in the correct subnets with the right network interfaces
+- Load balancers reference the correct subnets and port definitions
+- Storage accounts, key vaults, and private endpoints are in the right resource groups and subscriptions
+- Routes direct traffic to the intended destinations (gateways, appliances, internet, or dropped)
 - Zone distribution (if any) matches the diagram's layout
+- Lock groups, maintenance schedules, and shutdown schedules are assigned to the intended resources
 - Resources that should be in different subscriptions/regions actually are
 
 ### 4. Deploy and iterate
