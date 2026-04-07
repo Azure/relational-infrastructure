@@ -975,7 +975,7 @@ The `load_balancer` section within [`virtual_machine_sets`](#virtual-machine-set
 > [!IMPORTANT]
 > Exactly one of `internal_frontend` or `public_frontend` must be set per load balancer.
 
-#### Example: Internal Load Balancer
+##### Example: Internal Load Balancer
 
 An internal load balancer distributes traffic within a VNet, using a private IP on a specified subnet as its frontend.
 
@@ -1023,7 +1023,7 @@ virtual_machine_sets = {
 }
 ```
 
-#### Example: Public Load Balancer
+##### Example: Public Load Balancer
 
 A public load balancer exposes the VM set to the internet via a public IP address.
 
