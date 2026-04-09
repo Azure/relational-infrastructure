@@ -22,7 +22,7 @@ locals {
   maintenance_configuration_name  = "${var.resource_prefix}-mc"
   virtual_machine_scale_set_name  = "${var.resource_prefix}-vmss"
   
-  load_balancer_type_prefix       = var.load_balancer == null ? "" : (var.load_balancer.internal_frontend != null ? "ilb" : "plb")
+  load_balancer_type_prefix       = var.load_balancer == null ? "no-lb" : (var.load_balancer.internal_frontend != null ? "ilb" : "plb")
   load_balancer_name              = "${var.resource_prefix}-${local.load_balancer_type_prefix}"
   load_balancer_frontend_ip_name  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-feip"
   load_balancer_backend_pool_name = "${var.resource_prefix}-${local.load_balancer_type_prefix}-bepool"
