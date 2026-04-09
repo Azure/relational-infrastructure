@@ -179,6 +179,10 @@ Here is how you must approach this:
    ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you
    are 95% certain that you understand the architecture depicted in the image.
 
+   ALL OTHER GAPS. When in doubt, ask the user to clarify. Ask questions until you are
+   95% certain that you understand the architecture depicted in the image. If necessary,
+   prompt the user to draw additional illustrations.
+
 4. Add "# EXPLAIN" comments throughout the TFVARS output:
    - Explain your thinking: how you went from a diagram element to a TFVARS structure.
    - Call out what was explicit in the diagram vs. what you inferred.
