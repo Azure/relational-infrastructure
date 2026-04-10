@@ -118,8 +118,6 @@ module "virtual_machines" {
   os_type                                = var.virtual_machine_os_type
   network_interfaces                     = local.virtual_machine_network_interfaces[count.index]
   shutdown_schedules                     = var.virtual_machine_shutdown_schedule
-  patch_mode                             = "AutomaticByPlatform"
-  patch_assessment_mode                  = "AutomaticByPlatform"
   resource_group_name                    = var.resource_group_name
   source_image_reference                 = var.virtual_machine_image.reference
   source_image_resource_id               = var.virtual_machine_image.id
