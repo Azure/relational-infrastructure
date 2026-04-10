@@ -110,6 +110,12 @@ module "az_subscription_6_infra_map" {
     if local.subscription_slots[vm_set.subscription_name] == local._s6
   }
 
+  virtual_machine_scale_sets = {
+    for scale_set_name, scale_set in var.virtual_machine_scale_sets
+    : scale_set_name => scale_set
+    if local.subscription_slots[scale_set.subscription_name] == local._s6
+  }
+
   virtual_machine_set_specs = {
     for vm_set_name, vm_set_specs in var.virtual_machine_set_specs
     : vm_set_name => vm_set_specs

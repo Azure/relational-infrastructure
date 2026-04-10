@@ -236,6 +236,22 @@ locals {
     )
   }
 
+  virtual_machine_scale_set_names = {
+    for scale_set_name, scale_set in local.virtual_machine_scale_sets
+    : scale_set_name => (
+      replace(
+        scale_set.name == null
+        ? "${var.deployment_prefix}-${scale_set_name}-vmss"
+        : (
+          scale_set.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${scale_set.name}-vmss"
+          : scale_set.name
+        ),
+        "_", "-"
+      )
+    )
+  }
+
   maintenance_configuration_names = {
     for vm_set_name, prefix in local.virtual_machine_set_prefixes
     : vm_set_name => "${prefix}-mc"

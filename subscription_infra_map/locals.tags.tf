@@ -161,6 +161,19 @@ locals {
     )
   }
 
+  virtual_machine_scale_set_tags = {
+    for scale_set_name, scale_set in local.virtual_machine_scale_sets :
+    scale_set_name => merge(
+      var.tags,
+      scale_set.tags,
+      var.include_label_tags ? {
+        "location_label"       = scale_set.location_name
+        "resource_group_label" = scale_set.resource_group_name
+        "vm_scale_set_label"   = scale_set_name
+      } : {}
+    )
+  }
+
   maintenance_configuration_tags = {
     for config_name, config in local.vm_set_maintenance_configurations :
     config_name => merge(

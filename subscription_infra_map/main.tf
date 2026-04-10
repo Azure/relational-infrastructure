@@ -116,6 +116,23 @@ module "storage_accounts" {
   }
 }
 
+resource "azurerm_orchestrated_virtual_machine_scale_set" "virtual_machine_scale_set" {
+  for_each = local.virtual_machine_scale_sets
+
+  name                        = local.virtual_machine_scale_set_names[each.key]
+  location                    = var.locations[each.value.location_name]
+  resource_group_name         = module.resource_groups[each.value.resource_group_name].name
+  platform_fault_domain_count = 1
+  single_placement_group      = false
+  tags                        = local.virtual_machine_scale_set_tags[each.key]
+  zones                       = ["1", "2", "3"]
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = var.user_assigned_identity_ids
+  }
+}
+
 #Create the Keyvaults
 module "key_vaults" {
   source = "Azure/avm-res-keyvault-vault/azurerm"
@@ -538,7 +555,6 @@ module "virtual_machine_sets" {
   resource_group_id                             = module.resource_groups[each.value.resource_group_name].resource_id
   resource_tags                                 = local.virtual_machine_set_tags[each.key]
   virtual_machine_count                         = var.virtual_machine_set_specs[each.key].vm_count
-  deploy_scale_set                              = each.value.deploy_scale_set
   enable_automatic_updates                      = var.enable_automatic_updates
   enable_virtual_machine_boot_diagnostics       = each.value.enable_boot_diagnostics
   user_assigned_identity_ids                    = var.user_assigned_identity_ids
@@ -548,6 +564,7 @@ module "virtual_machine_sets" {
   virtual_machine_disk_controller_type          = each.value.disk_controller_type
   virtual_machine_image                         = var.virtual_machine_images[each.value.image_name]
   virtual_machine_os_type                       = each.value.os_type
+  virtual_machine_scale_set_id                  = azurerm_orchestrated_virtual_machine_scale_set.virtual_machine_scale_set[local.virtual_machine_set_scale_set_keys[each.key]].id
   virtual_machine_sku_size                      = var.virtual_machine_set_specs[each.key].sku_size
   virtual_machine_zone_distribution             = coalesce(try(var.virtual_machine_set_zone_distribution[each.key], null), { custom = null, even = ["1", "2", "3"] })
   #                                               By default, unless overridden by [var.virtual_machine_set_zone_distribution], 
@@ -675,8 +692,9 @@ module "virtual_machine_sets" {
   }
 
   virtual_machine_os_disk = {
-    disk_size_gb         = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
-    storage_account_type = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
+    disk_size_gb           = var.virtual_machine_set_specs[each.key].os_disk.disk_size_gb
+    storage_account_type   = var.virtual_machine_set_specs[each.key].os_disk.storage_account_type
+    disk_encryption_set_id = each.value.os_disk_encryption_set_id
   }
 
   # Resolve network_name + subnet_name to a subnet_id for the internal frontend,
