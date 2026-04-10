@@ -46,6 +46,7 @@ module "az_subscription_10_infra_map" {
         for subnet_name, subnet in network.subnets
         : subnet_name => {
           address_space = subnet.address_space
+          name          = subnet.name
         }
       }
     }
