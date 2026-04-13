@@ -691,6 +691,7 @@ virtual_machine_sets = {
     resource_group_name               = "production"       # 🔗 Links to var.resource_groups
     subscription_name                 = "production"       # 🔗 Links to var.subscriptions
     shutdown_schedule_name            = "evening_shutdown" # 🔗 Optional; links to var.virtual_machine_shutdown_schedules
+    scale_set_name                    = "shared_vmss"      # 🔗 Optional; links to var.virtual_machine_scale_sets
     name                              = "db"               # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: false
 
@@ -710,9 +711,10 @@ virtual_machine_sets = {
       schedule_name = "guest_updates"                      # 🔗 Optional; links to var.maintenance_schedules
     }
 
-    os_type                 = "Windows"                    # Windows or Linux
-    disk_controller_type    = "nvme"                       # Optional; SCSI or NVMe based on SKU
-    enable_boot_diagnostics = true                         # Enable boot diagnostics? Default: false
+    os_type                   = "Windows"                  # Windows or Linux
+    os_disk_encryption_set_id = "/subscriptions/12345678..." # Optional; CMK encryption for the OS disk
+    disk_controller_type      = "nvme"                     # Optional; SCSI or NVMe based on SKU
+    enable_boot_diagnostics   = true                       # Enable boot diagnostics? Default: false
   }
 }
 ```
@@ -727,11 +729,13 @@ virtual_machine_sets = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
 | `shutdown_schedule_name` | Optional; if set, links to keys in [`var.virtual_machine_shutdown_schedules`](#shutdown-schedules). Applies a shutdown schedule to the VM set. |
+| `scale_set_name` | Optional; if set, links to a key in [`var.virtual_machine_scale_sets`](#virtual-machine-scale-sets). Allows multiple VM sets to share a single VM Scale Set. If omitted, a dedicated VM Scale Set is automatically created for this VM set. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
 | `extensions` | Optional; lists extensions from [`var.virtual_machine_extensions`](#virtual-machine-extensions) to apply. |
 | `os_type` | Specifies the OS: `Windows` or `Linux`. |
+| `os_disk_encryption_set_id` | Optional; specifies a disk encryption set ID (e.g., `/subscriptions/12345678...`) used to encrypt the OS disk with a customer-managed key (CMK). Defaults to `null`. |
 | `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
 
