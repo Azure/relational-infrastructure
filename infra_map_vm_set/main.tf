@@ -1,20 +1,3 @@
-resource "azurerm_orchestrated_virtual_machine_scale_set" "virtual_machine_scale_set" {
-  count = var.deploy_scale_set ? 1 : 0
-
-  name                        = local.virtual_machine_scale_set_name
-  location                    = var.location
-  resource_group_name         = var.resource_group_name
-  platform_fault_domain_count = 1
-  single_placement_group      = false
-  tags                        = var.resource_tags
-  zones                       = ["1", "2", "3"]
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = var.user_assigned_identity_ids
-  }
-}
-
 resource "azurerm_public_ip" "load_balancer_frontend" {
   count = (var.load_balancer != null && var.load_balancer.public_frontend != null) ? 1 : 0
 
@@ -118,24 +101,17 @@ module "virtual_machines" {
   os_type                                = var.virtual_machine_os_type
   network_interfaces                     = local.virtual_machine_network_interfaces[count.index]
   shutdown_schedules                     = var.virtual_machine_shutdown_schedule
-  patch_mode                             = "AutomaticByPlatform"
-  patch_assessment_mode                  = "AutomaticByPlatform"
   resource_group_name                    = var.resource_group_name
   source_image_reference                 = var.virtual_machine_image.reference
   source_image_resource_id               = var.virtual_machine_image.id
   sku_size                               = var.virtual_machine_sku_size
   zone                                   = local.virtual_machine_zones[count.index]
+  virtual_machine_scale_set_resource_id  = var.virtual_machine_scale_set_id
 
   managed_identities = {
     system_assigned            = var.enable_vm_system_assigned_identity
     user_assigned_resource_ids = var.user_assigned_identity_ids
   }
-
-  virtual_machine_scale_set_resource_id = (
-    var.deploy_scale_set
-    ? azurerm_orchestrated_virtual_machine_scale_set.virtual_machine_scale_set[0].id
-    : null
-  )
 
   generated_secrets_key_vault_secret_config = (
     var.generated_secrets_key_vault_secret_config == null ? null

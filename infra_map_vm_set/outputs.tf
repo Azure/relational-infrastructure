@@ -1,14 +1,5 @@
 output "resources" {
   value = {
-    scale_set = (
-      var.deploy_scale_set
-      ? {
-        resource_id   = azurerm_orchestrated_virtual_machine_scale_set.virtual_machine_scale_set[0].id
-        resource_name = local.virtual_machine_scale_set_name
-      }
-      : null
-    )
-
     load_balancer = var.load_balancer == null ? null : {
       resource_id     = module.load_balancer[0].resource_id
       resource_name   = local.load_balancer_name

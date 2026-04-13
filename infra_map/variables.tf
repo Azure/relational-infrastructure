@@ -489,6 +489,20 @@ variable "virtual_machine_shutdown_schedules" {
   description = "Defines this model's virtual machine shutdown schedules."
 }
 
+variable "virtual_machine_scale_sets" {
+  type = map(object({
+    location_name                     = string
+    resource_group_name               = string
+    subscription_name                 = string
+    name                              = optional(string, null)
+    tags                              = optional(map(string), {})
+    include_deployment_prefix_in_name = optional(bool, true)
+  }))
+
+  default  = {}
+  nullable = false
+}
+
 variable "virtual_machine_sets" {
   type = map(object({
     image_name                        = string
@@ -496,13 +510,14 @@ variable "virtual_machine_sets" {
     location_name                     = string
     resource_group_name               = string
     subscription_name                 = string
-    deploy_scale_set                  = optional(bool, true)
+    scale_set_name                    = optional(string, null)
     lock_groups                       = optional(list(string), [])
     name                              = string
     include_deployment_prefix_in_name = optional(bool, true)
     tags                              = optional(map(string), {})
     extensions                        = optional(list(string), [])
     shutdown_schedule_name            = optional(string, null)
+    os_disk_encryption_set_id         = optional(string, null)
     os_type                           = optional(string, "Windows")
     disk_controller_type              = optional(string, null)
     enable_boot_diagnostics           = optional(bool, false)

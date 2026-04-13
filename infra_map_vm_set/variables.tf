@@ -124,6 +124,12 @@ variable "virtual_machine_extensions" {
   sensitive = true
 }
 
+variable "virtual_machine_scale_set_id" {
+  type        = string
+  description = "The ID of the virtual machine scale set to which the virtual machines belong."
+  nullable    = true
+}
+
 variable "resource_prefix" {
   type        = string
   description = "This naming prefix will be applied to all resources."
@@ -348,10 +354,11 @@ variable "virtual_machine_network_interfaces" {
 
 variable "virtual_machine_os_disk" {
   type = object({
-    caching              = optional(string, "ReadWrite")
-    storage_account_type = optional(string, "PremiumV2_LRS")
-    disk_size_gb         = optional(number, 128)
-    lock_mode            = optional(string, null)
+    caching                = optional(string, "ReadWrite")
+    storage_account_type   = optional(string, "PremiumV2_LRS")
+    disk_size_gb           = optional(number, 128)
+    lock_mode              = optional(string, null)
+    disk_encryption_set_id = optional(string, null)
   })
 
   description = "The OS disk configuration for the virtual machines to deploy."
@@ -446,13 +453,6 @@ variable "maintenance_configuration" {
   default     = null
   nullable    = true
   description = "The maintenance configuration for the virtual machines to deploy."
-}
-
-variable "deploy_scale_set" {
-  type        = bool
-  default     = true
-  description = "Whether to deploy the virtual machines in a scale set."
-  nullable    = false
 }
 
 variable "virtual_machine_sku_size" {

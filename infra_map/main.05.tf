@@ -46,6 +46,7 @@ module "az_subscription_5_infra_map" {
         for subnet_name, subnet in network.subnets
         : subnet_name => {
           address_space = subnet.address_space
+          name          = subnet.name
         }
       }
     }
@@ -69,7 +70,7 @@ module "az_subscription_5_infra_map" {
     if local.subscription_slots[network.subscription_name] == local._s5
   }
 
-    network_security_groups = {
+  network_security_groups = {
     for nsg_name, nsg in var.network_security_groups : nsg_name => nsg
     if local.subscription_slots[nsg.subscription_name] == local._s5
   }
@@ -101,6 +102,18 @@ module "az_subscription_5_infra_map" {
     for share_name, share in var.file_shares
     : share_name => share
     if local.subscription_slots[var.storage_accounts[share.storage_account_name].subscription_name] == local._s5
+  }
+
+  virtual_machine_sets = {
+    for vm_set_name, vm_set in var.virtual_machine_sets
+    : vm_set_name => vm_set
+    if local.subscription_slots[vm_set.subscription_name] == local._s5
+  }
+
+  virtual_machine_scale_sets = {
+    for scale_set_name, scale_set in var.virtual_machine_scale_sets
+    : scale_set_name => scale_set
+    if local.subscription_slots[scale_set.subscription_name] == local._s5
   }
 
   virtual_machine_set_specs = {

@@ -46,6 +46,7 @@ module "az_subscription_6_infra_map" {
         for subnet_name, subnet in network.subnets
         : subnet_name => {
           address_space = subnet.address_space
+          name          = subnet.name
         }
       }
     }
@@ -107,6 +108,12 @@ module "az_subscription_6_infra_map" {
     for vm_set_name, vm_set in var.virtual_machine_sets
     : vm_set_name => vm_set
     if local.subscription_slots[vm_set.subscription_name] == local._s6
+  }
+
+  virtual_machine_scale_sets = {
+    for scale_set_name, scale_set in var.virtual_machine_scale_sets
+    : scale_set_name => scale_set
+    if local.subscription_slots[scale_set.subscription_name] == local._s6
   }
 
   virtual_machine_set_specs = {

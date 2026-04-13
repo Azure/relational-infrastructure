@@ -19,9 +19,8 @@ locals {
     : { kind = lookup(local.lock_modes, var.lock_mode, null) }
   )
 
-  maintenance_configuration_name  = "${var.resource_prefix}-mc"
-  virtual_machine_scale_set_name  = "${var.resource_prefix}-vmss"
-  
+  maintenance_configuration_name = "${var.resource_prefix}-mc"
+
   load_balancer_type_prefix       = var.load_balancer == null ? "no-lb" : (var.load_balancer.internal_frontend != null ? "ilb" : "plb")
   load_balancer_name              = "${var.resource_prefix}-${local.load_balancer_type_prefix}"
   load_balancer_frontend_ip_name  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-feip"
@@ -69,11 +68,12 @@ locals {
 
   virtual_machine_os_disks = [
     for i in range(var.virtual_machine_count) : {
-      name                 = lower("${local.virtual_machine_names[i]}-osdisk")
-      tags                 = var.resource_tags
-      caching              = lookup(var.virtual_machine_os_disk, "caching", "ReadWrite")
-      storage_account_type = lookup(var.virtual_machine_os_disk, "storage_account_type", "PremiumV2_LRS")
-      disk_size_gb         = lookup(var.virtual_machine_os_disk, "disk_size_gb", 128)
+      name                   = lower("${local.virtual_machine_names[i]}-osdisk")
+      tags                   = var.resource_tags
+      caching                = lookup(var.virtual_machine_os_disk, "caching", "ReadWrite")
+      storage_account_type   = lookup(var.virtual_machine_os_disk, "storage_account_type", "PremiumV2_LRS")
+      disk_size_gb           = lookup(var.virtual_machine_os_disk, "disk_size_gb", 128)
+      disk_encryption_set_id = var.virtual_machine_os_disk.disk_encryption_set_id
     }
   ]
 

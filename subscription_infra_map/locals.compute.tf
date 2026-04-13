@@ -1,4 +1,26 @@
 locals {
+
+  virtual_machine_scale_sets = merge(
+    # Auto-generated scale sets for VM sets without an explicit scale_set_name
+    {
+      for vm_set_name, vm_set in var.virtual_machine_sets :
+      vm_set_name => {
+        location_name                     = vm_set.location_name
+        resource_group_name               = vm_set.resource_group_name
+        name                              = null
+        tags                              = {}
+        include_deployment_prefix_in_name = vm_set.include_deployment_prefix_in_name
+      } if vm_set.scale_set_name == null
+    },
+    # Explicitly defined scale sets win over auto-generated ones
+    var.virtual_machine_scale_sets,
+  )
+
+  virtual_machine_set_scale_set_keys = {
+    for vm_set_name, vm_set in var.virtual_machine_sets :
+    vm_set_name => coalesce(vm_set.scale_set_name, vm_set_name)
+  }
+
   data_disk_configs = {
     for vm_set_name, vm_set in var.virtual_machine_sets :
     vm_set_name => {
