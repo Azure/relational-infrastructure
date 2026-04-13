@@ -36,6 +36,7 @@ erDiagram
   "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
   "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
+  "VM Scale Sets" |o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
   "Network Security Groups" ||--o{ "Network Security Rules" : "have"
   "Networks" }o--o{ "Network Security Groups" : "via security_group_name"
