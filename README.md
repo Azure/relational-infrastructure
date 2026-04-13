@@ -742,6 +742,9 @@ virtual_machine_sets = {
 > [!TIP]
 > Lock groups can be overridden on VM set child resources. See [data disk groups](#virtual-machine-data-disk-groups) and [network interfaces](#virtual-machine-network-interfaces) for more information.
 
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use [`virtual_machine_scale_sets`](#virtual-machine-scale-sets) only when you need multiple VM sets to share the same scale set.
+
 #### Virtual Machine Image
 
 > Terraform variable: `var.virtual_machine_sets.image`
@@ -1157,6 +1160,50 @@ virtual_machine_set_specs = {
 
 > [!IMPORTANT]  
 > Ensure the `disk_count` aligns with workload requirements, as increasing the number of disks in a group can enhance performance for striped configurations but may increase costs. Verify that `storage_account_type` supports the chosen IOPS settings, as some types (e.g., `UltraSSD_LRS`) are required for high IOPS.
+
+### Virtual Machine Scale Sets
+
+> Terraform variable: `var.virtual_machine_scale_sets`
+
+The `virtual_machine_scale_sets` table defines named [Azure Virtual Machine Scale Sets (Flexible orchestration)](https://learn.microsoft.com/azure/virtual-machine-scale-sets/overview) that can be shared across multiple [`virtual_machine_sets`](#virtual-machine-sets). By default, each `virtual_machine_set` automatically gets its own dedicated VM Scale Set — no entry in this table is required for that behavior. Defining an entry here and referencing it via `scale_set_name` on one or more `virtual_machine_sets` allows those VM sets to share the same underlying scale set.
+
+```hcl
+virtual_machine_scale_sets = {
+  shared_vmss = {                                          # 🔑 "shared_vmss" scale set
+    location_name                     = "primary"          # 🔗 Links to var.locations
+    resource_group_name               = "production"       # 🔗 Links to var.resource_groups
+    name                              = "shared-vmss"      # Optional; custom name in Azure
+    include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: true
+
+    tags = {
+      purpose = "shared"                                   # Optional; tags the scale set
+    }
+  }
+}
+
+# Reference the shared scale set from one or more virtual_machine_sets:
+virtual_machine_sets = {
+  app = {                                                  # 🔑 "app" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+  worker = {                                               # 🔑 "worker" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the scale set. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the scale set. |
+| `name` | Optional; custom name for the scale set in Azure. Defaults to an auto-generated name based on the map key if not set. |
+| `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to the scale set name. Default: `true`. |
+| `tags` | Optional; applies key-value tags to the scale set. Defaults to `{}`. |
+
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use `virtual_machine_scale_sets` only when you need multiple VM sets to share the same scale set.
 
 ### Virtual Machine Set Zone Distribution
 
