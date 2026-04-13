@@ -36,6 +36,7 @@ erDiagram
   "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
   "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
+  "VM Scale Sets" |o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
   "Network Security Groups" ||--o{ "Network Security Rules" : "have"
   "Networks" }o--o{ "Network Security Groups" : "via security_group_name"
@@ -691,6 +692,7 @@ virtual_machine_sets = {
     resource_group_name               = "production"       # 🔗 Links to var.resource_groups
     subscription_name                 = "production"       # 🔗 Links to var.subscriptions
     shutdown_schedule_name            = "evening_shutdown" # 🔗 Optional; links to var.virtual_machine_shutdown_schedules
+    scale_set_name                    = "shared_vmss"      # 🔗 Optional; links to var.virtual_machine_scale_sets
     name                              = "db"               # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: false
 
@@ -710,9 +712,10 @@ virtual_machine_sets = {
       schedule_name = "guest_updates"                      # 🔗 Optional; links to var.maintenance_schedules
     }
 
-    os_type                 = "Windows"                    # Windows or Linux
-    disk_controller_type    = "nvme"                       # Optional; SCSI or NVMe based on SKU
-    enable_boot_diagnostics = true                         # Enable boot diagnostics? Default: false
+    os_type                   = "Windows"                  # Windows or Linux
+    os_disk_encryption_set_id = "/subscriptions/12345678..." # Optional; CMK encryption for the OS disk
+    disk_controller_type      = "nvme"                     # Optional; SCSI or NVMe based on SKU
+    enable_boot_diagnostics   = true                       # Enable boot diagnostics? Default: false
   }
 }
 ```
@@ -727,16 +730,21 @@ virtual_machine_sets = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
 | `shutdown_schedule_name` | Optional; if set, links to keys in [`var.virtual_machine_shutdown_schedules`](#shutdown-schedules). Applies a shutdown schedule to the VM set. |
+| `scale_set_name` | Optional; if set, links to a key in [`var.virtual_machine_scale_sets`](#virtual-machine-scale-sets). Allows multiple VM sets to share a single VM Scale Set. If omitted, a dedicated VM Scale Set is automatically created for this VM set. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
 | `extensions` | Optional; lists extensions from [`var.virtual_machine_extensions`](#virtual-machine-extensions) to apply. |
 | `os_type` | Specifies the OS: `Windows` or `Linux`. |
+| `os_disk_encryption_set_id` | Optional; specifies a disk encryption set ID (e.g., `/subscriptions/12345678...`) used to encrypt the OS disk with a customer-managed key (CMK). Defaults to `null`. |
 | `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
 
 > [!TIP]
 > Lock groups can be overridden on VM set child resources. See [data disk groups](#virtual-machine-data-disk-groups) and [network interfaces](#virtual-machine-network-interfaces) for more information.
+
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use [`virtual_machine_scale_sets`](#virtual-machine-scale-sets) only when you need multiple VM sets to share the same scale set.
 
 #### Virtual Machine Image
 
@@ -1153,6 +1161,50 @@ virtual_machine_set_specs = {
 
 > [!IMPORTANT]  
 > Ensure the `disk_count` aligns with workload requirements, as increasing the number of disks in a group can enhance performance for striped configurations but may increase costs. Verify that `storage_account_type` supports the chosen IOPS settings, as some types (e.g., `UltraSSD_LRS`) are required for high IOPS.
+
+### Virtual Machine Scale Sets
+
+> Terraform variable: `var.virtual_machine_scale_sets`
+
+The `virtual_machine_scale_sets` table defines named [Azure Virtual Machine Scale Sets (Flexible orchestration)](https://learn.microsoft.com/azure/virtual-machine-scale-sets/overview) that can be shared across multiple [`virtual_machine_sets`](#virtual-machine-sets). By default, each `virtual_machine_set` automatically gets its own dedicated VM Scale Set — no entry in this table is required for that behavior. Defining an entry here and referencing it via `scale_set_name` on one or more `virtual_machine_sets` allows those VM sets to share the same underlying scale set.
+
+```hcl
+virtual_machine_scale_sets = {
+  shared_vmss = {                                          # 🔑 "shared_vmss" scale set
+    location_name                     = "primary"          # 🔗 Links to var.locations
+    resource_group_name               = "production"       # 🔗 Links to var.resource_groups
+    name                              = "shared-vmss"      # Optional; custom name in Azure
+    include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: true
+
+    tags = {
+      purpose = "shared"                                   # Optional; tags the scale set
+    }
+  }
+}
+
+# Reference the shared scale set from one or more virtual_machine_sets:
+virtual_machine_sets = {
+  app = {                                                  # 🔑 "app" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+  worker = {                                               # 🔑 "worker" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the scale set. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the scale set. |
+| `name` | Optional; custom name for the scale set in Azure. Defaults to an auto-generated name based on the map key if not set. |
+| `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to the scale set name. Default: `true`. |
+| `tags` | Optional; applies key-value tags to the scale set. Defaults to `{}`. |
+
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use `virtual_machine_scale_sets` only when you need multiple VM sets to share the same scale set.
 
 ### Virtual Machine Set Zone Distribution
 
