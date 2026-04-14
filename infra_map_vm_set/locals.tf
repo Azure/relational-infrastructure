@@ -36,7 +36,7 @@ locals {
 
   virtual_machine_names = [
     for i in range(var.virtual_machine_count) :
-    lower("${var.resource_prefix}${local.virtual_machine_zones[i]}${format("%02d", index(local.virtual_machines_by_zone[local.virtual_machine_zones[i]], i) + 1)}")
+    lower(substr("${var.resource_prefix}${format("%02d", i + 1)}", 0, 15))
   ]
 
   virtual_machine_computer_names = [
