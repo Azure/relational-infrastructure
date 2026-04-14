@@ -240,6 +240,7 @@ locals {
   #   port_ranges           = toset([])
   # }
 
+<<<<<<< HEAD:locals.nsgs.tf
   network_security_groups = {
     for nsg_key, nsg in var.network_security_groups : nsg_key => {
       location_key_reference       = nsg.location_key_reference
@@ -265,10 +266,26 @@ locals {
 
       security_rules = {
         for rule_index, rule_name in nsg.security_rules_key_reference : rule_name => {
+=======
+  network_security_groups_to_provision = tomap({
+    for nsg_name, nsg in var.network_security_groups :
+    nsg_name => {
+      location_name       = nsg.location_name
+      resource_group_name = nsg.resource_group_name
+      name                = local.network_security_group_names[nsg_name]
+      tags                = nsg.tags
+
+      security_rules = {
+        for rule_index, rule_name in nsg.security_rules : rule_name => {
+>>>>>>> 2c75bbd6d5bd7303c01c5b6f491bc01cdd013185:subscription_infra_map/locals.nsgs.tf
           priority = (100 + rule_index)
           config   = local.security_rules[rule_name]
         }
       }
     }
+<<<<<<< HEAD:locals.nsgs.tf
   }
+=======
+  })
+>>>>>>> 2c75bbd6d5bd7303c01c5b6f491bc01cdd013185:subscription_infra_map/locals.nsgs.tf
 }

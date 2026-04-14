@@ -1,3 +1,6 @@
+> [!WARNING]
+> Azure Relational Infrastructure is currently in public preview. Use with caution.
+
 # Azure Relational Infrastructure (AzRI)
 
 Azure Relational Infrastructure (AzRI) simplifies Azure deployments by modeling infrastructure as code (IaC) like a relational database. In the 1970s, relational databases tamed chaotic data with structured tables, primary keys, and foreign keys, making data compact, queryable, and easy to update. Similarly, AzRI organizes Terraform resources into concise maps with clear relationships, slashing code sprawl and complexity. This relational approach mirrors database normalization, eliminating redundancy and simplifying modifications. Built on [Azure Verified Modules (AVM)](https://aka.ms/avm) and aligned with [Azure’s Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/), AzRI ensures resilient, scalable Terraform deployments. Features like [lock groups](#lock-groups) enhance management, drawing on Microsoft and partner expertise. AzRI makes Azure IaC cleaner and more efficient, just as relational databases transformed data management.
@@ -33,22 +36,27 @@ erDiagram
   "Subscriptions" ||--o{ "Role-Based VM Sets" : ""
   "Subscriptions" ||--o{ "Key Vaults" : ""
   "VM Extensions" }o--o{ "Role-Based VM Sets" : ""
+  "VM Scale Sets" |o--o{ "Role-Based VM Sets" : ""
   "Networks" ||..o{ "Subnets" : ""
-  "Subnets" }o--o{ "Security Rules" : "have"
+  "Network Security Groups" ||--o{ "Network Security Rules" : "have"
+  "Networks" }o--o{ "Network Security Groups" : "via security_group_name"
   "External Networks" ||..o{ "External Subnets" : ""
   "Subnets" ||..o{ "Routes" : ""
   "Routes" ||--|| "Networks" : "to"
   "Routes" ||--|| "External Networks" : "to"
   "Routes" ||--|| "Subnets" : "to"
   "Routes" ||--|| "External Subnets" : "to"
-  "Ports" }o--o{ "Security Rules" : "to/from"
-  "Security Rules" ||--o{ "Networks" : "to/from"
-  "Security Rules" ||--o{ "Subnets" : "to/from"
-  "Security Rules" ||--o{ "External Networks" : "to/from"
-  "Security Rules" ||--o{ "External Subnets" : "to/from"
-  "Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
+  "Ports" }o--o{ "Network Security Rules" : "to/from"
+  "Network Security Rules" ||--o{ "Networks" : "to/from"
+  "Network Security Rules" ||--o{ "Subnets" : "to/from"
+  "Network Security Rules" ||--o{ "External Networks" : "to/from"
+  "Network Security Rules" ||--o{ "External Subnets" : "to/from"
+  "Network Security Rules" ||--o{ "Role-Based VM Sets" : "to/from"
   "Key Vaults" ||..o{ "Role-Based VM Sets" : "protect"
   "Role-Based VM Sets" ||..|{ "Network Interfaces" : "have"
+  "Role-Based VM Sets" ||--o| "Load Balancers" : "have"
+  "Load Balancers" }o--o{ "Subnets" : "internal frontend on"
+  "Ports" }o--o{ "Load Balancers" : "probe/rules via"
   "Role-Based VM Sets" ||..|{ "Data Disk Groups" : "have"
   "Subnets" ||--o{ "Network Interfaces" : "contain"
   "Role-Based VM Sets" ||--o| "Availability Zone Distribution Strategy" : "uses"
@@ -359,7 +367,7 @@ network_ports = {
 
 > Terraform variable: `var.network_security_rules`
 
-The `network_security_rules` names layer 4 network security rules that can be applied to subnets defined in the [`networks`](#networks) table. These security rules can be applied to zero or more subnets. Each subnet can have zero or more security rules defined in this table. These rules are ultimately expressed as [network security groups (NSG)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) applied to each subnet defined in the [`networks`](#networks) table. 
+The `network_security_rules` table names layer 4 network security rules that are applied to [network security groups](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) defined in [`var.network_security_groups`](#network-security-groups). Security rules are associated with a network security group via its `security_rules` list, and the group is applied to subnets in [`var.networks`](#networks) using the `security_group_name` property.
 
 Network security rules are implemented using an easy-to-read fluent syntax that supports traffic filtering to/from:
 
@@ -444,6 +452,36 @@ network_security_rules = {
 }
 ```
 
+### Network Security Groups
+
+> Terraform variable: `var.network_security_groups`
+
+The `network_security_groups` table defines [Azure Network Security Groups (NSGs)](https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview) that bundle one or more [security rules](#network-security-rules) together. An NSG is applied to a subnet by referencing it via the `security_group_name` property in [`var.networks`](#networks).
+
+```hcl
+network_security_groups = {
+  main = {                           # 🔑 "main" network security group
+    location_name       = "main"     # 🔗 Links to var.locations
+    subscription_name   = "main"     # 🔗 Links to var.subscriptions
+    resource_group_name = "main"     # 🔗 Links to var.resource_groups
+
+    security_rules = [               # 🔗 Optional; links to var.network_security_rules
+      "allow_from_on_prem_to_apps",  # Rules are applied in the order they're defined here
+      "deny_all_to_network"
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the NSG. |
+| `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the NSG to a subscription. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the NSG. |
+| `name` | Optional; names the NSG in Azure. Defaults to the map key if not set. |
+| `security_rules` | Optional; an ordered list of keys from [`var.network_security_rules`](#network-security-rules). Rules are applied in the order listed. Defaults to `[]`. |
+| `tags` | Optional; applies key-value tags to the NSG. Defaults to `{}`. |
+
 ### Networks
 
 > Terraform variable: `var.networks`
@@ -472,19 +510,15 @@ networks = {
     }
 
     subnets = {
-      subnet_a = {                       # 🔑 "subnet_a" subnet
-        name            = "subnet-a"     # Optional; defaults to key 🔑 "subnet_a" if unset
-        address_space   = "10.0.0.0/24"  # Defines "subnet_a" address space in CIDR format
-
-        security_rules = [               # 🔗 Optional; links to var.network_security_rules
-          "allow_from_on_prem_to_apps"   # When specified, rules will be added to an underlying
-          "deny_all_to_subnet_a"         # network security group in the order they're defined here
-        ]
+      subnet_a = {                                 # 🔑 "subnet_a" subnet
+        name                = "subnet-a"           # Optional; defaults to key 🔑 "subnet_a" if unset
+        address_space       = "10.0.0.0/24"        # Defines "subnet_a" address space in CIDR format
+        security_group_name = "main"               # 🔗 Optional; links to var.network_security_groups
       }
 
       subnet_b = {                                 # 🔑 "subnet_b" subnet
-        name            = "subnet-b"               # Optional, defaults to key 🔑 "subnet_b" if unset
-        address_space   = "10.0.1.0/24"            # Defines "subnet_a" address space in CIDR format
+        name                = "subnet-b"           # Optional, defaults to key 🔑 "subnet_b" if unset
+        address_space       = "10.0.1.0/24"        # Defines "subnet_a" address space in CIDR format
       }
     }
   }
@@ -500,7 +534,7 @@ networks = {
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VNet belongs to. |
 | `name` | Optional; names the VNet in Azure, defaults to the map key (e.g., `main`) if not set. |
 | `address_space` | Defines the VNet’s IP address range, e.g., `10.0.0.0/16`. |
-| `subnets` | A nested map of subnets, each with a `name` (optional, defaults to key) and `address_space` for its IP range. |
+| `subnets` | A nested map of subnets, each with a name (optional, defaults to key), `address_space` for its IP range, and an optional `security_group_name` linking to [var.network_security_groups](#network-security-groups) to apply an NSG to the subnet. |
 
 #### Peerings
 
@@ -658,6 +692,7 @@ virtual_machine_sets = {
     resource_group_name               = "production"       # 🔗 Links to var.resource_groups
     subscription_name                 = "production"       # 🔗 Links to var.subscriptions
     shutdown_schedule_name            = "evening_shutdown" # 🔗 Optional; links to var.virtual_machine_shutdown_schedules
+    scale_set_name                    = "shared_vmss"      # 🔗 Optional; links to var.virtual_machine_scale_sets
     name                              = "db"               # Prefix for all VMs in this set
     include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: false
 
@@ -677,9 +712,10 @@ virtual_machine_sets = {
       schedule_name = "guest_updates"                      # 🔗 Optional; links to var.maintenance_schedules
     }
 
-    os_type                 = "Windows"                    # Windows or Linux
-    disk_controller_type    = "nvme"                       # Optional; SCSI or NVMe based on SKU
-    enable_boot_diagnostics = true                         # Enable boot diagnostics? Default: false
+    os_type                   = "Windows"                  # Windows or Linux
+    os_disk_encryption_set_id = "/subscriptions/12345678..." # Optional; CMK encryption for the OS disk
+    disk_controller_type      = "nvme"                     # Optional; SCSI or NVMe based on SKU
+    enable_boot_diagnostics   = true                       # Enable boot diagnostics? Default: false
   }
 }
 ```
@@ -690,19 +726,25 @@ virtual_machine_sets = {
 | `location_name` | Links to a key in [`var.locations`](#locations), setting the Azure region for the VMs. |
 | `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the VMs. |
 | `subscription_name` | Links to a key in [`var.subscriptions`](#subscriptions), tying the VMs to a subscription. |
+| `load_balancer` | Optional; if set, provisions an [Azure Load Balancer](https://learn.microsoft.com/azure/load-balancer/load-balancer-overview) for the VM set. See Virtual Machine Set Load Balancer for full configuration details. Defaults to `null` (no load balancer.) |
 | `lock_groups` | Optional; if set, links to keys in [`var.lock_groups`](#lock-groups). Specifies the resource lock groups that this VM set belongs to. By default, all child resources including disks and network interfaces inherit these lock groups. |
 | `maintenance.schedule_name` | Optional; if set, links to keys in [`var.maintenance_schedules`](#maintenance-schedules). Specifies the maintenance schedule that should be used when applying guest updates for the VMs. |
 | `shutdown_schedule_name` | Optional; if set, links to keys in [`var.virtual_machine_shutdown_schedules`](#shutdown-schedules). Applies a shutdown schedule to the VM set. |
+| `scale_set_name` | Optional; if set, links to a key in [`var.virtual_machine_scale_sets`](#virtual-machine-scale-sets). Allows multiple VM sets to share a single VM Scale Set. If omitted, a dedicated VM Scale Set is automatically created for this VM set. |
 | `name` | Prefixes all VMs in the set, used in their Azure names. |
 | `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to resource names. Default: `false`. |
 | `tags` | Optional; applies key-value tags to all VMs, e.g., `role: database`. |
 | `extensions` | Optional; lists extensions from [`var.virtual_machine_extensions`](#virtual-machine-extensions) to apply. |
 | `os_type` | Specifies the OS: `Windows` or `Linux`. |
+| `os_disk_encryption_set_id` | Optional; specifies a disk encryption set ID (e.g., `/subscriptions/12345678...`) used to encrypt the OS disk with a customer-managed key (CMK). Defaults to `null`. |
 | `disk_controller_type` | Optional; sets disk controller to `SCSI` or `NVMe` based on VM SKU. |
 | `enable_boot_diagnostics` | If `true`, enables boot diagnostics. Default: `false`. |
 
 > [!TIP]
 > Lock groups can be overridden on VM set child resources. See [data disk groups](#virtual-machine-data-disk-groups) and [network interfaces](#virtual-machine-network-interfaces) for more information.
+
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use [`virtual_machine_scale_sets`](#virtual-machine-scale-sets) only when you need multiple VM sets to share the same scale set.
 
 #### Virtual Machine Image
 
@@ -932,6 +974,130 @@ virtual_machine_sets = {
 | `private_ip_allocation` | Optional; defines IP assignment: `Static` or `Dynamic`. Defaults to `Dynamic`. |
 | `enable_accelerated_networking` | Optional; if `true`, enables accelerated networking for better performance. Defaults to `true`. |
 
+#### Virtual Machine Set Load Balancer
+
+> Terraform variable: `var.virtual_machine_sets.load_balancer`
+
+The `load_balancer` section within [`virtual_machine_sets`](#virtual-machine-sets) provisions an [Azure Load Balancer](https://learn.microsoft.com/azure/load-balancer/load-balancer-overview) for the VM set, distributing inbound traffic across all VMs in the set. It supports both internal (private) and public frontends, a health probe, and one or more load-balancing rules. Port names in the health probe and rules reference entries in [`var.network_ports`](#network-ports), keeping port definitions consistent across your model.
+
+> [!IMPORTANT]
+> Exactly one of `internal_frontend` or `public_frontend` must be set per load balancer.
+
+##### Example: Internal Load Balancer
+
+An internal load balancer distributes traffic within a VNet, using a private IP on a specified subnet as its frontend.
+
+```hcl
+network_ports = {
+  https = "443"  # 🔑 "https" port
+}
+
+virtual_machine_sets = {
+  app = {                                              # 🔑 "app" VM set
+                                                       # Other fields...
+    load_balancer = {
+      nic_name = "primary_nic"                         # 🔗 Links to a key in network_interfaces (below)
+      sku      = "Standard"                            # Optional; Standard (default) or Basic
+
+      internal_frontend = {                            # Private frontend on a VNet subnet
+        network_name       = "main"                    # 🔗 Links to var.networks
+        subnet_name        = "app_subnet"              # 🔗 Links to var.networks.main.subnets
+        private_ip_address = "10.0.0.100"              # Optional; static private IP. Dynamic if unset.
+      }
+
+      health_probe = {
+        protocol            = "Tcp"                    # Tcp, Http, or Https
+        port_name           = "https"                  # 🔗 Links to var.network_ports
+        interval_in_seconds = 15                       # Optional; seconds between probes
+        probe_threshold     = 2                        # Optional; consecutive failures before unhealthy
+      }
+
+      rules = {
+        https = {                                      # 🔑 "https" load-balancing rule
+          protocol           = "Tcp"                   # Tcp or Udp
+          frontend_port_name = "https"                 # 🔗 Links to var.network_ports
+          backend_port_name  = "https"                 # 🔗 Links to var.network_ports
+        }
+      }
+    }
+
+    network_interfaces = {
+      primary_nic = {                                  # 🔑 "primary_nic" — referenced by nic_name above
+        network_name = "main"                          # 🔗 Links to var.networks
+        subnet_name  = "app_subnet"                    # 🔗 Links to var.networks.main.subnets
+      }
+    }
+  }
+}
+```
+
+##### Example: Public Load Balancer
+
+A public load balancer exposes the VM set to the internet via a public IP address.
+
+```hcl
+network_ports = {
+  https = "443"  # 🔑 "https" port
+}
+
+virtual_machine_sets = {
+  web = {                                                    # 🔑 "web" VM set
+                                                             # Other fields...
+    load_balancer = {
+      nic_name = "primary_nic"                               # 🔗 Links to a key in network_interfaces (below)
+
+      public_frontend = {                                    # Public IP frontend
+        public_ip_name          = "web-pip"                  # Optional; name for the public IP resource
+        public_ip_zones         = ["1", "2", "3"]            # Optional; availability zones for the public IP
+        idle_timeout_in_minutes = 4                          # Optional; idle connection timeout in minutes
+        ddos_protection_mode    = "VirtualNetworkInherited"  # Optional; DDoS protection mode
+      }
+
+      health_probe = {
+        protocol     = "Https"                               # Tcp, Http, or Https
+        port_name    = "https"                               # 🔗 Links to var.network_ports
+        request_path = "/health"                             # Optional; required for Http/Https probes
+      }
+
+      rules = {
+        https = {                                            # 🔑 "https" load-balancing rule
+          protocol           = "Tcp"
+          frontend_port_name = "https"                       # 🔗 Links to var.network_ports
+          backend_port_name  = "https"                       # 🔗 Links to var.network_ports
+          enable_floating_ip = false                         # Optional; enable for SQL AlwaysOn, etc.
+        }
+      }
+    }
+
+    network_interfaces = {
+      primary_nic = {                                        # 🔑 "primary_nic" — referenced by nic_name above
+        network_name = "main"                                # 🔗 Links to var.networks
+        subnet_name  = "web_subnet"                          # 🔗 Links to var.networks.main.subnets
+      }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `nic_name` | Required; links to a key in `network_interfaces` within this VM set. Specifies which NIC the load balancer backend pool attaches to. |
+| `sku` | Optional; sets the load balancer SKU: `Standard` or `Basic`. Defaults to `Standard`. |
+| `tags` | Optional; applies key-value tags to the load balancer resource. Defaults to `{}`. |
+| `internal_frontend` | Optional; configures a private frontend. Requires `network_name` (links to [`var.networks`](#networks)) and `subnet_name` (links to a subnet within that network). `private_ip_address` is optional; defaults to dynamic allocation if unset. |
+| `public_frontend` | Optional; configures a public IP frontend. `public_ip_name` (optional), `public_ip_zones` (optional; defaults to `["1", "2", "3"]`), `idle_timeout_in_minutes` (optional; defaults to `4`), and `ddos_protection_mode` (optional; defaults to `VirtualNetworkInherited`). |
+| `health_probe.protocol` | Required; the probe protocol: `Tcp`, `Http`, or `Https`. |
+| `health_probe.port_name` | Required; links to a key in [`var.network_ports`](#network-ports), specifying the port to probe. |
+| `health_probe.interval_in_seconds` | Optional; seconds between probes. Defaults to `15`. |
+| `health_probe.probe_threshold` | Optional; consecutive failures before a VM is marked unhealthy. Defaults to `2`. |
+| `health_probe.request_path` | Optional; the HTTP/HTTPS path to probe, e.g., `/health`. Required when `protocol` is `Http` or `Https`. |
+| `rules` | Required; a map of load-balancing rules. Each rule requires `protocol` (`Tcp` or `Udp`), `frontend_port_name` (links to [`var.network_ports`](#network-ports)), and `backend_port_name` (links to [`var.network_ports`](#network-ports)). |
+| `rules.idle_timeout_in_minutes` | Optional; idle connection timeout per rule. Defaults to `4`. |
+| `rules.enable_floating_ip` | Optional; enables floating IP (Direct Server Return) for the rule. Required for scenarios like SQL Server AlwaysOn Availability Groups. Defaults to `false`. |
+
+> [!NOTE]
+> Port names in `health_probe.port_name`, `rules.frontend_port_name`, and `rules.backend_port_name` all link to [`var.network_ports`](#network-ports). This keeps port numbers defined in one place and reused consistently across security rules, health probes, and load-balancing rules.
+
 ### Virtual Machine Set Specs
 
 > Terraform variable: `var.virtual_machine_set_specs`
@@ -995,6 +1161,50 @@ virtual_machine_set_specs = {
 
 > [!IMPORTANT]  
 > Ensure the `disk_count` aligns with workload requirements, as increasing the number of disks in a group can enhance performance for striped configurations but may increase costs. Verify that `storage_account_type` supports the chosen IOPS settings, as some types (e.g., `UltraSSD_LRS`) are required for high IOPS.
+
+### Virtual Machine Scale Sets
+
+> Terraform variable: `var.virtual_machine_scale_sets`
+
+The `virtual_machine_scale_sets` table defines named [Azure Virtual Machine Scale Sets (Flexible orchestration)](https://learn.microsoft.com/azure/virtual-machine-scale-sets/overview) that can be shared across multiple [`virtual_machine_sets`](#virtual-machine-sets). By default, each `virtual_machine_set` automatically gets its own dedicated VM Scale Set — no entry in this table is required for that behavior. Defining an entry here and referencing it via `scale_set_name` on one or more `virtual_machine_sets` allows those VM sets to share the same underlying scale set.
+
+```hcl
+virtual_machine_scale_sets = {
+  shared_vmss = {                                          # 🔑 "shared_vmss" scale set
+    location_name                     = "primary"          # 🔗 Links to var.locations
+    resource_group_name               = "production"       # 🔗 Links to var.resource_groups
+    name                              = "shared-vmss"      # Optional; custom name in Azure
+    include_deployment_prefix_in_name = true               # Apply var.deployment_prefix? Default: true
+
+    tags = {
+      purpose = "shared"                                   # Optional; tags the scale set
+    }
+  }
+}
+
+# Reference the shared scale set from one or more virtual_machine_sets:
+virtual_machine_sets = {
+  app = {                                                  # 🔑 "app" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+  worker = {                                               # 🔑 "worker" VM set
+    # Other fields...
+    scale_set_name = "shared_vmss"                         # 🔗 Links to var.virtual_machine_scale_sets
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `location_name` | Links to a key in [`var.locations`](#locations), specifying the Azure region for the scale set. |
+| `resource_group_name` | Links to a key in [`var.resource_groups`](#resource-groups), defining the resource group for the scale set. |
+| `name` | Optional; custom name for the scale set in Azure. Defaults to an auto-generated name based on the map key if not set. |
+| `include_deployment_prefix_in_name` | If `true`, prepends `var.deployment_prefix` to the scale set name. Default: `true`. |
+| `tags` | Optional; applies key-value tags to the scale set. Defaults to `{}`. |
+
+> [!NOTE]
+> If a `virtual_machine_set` does not specify a `scale_set_name`, a dedicated VM Scale Set is automatically created for it. Use `virtual_machine_scale_sets` only when you need multiple VM sets to share the same scale set.
 
 ### Virtual Machine Set Zone Distribution
 

@@ -34,11 +34,25 @@ locals {
     )
   }
 
+<<<<<<< HEAD:locals.names.tf
   security_group_names = {
     for nsg_key, nsg in var.network_security_groups
     : nsg_key => (
       replace(
         "${var.deployment_prefix}-${nsg_key}-nsg",
+=======
+  network_security_group_names = {
+    for nsg_name, nsg in var.network_security_groups :
+    nsg_name => (
+      replace(
+        nsg.name == null
+        ? "${var.deployment_prefix}-${nsg_name}-nsg"
+        : (
+          nsg.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${nsg.name}"
+          : nsg.name
+        ),
+>>>>>>> 2c75bbd6d5bd7303c01c5b6f491bc01cdd013185:subscription_infra_map/locals.names.tf
         "_", "-"
       )
     )
@@ -167,6 +181,22 @@ locals {
           vm_set.include_deployment_prefix_in_name
           ? "${var.deployment_prefix}-${vm_set.name}-asg"
           : "${vm_set.name}-asg"
+        ),
+        "_", "-"
+      )
+    )
+  }
+
+  virtual_machine_scale_set_names = {
+    for scale_set_name, scale_set in local.virtual_machine_scale_sets
+    : scale_set_name => (
+      replace(
+        scale_set.name == null
+        ? "${var.deployment_prefix}-${scale_set_name}-vmss"
+        : (
+          scale_set.include_deployment_prefix_in_name
+          ? "${var.deployment_prefix}-${scale_set.name}-vmss"
+          : scale_set.name
         ),
         "_", "-"
       )

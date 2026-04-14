@@ -20,7 +20,14 @@ locals {
   )
 
   maintenance_configuration_name = "${var.resource_prefix}-mc"
-  virtual_machine_scale_set_name = "${var.resource_prefix}-vmss"
+
+  load_balancer_type_prefix       = var.load_balancer == null ? "no-lb" : (var.load_balancer.internal_frontend != null ? "ilb" : "plb")
+  load_balancer_name              = "${var.resource_prefix}-${local.load_balancer_type_prefix}"
+  load_balancer_frontend_ip_name  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-feip"
+  load_balancer_backend_pool_name = "${var.resource_prefix}-${local.load_balancer_type_prefix}-bepool"
+  load_balancer_probe_name        = "${var.resource_prefix}-${local.load_balancer_type_prefix}-probe"
+  load_balancer_rule_name_prefix  = "${var.resource_prefix}-${local.load_balancer_type_prefix}-rule"
+  load_balancer_public_ip_name    = "${var.resource_prefix}-${local.load_balancer_type_prefix}-pip"
 
   # Sort VMs by sequence_number for consistent zone distribution
   sorted_vm_keys = [
@@ -77,6 +84,7 @@ locals {
     }
   }
 
+<<<<<<< HEAD:modules/infra_map_vm_set/locals.tf
   # OS disks per VM
   virtual_machine_os_disks = {
     for vm_key, vm in var.virtual_machines : vm_key => {
@@ -85,6 +93,16 @@ locals {
       caching              = lookup(var.virtual_machine_os_disk, "caching", "ReadWrite")
       storage_account_type = lookup(var.virtual_machine_os_disk, "storage_account_type", "PremiumV2_LRS")
       disk_size_gb         = lookup(var.virtual_machine_os_disk, "disk_size_gb", 128)
+=======
+  virtual_machine_os_disks = [
+    for i in range(var.virtual_machine_count) : {
+      name                   = lower("${local.virtual_machine_names[i]}-osdisk")
+      tags                   = var.resource_tags
+      caching                = lookup(var.virtual_machine_os_disk, "caching", "ReadWrite")
+      storage_account_type   = lookup(var.virtual_machine_os_disk, "storage_account_type", "PremiumV2_LRS")
+      disk_size_gb           = lookup(var.virtual_machine_os_disk, "disk_size_gb", 128)
+      disk_encryption_set_id = var.virtual_machine_os_disk.disk_encryption_set_id
+>>>>>>> 2c75bbd6d5bd7303c01c5b6f491bc01cdd013185:infra_map_vm_set/locals.tf
     }
   }
 

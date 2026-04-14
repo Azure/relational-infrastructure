@@ -65,10 +65,23 @@ Azure Powershell: Get-AzLocation | Select-Object Location
   }
 }
 
+<<<<<<< HEAD:modules/infra_map_vm_set/variables.tf
 variable "virtual_machine_extensions_automatic_updates_enabled" {
   type        = bool
   default     = true
   description = "Enable automatic updates for virtual machine extensions."
+=======
+variable "network_ports" {
+  type        = map(string)
+  default     = {}
+  nullable    = false
+  description = "Defines this model's network ports."
+}
+
+variable "enable_automatic_updates" {
+  type    = bool
+  default = false
+>>>>>>> 2c75bbd6d5bd7303c01c5b6f491bc01cdd013185:infra_map_vm_set/variables.tf
 }
 
 variable "user_assigned_identity_ids" {
@@ -112,6 +125,12 @@ variable "virtual_machine_extensions" {
   default   = {}
   nullable  = false
   sensitive = true
+}
+
+variable "virtual_machine_scale_set_id" {
+  type        = string
+  description = "The ID of the virtual machine scale set to which the virtual machines belong."
+  nullable    = true
 }
 
 variable "resource_prefix" {
@@ -340,10 +359,11 @@ variable "virtual_machine_network_interfaces" {
 
 variable "virtual_machine_os_disk" {
   type = object({
-    caching              = optional(string, "ReadWrite")
-    storage_account_type = optional(string, "PremiumV2_LRS")
-    disk_size_gb         = optional(number, 128)
-    lock_mode            = optional(string, null)
+    caching                = optional(string, "ReadWrite")
+    storage_account_type   = optional(string, "PremiumV2_LRS")
+    disk_size_gb           = optional(number, 128)
+    lock_mode              = optional(string, null)
+    disk_encryption_set_id = optional(string, null)
   })
 
   description = "The OS disk configuration for the virtual machines to deploy."
@@ -440,13 +460,6 @@ variable "maintenance_configuration" {
   description = "The maintenance configuration for the virtual machines to deploy."
 }
 
-variable "deploy_scale_set" {
-  type        = bool
-  default     = true
-  description = "Whether to deploy the virtual machines in a scale set."
-  nullable    = false
-}
-
 variable "virtual_machine_sku_size" {
   type        = string
   description = "The SKU size of the virtual machines to deploy."
@@ -517,4 +530,105 @@ Configuration for storing auto-generated admin credentials in Key Vault.
   - `not_before_date` - (Optional) - UTC datetime (Y-m-d'T'H:M:S'Z) before which this key is not valid.
   - `tags` - (Optional) - Tags to assign to this secret resource.
 DESCRIPTION
+}
+
+variable "load_balancer" {
+  type = object({
+    nic_name = string
+    sku      = optional(string, "Standard")
+    tags     = optional(map(string), {})
+
+    internal_frontend = optional(object({
+      subnet_id          = string
+      private_ip_address = optional(string, null)
+    }), null)
+
+    public_frontend = optional(object({
+      public_ip_name          = optional(string, null)
+      public_ip_zones         = optional(list(string), ["1", "2", "3"])
+      idle_timeout_in_minutes = optional(number, 4)
+      ddos_protection_mode    = optional(string, "VirtualNetworkInherited")
+    }), null)
+
+    health_probe = object({
+      protocol            = string
+      port_name           = string
+      interval_in_seconds = optional(number, 15)
+      probe_threshold     = optional(number, 2)
+      request_path        = optional(string, null)
+    })
+
+    rules = map(object({
+      protocol                = string
+      frontend_port_name      = string
+      backend_port_name       = string
+      idle_timeout_in_minutes = optional(number, 4)
+      enable_floating_ip      = optional(bool, false)
+    }))
+  })
+
+  default     = null
+  nullable    = true
+  description = <<DESCRIPTION
+When provided, a load balancer is provisioned and associated with all VMs in this set via the Azure Verified Module.
+
+- `nic_name`: Must match a key in [virtual_machine_network_interfaces]. Selects which NIC on each VM is registered with the backend pool.
+- `sku`: Defaults to 'Standard'. Basic SKU was retired September 2025.
+- `tags`: Additional tags to merge onto the load balancer resources.
+- `internal_frontend`: Provide this for an internal (private) load balancer. Requires a subnet ID; private IP is dynamic if omitted.
+- `public_frontend`: Provide this for a public-facing load balancer. A zone-redundant public IP is created automatically.
+- `health_probe`: Protocol, port, and optional HTTP path used to determine backend instance health.
+- `rules`: One or more load balancing rules. Each rule shares the single probe and backend pool created by this variable.
+
+Exactly one of [internal_frontend] or [public_frontend] must be set.
+DESCRIPTION
+
+  validation {
+    condition = var.load_balancer == null ? true : (
+      (var.load_balancer.internal_frontend != null) != (var.load_balancer.public_frontend != null)
+    )
+    error_message = "Exactly one of [load_balancer.internal_frontend] or [load_balancer.public_frontend] must be set."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      keys(var.virtual_machine_network_interfaces),
+      var.load_balancer.nic_name
+    )
+    error_message = "[load_balancer.nic_name] must match a key defined in [virtual_machine_network_interfaces]."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      ["Standard", "Gateway"],
+      var.load_balancer.sku
+    )
+    error_message = "[load_balancer.sku] must be 'Standard' or 'Gateway'. Basic SKU was retired September 2025."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : contains(
+      ["tcp", "http", "https"],
+      lower(var.load_balancer.health_probe.protocol)
+    )
+    error_message = "[load_balancer.health_probe.protocol] must be 'Tcp', 'Http', or 'Https'."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : (
+      lower(var.load_balancer.health_probe.protocol) == "tcp"
+      || var.load_balancer.health_probe.request_path != null
+    )
+    error_message = "[load_balancer.health_probe.request_path] is required when protocol is 'Http' or 'Https'."
+  }
+
+  validation {
+    condition = var.load_balancer == null ? true : alltrue([
+      for rule in values(var.load_balancer.rules) : contains(
+        ["tcp", "udp", "all"],
+        lower(rule.protocol)
+      )
+    ])
+    error_message = "[load_balancer.rules[*].protocol] must be 'Tcp', 'Udp', or 'All'."
+  }
 }
