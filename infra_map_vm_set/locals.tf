@@ -47,16 +47,17 @@ locals {
   virtual_machine_data_disks = [
     for i in range(var.virtual_machine_count) : {
       for disk_name, disk_config in var.virtual_machine_data_disks : disk_name => {
-        name                      = lower("${local.virtual_machine_names[i]}-${disk_name}-disk")
-        tags                      = merge(var.resource_tags, disk_config.tags)
-        caching                   = lookup(disk_config, "caching", "ReadWrite")
-        storage_account_type      = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
-        lun                       = disk_config.lun
-        disk_size_gb              = disk_config.disk_size_gb
-        create_option             = (disk_config.image == null ? "Empty" : (disk_config.image.copy != null ? "Copy" : (disk_config.image.import != null ? (disk_config.image.import.secure ? "ImportSecure" : "Import") : disk_config.image.platform != null ? "FromImage" : "Restore")))
-        source_image_reference_id = (disk_config.image == null ? null : (disk_config.image.platform != null ? disk_config.image.platform.image_reference.id : null))
-        source_resource_id        = (disk_config.image == null ? null : (disk_config.image.copy != null ? disk_config.image.copy.resource_id : (disk_config.image.restore != null ? disk_config.image.restore.resource_id : null)))
-        source_uri                = (disk_config.image == null ? null : (disk_config.image.import != null ? disk_config.image.import.uri : null))
+        name                            = lower("${local.virtual_machine_names[i]}-${disk_name}-disk")
+        tags                            = merge(var.resource_tags, disk_config.tags)
+        caching                         = lookup(disk_config, "caching", "ReadWrite")
+        storage_account_type            = lookup(disk_config, "storage_account_type", "PremiumV2_LRS")
+        lun                             = disk_config.lun
+        disk_size_gb                    = disk_config.disk_size_gb
+        disk_encryption_set_resource_id = disk_config.disk_encryption_set_id
+        create_option                   = (disk_config.image == null ? "Empty" : (disk_config.image.copy != null ? "Copy" : (disk_config.image.import != null ? (disk_config.image.import.secure ? "ImportSecure" : "Import") : disk_config.image.platform != null ? "FromImage" : "Restore")))
+        source_image_reference_id       = (disk_config.image == null ? null : (disk_config.image.platform != null ? disk_config.image.platform.image_reference.id : null))
+        source_resource_id              = (disk_config.image == null ? null : (disk_config.image.copy != null ? disk_config.image.copy.resource_id : (disk_config.image.restore != null ? disk_config.image.restore.resource_id : null)))
+        source_uri                      = (disk_config.image == null ? null : (disk_config.image.import != null ? disk_config.image.import.uri : null))
 
         lock_level = (
           var.lock_mode == null ? null
